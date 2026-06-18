@@ -89,3 +89,64 @@ class CompetEEGSolver(BaseSolver):
         custom pooling (e.g. a CLS token).
         """
         return torch.as_tensor(self.time_embed(model, X)).mean(dim=1)
+
+
+class CompetEEGGeneralSolver(BaseSolver):
+    """Base class for specialist (general track) submissions.
+
+    Unlike the foundation-model track, a specialist is **task-specific**: it
+    declares the task it targets via the ``task`` class attribute and trains a
+    model directly on that task's data (labels *do* reach the model). One
+    submission per task — set ``task`` and implement ``load_model``:
+
+    - ``load_model(self, meta)`` -> a model exposing ``fit(train_loader)`` and
+      ``predict(X)`` (epoched: ``(B,)`` labels; dense: ``(B, T)`` per-step
+      labels). ``meta`` carries ``sfreq, ch_names, chs_info, n_chans, n_times,
+      n_classes, task, task_kind``.
+
+    The base class gates on the general track *and* the targeted task (via
+    ``skip``), runs training, and returns the fitted model.
+    """
+
+    requirements = ["scikit-learn", "pip::torch"]
+
+    sampling_strategy = "run_once"
+
+    # The task this specialist targets — subclasses must set it.
+    task = None
+
+    # ``benchopt test`` instantiates the objective on the general track.
+    test_config = {"objective": {"track": "general"}}
+
+    def skip(self, track, task, **objective_dict):
+        if track != "general":
+            return True, "Specialist submissions run on the general track"
+        if self.task is not None and task != self.task:
+            return True, (
+                f"{self.name} targets task {self.task!r}, not {task!r}"
+            )
+        return False, None
+
+    def set_objective(self, train_loader, task, task_kind, track, n_classes,
+                      **meta):
+        # Note: ``self.task`` is the *declared* target (class attribute); the
+        # objective's task arrives here and is exposed through ``meta``.
+        self.train_loader = train_loader
+        self.task_kind = task_kind
+        self.meta = {
+            **meta, "n_classes": n_classes, "task": task,
+            "task_kind": task_kind,
+        }
+        self.model = self.load_model(self.meta)
+
+    def run(self, _):
+        self.model.fit(self.train_loader)
+
+    def get_result(self):
+        return dict(model=self.model)
+
+    # --- to be implemented by the submission ---------------------------
+
+    def load_model(self, meta):
+        """Build the specialist model (``fit(loader)`` / ``predict(X)``)."""
+        raise NotImplementedError

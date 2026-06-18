@@ -19,11 +19,16 @@ spanning the two data regimes EEG decoding needs:
   - *linear_probe* (foundation models): a submission ships only a frozen
     encoder; the infra auto-fits a scikit-learn linear head. This is the
     track's constraint — labels never reach the encoder.
-  - *general* (specialists): a submission trains a task-specific model directly.
+  - *general* (specialists): a submission trains a **task-specific** model
+    directly — one submission per task.
 - **A submission is a benchopt solver.** Foundation-model submissions subclass
   `benchmark_utils.base_solver.CompetEEGSolver` and implement `load_model` +
-  `time_embed`/`embed` (see `solution/submission.py`). The base class handles
-  track gating and fitting the linear probe.
+  `time_embed`/`embed` (see `solution/submission.py`); the base class handles
+  track gating and fitting the linear probe. Specialist submissions subclass
+  `CompetEEGGeneralSolver`, set the `task` class attribute they target, and
+  implement `load_model` returning a model with `fit`/`predict` (see
+  `solution/submission_general.py`); the base gates on the general track *and*
+  the targeted task.
 - **One contract for both regimes.** The encoder produces a *temporal*
   embedding `(B, C, T) → (B, T', D)`; the linear head is applied per time
   position. Epoched tasks pool over `T'` (one label/window); dense tasks keep
@@ -50,11 +55,12 @@ spanning the two data regimes EEG decoding needs:
 benchmark/              standalone benchopt benchmark
   objective.py          EEGObjective: `track` switch + epoched/dense metrics
   datasets/             simulated (zero-dep), moabb_mi, sleep_edf
-  solvers/              linear_probe (reference FM), general (reference specialist)
+  solvers/              linear_probe (reference FM); general_{mi,sleep} (per-task reference specialists)
   benchmark_utils/      base_solver, linear_probe, data, baselines, neuralset_task
 ingestion_program/      runs the benchmark on a submission -> raw results dataframe
 scoring_program/        parses the dataframe -> scores.json
-solution/submission.py  sample foundation-model submission (REVE)
+solution/submission.py          sample foundation-model submission (REVE)
+solution/submission_general.py  sample task-specific specialist submission (MI)
 tools/                  setup_data (benchopt prepare), create_bundle, Dockerfile
 dev_phase/              placeholder data dirs (data is loaded by the benchmark)
 pages/                  Codabench competition pages

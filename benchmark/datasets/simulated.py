@@ -1,13 +1,15 @@
 """Zero-(EEG-)dependency simulated dataset — the always-available smoke test.
 
-Produces learnable windows in the shared dataloader contract for **both** task
-regimes via the ``task_kind`` parameter:
+Stands in for the **real tasks** so any model (including task-specific
+specialists) can be tested without downloads. The ``task`` parameter selects
+which task to mimic, each mapped to its regime:
 
-- ``epoched`` : one class per window (channel means shifted by a per-class
-  template), label ``y: (N,)``.
-- ``dense``   : each window is a sequence of class segments (the channel means
-  shift segment-by-segment), label ``y: (N, T)`` per time-step. The last class
-  acts as the background/null used by the ``onset_f1`` metric.
+- ``mi``    : motor imagery, *epoched* — one class per window (channel means
+  shifted by a per-class template), label ``y: (N,)``.
+- ``sleep`` : sleep staging, *dense* — each window is a sequence of class
+  segments (the channel means shift segment-by-segment), label ``y: (N, T)``
+  per time-step. The last class acts as the background/null used by the
+  ``onset_f1`` metric.
 
 Only depends on numpy + torch (the benchmark's base stack), so it needs no
 EEG packages and powers ``benchopt run benchmark/ -d Simulated`` and
@@ -19,6 +21,9 @@ from benchopt import BaseDataset
 
 from benchmark_utils.data import make_loader
 
+# Each simulated task mimics one real task's regime.
+TASK_KIND = {"mi": "epoched", "sleep": "dense"}
+
 
 class Dataset(BaseDataset):
 
@@ -27,13 +32,13 @@ class Dataset(BaseDataset):
     requirements = []
 
     parameters = {
-        "task_kind": ["epoched", "dense"],
+        "task": ["mi", "sleep"],
         "n_chans, n_times": [(8, 200)],
         "n_classes": [3],
     }
 
     test_parameters = {
-        "task_kind": ["epoched", "dense"],
+        "task": ["mi", "sleep"],
         "n_chans, n_times": [(4, 80)],
         "n_classes": [3],
     }
@@ -70,9 +75,10 @@ class Dataset(BaseDataset):
     def get_data(self):
         rng = np.random.default_rng(self.get_seed())
         templates = self._class_templates(rng)
+        task_kind = TASK_KIND[self.task]
 
         n_train, n_test = 120, 60
-        if self.task_kind == "epoched":
+        if task_kind == "epoched":
             X_tr, y_tr = self._make_epoched(rng, n_train, templates)
             X_te, y_te = self._make_epoched(rng, n_test, templates)
             metrics = ["accuracy", "balanced_accuracy"]
@@ -84,8 +90,8 @@ class Dataset(BaseDataset):
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True),
             test_loader=make_loader(X_te, y_te),
-            task="simulated",
-            task_kind=self.task_kind,
+            task=self.task,
+            task_kind=task_kind,
             metrics=metrics,
             n_classes=self.n_classes,
             sfreq=100.0,
