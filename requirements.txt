@@ -1,2 +1,14 @@
+# Dependencies to run the ingestion + scoring programs (Codabench worker /
+# Docker image). The ingestion program runs the bundled benchopt benchmark, so
+# it needs benchopt plus everything the benchmark imports at run time.
+benchopt
 pandas
 scikit-learn
+torch
+# Data stack for the real tasks (Simulated needs none of these):
+neuralset
+neuralfetch
+moabb
+mne
+# Sample foundation-model submission (REVE); optional — falls back if absent:
+braindecode

@@ -1,94 +1,107 @@
 """Ingestion program for the EEG competition.
 
-Runs the bundled benchopt benchmark on the participant's submission *via the
-programmatic API* (``benchopt.run_benchmark``, no subprocess), then writes a
-tidy results dataframe. The scoring program only parses that dataframe — all
-evaluation happens here (see the competition design: "run everything in the
-ingestion").
+A submission is a **benchopt solver** (a ``submission.py`` defining
+``class Solver`` — see ``solution/``). This program:
 
-Layout (mirrors the Codabench bundle):
-- ``benchmark/``         the standalone benchopt benchmark.
-- ``<submission-dir>/``  the participant's ``submission.py`` (put on sys.path
-                         so the solvers import their encoder/model).
+1. copies the submission solver(s) into the bundled benchmark's ``solvers/``
+   so benchopt discovers them,
+2. runs the benchmark on them via the programmatic API
+   (``benchopt.run_benchmark``, no subprocess), and
+3. stores the **raw** benchopt results dataframe with ``save_results`` (so the
+   full result — including any packed prediction artefacts — round-trips, and
+   we can keep predictions later if we want).
+
+The scoring program only reads that dataframe (``read_results``) — all
+evaluation happens here.
 """
 
 import os
 # scikit-learn array-API dispatch (torch tensors through the linear head)
-# needs scipy's array-API support, gated behind this env var and read at
-# scipy import time — set it before benchopt/scipy are imported.
+# needs scipy's array-API support, read at scipy import time.
 os.environ.setdefault("SCIPY_ARRAY_API", "1")
 
 import argparse  # noqa: E402
+import importlib.util  # noqa: E402
 import json  # noqa: E402
+import shutil  # noqa: E402
 import sys  # noqa: E402
 import time  # noqa: E402
 from pathlib import Path  # noqa: E402
 
-import pandas as pd  # noqa: E402
 
-# Metric columns (everything else under ``objective_`` is context).
-METRICS = [
-    "accuracy", "balanced_accuracy",
-    "staging_balanced_accuracy", "onset_f1",
-]
+def discover_submission_solvers(submission_dir, benchmark_dir):
+    """Find ``class Solver`` in the submission and return their names.
 
-SOLVER_BY_TRACK = {"linear_probe": "LinearProbe", "general": "General"}
-
-
-def tidy_results(df):
-    """Melt a benchopt result frame into long per-metric rows."""
-    rows = []
-    for _, r in df.iterrows():
-        for metric in METRICS:
-            col = f"objective_{metric}"
-            if col not in df.columns or pd.isna(r[col]):
-                continue
-            task = r.get("objective_task", r.get("dataset_name"))
-            rows.append({
-                "task": task,
-                "data_name": r.get("dataset_name"),
-                "track": r.get("objective_track"),
-                "task_kind": r.get("objective_task_kind"),
-                "solver": r.get("solver_name"),
-                "metric": metric,
-                "score": float(r[col]),
-                "time": float(r.get("time", float("nan"))),
-            })
-    return pd.DataFrame(rows)
+    Importing requires the benchmark on ``sys.path`` (submissions subclass
+    ``benchmark_utils.base_solver.CompetEEGSolver``).
+    """
+    sys.path.insert(0, str(benchmark_dir))
+    names = []
+    for path in sorted(submission_dir.glob("*.py")):
+        spec = importlib.util.spec_from_file_location(
+            f"_sub_{path.stem}", path
+        )
+        module = importlib.util.module_from_spec(spec)
+        try:
+            spec.loader.exec_module(module)
+        except Exception as e:
+            print(f"[ingestion] skip {path.name}: import failed ({e!r})")
+            continue
+        solver = getattr(module, "Solver", None)
+        if solver is not None and getattr(solver, "name", None):
+            names.append((path, solver.name))
+    return names
 
 
-def main(submission_dir, output_dir, benchmark_dir, tracks, datasets):
-    sys.path.insert(0, str(submission_dir))
+def main(submission_dir, output_dir, benchmark_dir, datasets):
     from benchopt import run_benchmark
+    from benchopt.results import read_results, save_results
 
-    solver_names = [SOLVER_BY_TRACK[t] for t in tracks]
+    solvers_dir = benchmark_dir / "solvers"
+    found = discover_submission_solvers(submission_dir, benchmark_dir)
+    if not found:
+        raise SystemExit(
+            f"No submission solver (class Solver) found in {submission_dir}."
+        )
 
-    start = time.time()
-    save_file = run_benchmark(
-        str(benchmark_dir),
-        solver_names=solver_names,
-        dataset_names=datasets,                 # None -> all tasks
-        objective_filters=[f"EEG[track={t}]" for t in tracks],
-        max_runs=1,
-        n_repetitions=1,
-        plot_result=False,
-        display=False,
-        html=False,
-        show_progress=True,
-    )
-    duration = time.time() - start
+    # Copy submission solver files into the benchmark so benchopt finds them.
+    copied, solver_names = [], []
+    for path, name in found:
+        dst = solvers_dir / f"_submission_{path.stem}.py"
+        shutil.copyfile(path, dst)
+        copied.append(dst)
+        solver_names.append(name)
+    print(f"[ingestion] running submission solvers: {solver_names}")
 
-    df = pd.read_parquet(save_file)
-    results = tidy_results(df)
+    try:
+        start = time.time()
+        save_file = run_benchmark(
+            str(benchmark_dir),
+            solver_names=solver_names,
+            dataset_names=datasets,                 # None -> all tasks
+            objective_filters=[
+                "EEG[track=linear_probe]", "EEG[track=general]",
+            ],
+            max_runs=1,
+            n_repetitions=1,
+            plot_result=False,
+            display=False,
+            html=False,
+            show_progress=True,
+        )
+        duration = time.time() - start
+    finally:
+        for dst in copied:
+            dst.unlink(missing_ok=True)
 
+    # Round-trip the raw benchopt dataframe (keeps packed artefacts).
+    df = read_results(save_file)
     output_dir.mkdir(parents=True, exist_ok=True)
-    results.to_parquet(output_dir / "results.parquet", index=False)
-    results.to_csv(output_dir / "results.csv", index=False)
+    save_results(df, output_dir / "results.parquet", uniquify=False)
     (output_dir / "metadata.json").write_text(
         json.dumps({"duration": duration})
     )
-    print(f"Ingestion done in {duration:.1f}s; {len(results)} result rows.")
-    print(results.to_string(index=False))
+    print(f"[ingestion] done in {duration:.1f}s; {len(df)} result rows.")
 
 
 if __name__ == "__main__":
@@ -101,22 +114,14 @@ if __name__ == "__main__":
         "--benchmark-dir", default=str(here.parent / "benchmark"),
     )
     parser.add_argument(
-        "--track", default="both",
-        choices=["linear_probe", "general", "both"],
-    )
-    parser.add_argument(
         "--datasets", nargs="*", default=None,
         help="Dataset names to run (default: all). e.g. Simulated",
     )
     args = parser.parse_args()
 
-    tracks = (["linear_probe", "general"] if args.track == "both"
-              else [args.track])
-
     main(
         Path(args.submission_dir),
         Path(args.output_dir),
         Path(args.benchmark_dir),
-        tracks,
         args.datasets,
     )
