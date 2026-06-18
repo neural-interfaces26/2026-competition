@@ -1,0 +1,33 @@
+# CI for the bundled benchopt benchmark (compet2026/benchmark/).
+# Mirrors benchopt/template_benchmark's main.yml, but points the reusable
+# test workflow at the ``benchmark`` sub-folder via the ``benchmark_dir`` input
+# (the benchmark lives in a subdirectory of the Codabench bundle repo).
+name: Benchmark
+
+on:
+  push:
+    branches:
+      - main
+  create:
+    tags:
+      - '**'
+  pull_request:
+    branches:
+      - main
+  schedule:
+    # Run every 1st of the month at 7:42am UTC.
+    - cron: '42 7 1 * *'
+
+jobs:
+  benchopt_dev:
+    uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
+    with:
+      benchopt_branch: benchopt@main
+      benchmark_dir: benchmark
+  benchopt_release:
+    uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
+    with:
+      benchopt_version: latest
+      benchmark_dir: benchmark
+  lint:
+    uses: benchopt/template_benchmark/.github/workflows/lint_benchmarks.yml@main

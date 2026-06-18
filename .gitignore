@@ -1,0 +1,8 @@
+*.csv
+.DS_Store
+*.pyc
+*.xml
+*.zip
+ingestion_res/*
+scoring_res/*
+dev_phase/*

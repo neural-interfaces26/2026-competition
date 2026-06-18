@@ -1,0 +1,89 @@
+# Test that the docker image builds correctly
+# and that running the ingestion and scoring programs works
+# Also use cache for the data and the docker image.
+name: Test Docker Image
+
+on:
+    push:
+        branches: [ main ]
+    pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        env:
+            DOCKER_IMAGE_NAME: docker-codabench-test
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: |
+                echo "################################"
+                echo "Disk usage BEFORE cleanup:"
+                echo "################################"
+                df -h
+
+                echo "Removing .NET..."
+                rm -rf /usr/share/dotnet || true
+
+                echo "Removing Android SDK..."
+                sudo rm -rf /usr/local/lib/android || true
+
+                echo "Removing GHC / Haskell..."
+                rm -rf /opt/ghc || true
+                sudo rm -rf /usr/local/.ghcup || true
+
+                echo "################################"
+                echo "Disk usage AFTER cleanup:"
+                echo "################################"
+                df -h
+
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Docker build
+              uses: docker/build-push-action@v6
+              with:
+                file: ./tools/Dockerfile
+                push: false
+                load: true
+                tags: ${{ env.DOCKER_IMAGE_NAME }}
+                # Use GitHub Actions (GHA) as the cache backend
+                # 'cache-from' attempts to restore layers from previous runs
+                cache-from: type=gha,scope=${{ env.DOCKER_IMAGE_NAME }}-${{ hashFiles('**/Dockerfile') }}-${{ hashFiles('**/requirements.txt') }}
+                # 'cache-to' saves the new layers after the build finishes
+                cache-to: type=gha,mode=max,scope=${{ env.DOCKER_IMAGE_NAME }}-${{ hashFiles('**/Dockerfile') }}-${{ hashFiles('**/requirements.txt') }}
+
+            - uses: actions/setup-python@main
+              with:
+                python-version: '3.12'
+                pip-install: -r requirements.txt
+                cache: 'pip' # caching pip dependencies
+            - name: Prepare input/output directories
+              run: python tools/setup_data.py
+
+            - name: Test ingestion program
+              run: |
+                docker run --rm -u root \
+                    -v "./ingestion_program":"/app/ingestion_program" \
+                    -v "./dev_phase/input_data":/app/input_data \
+                    -v "./ingestion_res":/app/output \
+                    -v "./solution":/app/ingested_program \
+                    --name ingestion ${{ env.DOCKER_IMAGE_NAME }} \
+                        python /app/ingestion_program/ingestion.py
+
+            - name: Test scoring program
+              run: |
+                docker run --rm -u root \
+                    -v "./scoring_program":"/app/scoring_program" \
+                    -v "./dev_phase/reference_data":/app/input/ref \
+                    -v "./ingestion_res":/app/input/res \
+                    -v "./scoring_res":/app/output \
+                    --name scoring ${{ env.DOCKER_IMAGE_NAME }} \
+                        python /app/scoring_program/scoring.py
