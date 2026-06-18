@@ -1,0 +1,96 @@
+"""Zero-(EEG-)dependency simulated dataset — the always-available smoke test.
+
+Produces learnable windows in the shared dataloader contract for **both** task
+regimes via the ``task_kind`` parameter:
+
+- ``epoched`` : one class per window (channel means shifted by a per-class
+  template), label ``y: (N,)``.
+- ``dense``   : each window is a sequence of class segments (the channel means
+  shift segment-by-segment), label ``y: (N, T)`` per time-step. The last class
+  acts as the background/null used by the ``onset_f1`` metric.
+
+Only depends on numpy + torch (the benchmark's base stack), so it needs no
+EEG packages and powers ``benchopt run benchmark/ -d Simulated`` and
+``benchopt test``.
+"""
+
+import numpy as np
+from benchopt import BaseDataset
+
+from benchmark_utils.data import make_loader
+
+
+class Dataset(BaseDataset):
+
+    name = "Simulated"
+
+    requirements = []
+
+    parameters = {
+        "task_kind": ["epoched", "dense"],
+        "n_chans, n_times": [(8, 200)],
+        "n_classes": [3],
+    }
+
+    test_parameters = {
+        "task_kind": ["epoched", "dense"],
+        "n_chans, n_times": [(4, 80)],
+        "n_classes": [3],
+    }
+
+    def _class_templates(self, rng):
+        # One channel-mean template per class; scaled so a linear model can
+        # separate the classes above the noise floor.
+        return rng.standard_normal((self.n_classes, self.n_chans)) * 2.0
+
+    def _make_epoched(self, rng, n, templates):
+        X = np.empty((n, self.n_chans, self.n_times), dtype=np.float32)
+        y = rng.integers(0, self.n_classes, size=n)
+        for i, k in enumerate(y):
+            mean = templates[k][:, None]
+            X[i] = mean + rng.standard_normal((self.n_chans, self.n_times))
+        return X, y.astype(np.int64)
+
+    def _make_dense(self, rng, n, templates):
+        X = np.empty((n, self.n_chans, self.n_times), dtype=np.float32)
+        y = np.empty((n, self.n_times), dtype=np.int64)
+        n_seg = 4
+        bounds = np.linspace(0, self.n_times, n_seg + 1).astype(int)
+        for i in range(n):
+            for s in range(n_seg):
+                a, b = bounds[s], bounds[s + 1]
+                k = rng.integers(0, self.n_classes)
+                X[i, :, a:b] = (
+                    templates[k][:, None]
+                    + rng.standard_normal((self.n_chans, b - a))
+                )
+                y[i, a:b] = k
+        return X, y
+
+    def get_data(self):
+        rng = np.random.default_rng(self.get_seed())
+        templates = self._class_templates(rng)
+
+        n_train, n_test = 120, 60
+        if self.task_kind == "epoched":
+            X_tr, y_tr = self._make_epoched(rng, n_train, templates)
+            X_te, y_te = self._make_epoched(rng, n_test, templates)
+            metrics = ["accuracy", "balanced_accuracy"]
+        else:
+            X_tr, y_tr = self._make_dense(rng, n_train, templates)
+            X_te, y_te = self._make_dense(rng, n_test, templates)
+            metrics = ["staging_balanced_accuracy", "onset_f1"]
+
+        return dict(
+            train_loader=make_loader(X_tr, y_tr, shuffle=True),
+            test_loader=make_loader(X_te, y_te),
+            task="simulated",
+            task_kind=self.task_kind,
+            metrics=metrics,
+            n_classes=self.n_classes,
+            sfreq=100.0,
+            ch_names=[f"ch{i}" for i in range(self.n_chans)],
+            chs_info=None,
+            n_chans=self.n_chans,
+            n_times=self.n_times,
+        )

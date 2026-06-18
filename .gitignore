@@ -6,3 +6,6 @@
 ingestion_res/*
 scoring_res/*
 dev_phase/*
+
+**/outputs/
+**/__cache__/
