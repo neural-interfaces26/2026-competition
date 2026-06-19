@@ -4,7 +4,7 @@
 #    - Codalab: codalab/codalab-legacy:py39
 #    - Codalab GPU: codalab/codalab-legacy:gpu310
 #    - Pytorch: pytorch/pytorch:2.8.0-cuda12.6-cudnn9-runtime
-FROM codalab/codalab-legacy:py39
+FROM pytorch/pytorch:2.8.0-cuda12.6-cudnn9-runtime
 
 # Set environment variables to prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive

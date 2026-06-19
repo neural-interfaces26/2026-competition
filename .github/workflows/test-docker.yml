@@ -65,6 +65,7 @@ jobs:
                 python-version: '3.12'
                 pip-install: -r requirements.txt
                 cache: 'pip' # caching pip dependencies
+
             - name: Prepare input/output directories
               run: python tools/setup_data.py
 
