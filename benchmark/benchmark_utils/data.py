@@ -17,9 +17,11 @@ scikit-learn boundaries (the linear head and the metrics), via
 :func:`to_numpy`.
 """
 
+import os
+
 import numpy as np
 import torch
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, default_collate
 
 
 def to_numpy(x):
@@ -30,6 +32,48 @@ def to_numpy(x):
     if isinstance(x, torch.Tensor):
         return x.detach().cpu().numpy()
     return np.asarray(x)
+
+
+def get_device():
+    """Device the benchmark runs on (``cuda`` when available, else ``cpu``).
+
+    Auto-detects a GPU; override with ``COMPET_EEG_DEVICE`` (e.g. ``cpu`` to
+    force CPU even on a GPU box, handy for debugging). Datasets call this once
+    and (a) move every batch onto the device at loading time and (b) advertise
+    it through ``meta["device"]`` so a model can place itself there in
+    ``load_model``.
+    """
+    forced = os.environ.get("COMPET_EEG_DEVICE")
+    if forced:
+        return forced
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def chs_info_from_names(ch_names):
+    """Minimal MNE-style ``chs_info`` — one ``{"ch_name": ...}`` per channel.
+
+    Foundation models that place channels *by name* (e.g. braindecode REVE,
+    which maps standard 10-20/10-10/10-05 electrode names to 3D coordinates)
+    read ``ch["ch_name"]`` from this list to look up positions. ``None`` in →
+    ``None`` out, so datasets without channel names stay explicit.
+    """
+    if ch_names is None:
+        return None
+    return [{"ch_name": str(n)} for n in ch_names]
+
+
+def _move_collate(device):
+    """Default collate, then move the signal/labels onto ``device``.
+
+    Done at *batch-loading* time so the encoder/model and the linear head all
+    see ``X`` and ``y`` on the same device (no per-solver ``.to(device)`` and
+    no silent device-mismatch fallback in the probe). ``info`` stays on CPU —
+    it is only used by the numpy metric code.
+    """
+    def collate(batch):
+        X, y, info = default_collate(batch)
+        return X.to(device), y.to(device), info
+    return collate
 
 
 def resample_labels(seq, new_len):
@@ -49,7 +93,7 @@ def resample_labels(seq, new_len):
         return seq
     if isinstance(seq, torch.Tensor):
         idx = torch.floor(
-            torch.arange(new_len) * (length / new_len)
+            torch.arange(new_len, device=seq.device) * (length / new_len)
         ).long().clamp(0, length - 1)
         return seq[..., idx]
     seq = np.asarray(seq)
@@ -96,11 +140,87 @@ class ArrayWindows(Dataset):
 
 
 def make_loader(X, y, batch_size=32, shuffle=False, record_id=None,
-                onset=None):
+                onset=None, device="cpu"):
     """Wrap arrays/tensors in ``ArrayWindows`` + a torch ``DataLoader``.
 
-    The default collate batches ``X``/``y`` into tensors and turns the
-    ``info`` dict into a dict of tensors.
+    The collate batches ``X``/``y`` into tensors (moved onto ``device``) and
+    turns the ``info`` dict into a dict of tensors (kept on CPU).
     """
     dataset = ArrayWindows(X, y, record_id=record_id, onset=onset)
-    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle)
+    return DataLoader(
+        dataset, batch_size=batch_size, shuffle=shuffle,
+        collate_fn=_move_collate(device),
+    )
+
+
+class SegmentWindows(Dataset):
+    """Lazy windows over a neuralset ``SegmentDataset``, yielding ``(X, y,
+    info)``.
+
+    Wraps a *prepared* neuralset ``SegmentDataset`` so the EEG signal is
+    extracted one window at a time (kept off-memory) rather than materialized
+    up front, while still conforming to the benchmark loader contract. Labels
+    and per-window ``info`` are small and precomputed at construction.
+
+    Parameters
+    ----------
+    seg_ds : neuralset SegmentDataset
+        Prepared dataset whose ``seg_ds[i]`` yields a ``Batch`` with the EEG
+        signal under ``eeg_key`` (shape ``(1, C, T)`` or ``(C, T)``).
+    y : array-like, ``(N,)`` (epoched) or ``(N, T)`` (dense)
+    record_id, onset : array-like ``(N,)``
+        Source-recording id and window start sample, aligned with ``seg_ds``.
+    """
+
+    def __init__(self, seg_ds, y, record_id, onset, eeg_key="eeg"):
+        self.seg_ds = seg_ds
+        self.eeg_key = eeg_key
+        self.y = torch.as_tensor(to_numpy(y), dtype=torch.long)
+        self.record_id = np.asarray(record_id, dtype=np.int64)
+        self.onset = np.asarray(onset, dtype=np.int64)
+
+    def __len__(self):
+        return len(self.seg_ds)
+
+    def __getitem__(self, i):
+        x = torch.as_tensor(
+            to_numpy(self.seg_ds[i].data[self.eeg_key]), dtype=torch.float32
+        )
+        if x.ndim == 3:                 # (1, C, T) -> (C, T)
+            x = x[0]
+        info = {
+            "record_id": int(self.record_id[i]),
+            "onset": int(self.onset[i]),
+        }
+        return x, self.y[i], info
+
+
+def make_segment_loader(seg_ds, y, record_id, onset, batch_size=32,
+                        shuffle=False, device="cpu"):
+    """Wrap a neuralset ``SegmentDataset`` in ``SegmentWindows`` + a torch
+    ``DataLoader`` (lazy signal extraction; batches moved onto ``device``)."""
+    dataset = SegmentWindows(seg_ds, y, record_id, onset)
+    return DataLoader(
+        dataset, batch_size=batch_size, shuffle=shuffle,
+        collate_fn=_move_collate(device),
+    )
+
+
+def group_split(groups, test_size, seed):
+    """Train/test split that keeps each source recording (group) intact.
+
+    Splits at the *recording* level (``groups``, e.g. ``record_id`` derived
+    from the study timeline) rather than randomly over windows, so windows from
+    the same recording/session never leak across the train/test boundary —
+    important when one subject/session yields many correlated windows.
+
+    Returns ``(train_idx, test_idx)`` integer arrays.
+    """
+    from sklearn.model_selection import GroupShuffleSplit
+
+    groups = np.asarray(groups)
+    splitter = GroupShuffleSplit(
+        n_splits=1, test_size=test_size, random_state=seed
+    )
+    train_idx, test_idx = next(splitter.split(groups, groups=groups))
+    return train_idx, test_idx

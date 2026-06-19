@@ -5,8 +5,8 @@ without any participant submission and without the heavy EEG stack:
 
 - :func:`default_encoder` — a frozen :class:`RandomProjectionEncoder` for the
   **linear-probe track** when no ``submission.get_encoder`` is importable.
-- :class:`DefaultGeneralModel` — a simple scikit-learn baseline for the
-  **general track** (``fit(loader)`` / ``predict((B, C, T))``), handling both
+- :class:`DefaultSpecificModel` — a simple scikit-learn baseline for the
+  **specific track** (``fit(loader)`` / ``predict((B, C, T))``), handling both
   the epoched and dense regimes.
 - :class:`ConstantModel` — a trivial model for ``Objective.get_one_result``.
 """
@@ -25,8 +25,8 @@ def default_encoder(meta):
     return RandomProjectionEncoder(n_chans=meta.get("n_chans", 1))
 
 
-class DefaultGeneralModel:
-    """Dependency-light specialist baseline for the general track.
+class DefaultSpecificModel:
+    """Dependency-light specialist baseline for the specific track.
 
     - ``epoched`` : mean over time per window → LogReg → one label/window.
     - ``dense``   : per-time-step features (channel values) → LogReg →

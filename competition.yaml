@@ -61,15 +61,15 @@ leaderboards:
         sorting: desc
       # --- Specialist track ---
       - title: Spec · MI bal-acc
-        key: general_mi_balanced_accuracy
+        key: specific_mi_balanced_accuracy
         index: 3
         sorting: desc
       - title: Spec · Sleep staging bal-acc
-        key: general_sleep_staging_balanced_accuracy
+        key: specific_sleep_staging_balanced_accuracy
         index: 4
         sorting: desc
       - title: Spec · Sleep onset F1
-        key: general_sleep_onset_f1
+        key: specific_sleep_onset_f1
         index: 5
         sorting: desc
       - title: Duration (s)

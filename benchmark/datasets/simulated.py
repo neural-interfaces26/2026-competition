@@ -19,10 +19,20 @@ EEG packages and powers ``benchopt run benchmark/ -d Simulated`` and
 import numpy as np
 from benchopt import BaseDataset
 
-from benchmark_utils.data import make_loader
+from benchmark_utils.data import (
+    chs_info_from_names, get_device, make_loader,
+)
 
 # Each simulated task mimics one real task's regime.
 TASK_KIND = {"mi": "epoched", "sleep": "dense"}
+
+# Standard 10-20 electrode names, so name-based foundation models (e.g. REVE)
+# can resolve channel positions even on the synthetic dataset. The first
+# ``n_chans`` are used.
+STANDARD_1020 = [
+    "Fp1", "Fp2", "F7", "F3", "Fz", "F4", "F8", "T7", "C3", "Cz",
+    "C4", "T8", "P7", "P3", "Pz", "P4", "P8", "O1", "O2",
+]
 
 
 class Dataset(BaseDataset):
@@ -76,6 +86,8 @@ class Dataset(BaseDataset):
         rng = np.random.default_rng(self.get_seed())
         templates = self._class_templates(rng)
         task_kind = TASK_KIND[self.task]
+        device = get_device()
+        ch_names = STANDARD_1020[:self.n_chans]
 
         n_train, n_test = 120, 60
         if task_kind == "epoched":
@@ -88,15 +100,16 @@ class Dataset(BaseDataset):
             metrics = ["staging_balanced_accuracy", "onset_f1"]
 
         return dict(
-            train_loader=make_loader(X_tr, y_tr, shuffle=True),
-            test_loader=make_loader(X_te, y_te),
+            train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
+            test_loader=make_loader(X_te, y_te, device=device),
             task=self.task,
             task_kind=task_kind,
             metrics=metrics,
             n_classes=self.n_classes,
             sfreq=100.0,
-            ch_names=[f"ch{i}" for i in range(self.n_chans)],
-            chs_info=None,
+            ch_names=ch_names,
+            chs_info=chs_info_from_names(ch_names),
             n_chans=self.n_chans,
             n_times=self.n_times,
+            device=device,
         )

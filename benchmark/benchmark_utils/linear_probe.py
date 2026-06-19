@@ -82,7 +82,8 @@ class RandomProjectionEncoder(Encoder):
         # (B, C, n_patches, patch_len) -> (B, n_patches, C * patch_len)
         patches = X[:, :, :usable].reshape(B, C, n_patches, self.patch_len)
         patches = patches.permute(0, 2, 1, 3).reshape(B, n_patches, -1)
-        return patches @ self._projection(patches.shape[-1])  # (B, T', D)
+        proj = self._projection(patches.shape[-1]).to(patches.device)
+        return patches @ proj  # (B, T', D)
 
 
 def _resample(seq, new_len):
@@ -91,7 +92,7 @@ def _resample(seq, new_len):
     if length == new_len:
         return seq
     idx = torch.floor(
-        torch.arange(new_len) * (length / new_len)
+        torch.arange(new_len, device=seq.device) * (length / new_len)
     ).long().clamp(0, length - 1)
     return seq[..., idx]
 

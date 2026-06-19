@@ -5,8 +5,8 @@ competition's core switch):
 
 - ``linear_probe`` : foundation-model track. The submission provides a frozen
   encoder; the infra auto-fits a scikit-learn linear probe on top.
-- ``general``      : specialist track. The submission provides a model that
-  trains on the task data and predicts directly.
+- ``specific``     : specialist track. The submission provides a task-specific
+  model that trains on the task data and predicts directly.
 
 Two task **regimes** are dispatched through ``task_kind`` (carried by each
 dataset), so one set of solvers serves both:
@@ -43,7 +43,7 @@ class Objective(BaseObjective):
     # The competition's track switch — parametrizes the *evaluation*, so each
     # solver declares (via ``skip``) which track it belongs to.
     parameters = {
-        "track": ["general", "linear_probe"],
+        "track": ["specific", "linear_probe"],
     }
 
     def set_data(self, train_loader, test_loader, task, task_kind, metrics,

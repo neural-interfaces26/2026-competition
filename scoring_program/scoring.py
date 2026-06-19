@@ -6,7 +6,7 @@ benchopt's ``read_results``) into the flat ``scores.json`` the Codabench
 leaderboard consumes — no labels, no metric computation here.
 
 Each leaderboard key is ``{track}_{task}_{metric}`` (e.g.
-``linear_probe_mi_balanced_accuracy``, ``general_sleep_onset_f1``) so the FM
+``linear_probe_mi_balanced_accuracy``, ``specific_sleep_onset_f1``) so the FM
 and specialist tracks never collide — plus an overall ``duration``.
 """
 

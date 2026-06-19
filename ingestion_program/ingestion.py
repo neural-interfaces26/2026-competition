@@ -80,7 +80,7 @@ def main(submission_dir, output_dir, benchmark_dir, datasets):
             solver_names=solver_names,
             dataset_names=datasets,                 # None -> all tasks
             objective_filters=[
-                "EEG[track=linear_probe]", "EEG[track=general]",
+                "EEG[track=linear_probe]", "EEG[track=specific]",
             ],
             max_runs=1,
             n_repetitions=1,

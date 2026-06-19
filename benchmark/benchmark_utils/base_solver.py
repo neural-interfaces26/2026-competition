@@ -59,6 +59,9 @@ class CompetEEGSolver(BaseSolver):
         self.task = task
         self.task_kind = task_kind
         self.n_classes = n_classes
+        # Device the batches already live on (set by the dataset's loaders);
+        # place the model here in ``load_model`` so it matches ``X``.
+        self.device = meta.get("device", "cpu")
         self.meta = {
             **meta, "n_classes": n_classes, "task": task,
             "task_kind": task_kind,
@@ -91,8 +94,8 @@ class CompetEEGSolver(BaseSolver):
         return torch.as_tensor(self.time_embed(model, X)).mean(dim=1)
 
 
-class CompetEEGGeneralSolver(BaseSolver):
-    """Base class for specialist (general track) submissions.
+class CompetEEGSpecificSolver(BaseSolver):
+    """Base class for specialist (specific track) submissions.
 
     Unlike the foundation-model track, a specialist is **task-specific**: it
     declares the task it targets via the ``task`` class attribute and trains a
@@ -102,9 +105,11 @@ class CompetEEGGeneralSolver(BaseSolver):
     - ``load_model(self, meta)`` -> a model exposing ``fit(train_loader)`` and
       ``predict(X)`` (epoched: ``(B,)`` labels; dense: ``(B, T)`` per-step
       labels). ``meta`` carries ``sfreq, ch_names, chs_info, n_chans, n_times,
-      n_classes, task, task_kind``.
+      n_classes, task, task_kind, device``. Batches already arrive on
+      ``meta["device"]``; build the model there too (see ``solvers/
+      specific_eegnet.py`` for a GPU example).
 
-    The base class gates on the general track *and* the targeted task (via
+    The base class gates on the specific track *and* the targeted task (via
     ``skip``), runs training, and returns the fitted model.
     """
 
@@ -115,12 +120,12 @@ class CompetEEGGeneralSolver(BaseSolver):
     # The task this specialist targets — subclasses must set it.
     task = None
 
-    # ``benchopt test`` instantiates the objective on the general track.
-    test_config = {"objective": {"track": "general"}}
+    # ``benchopt test`` instantiates the objective on the specific track.
+    test_config = {"objective": {"track": "specific"}}
 
     def skip(self, track, task, **objective_dict):
-        if track != "general":
-            return True, "Specialist submissions run on the general track"
+        if track != "specific":
+            return True, "Specialist submissions run on the specific track"
         if self.task is not None and task != self.task:
             return True, (
                 f"{self.name} targets task {self.task!r}, not {task!r}"
@@ -133,6 +138,9 @@ class CompetEEGGeneralSolver(BaseSolver):
         # objective's task arrives here and is exposed through ``meta``.
         self.train_loader = train_loader
         self.task_kind = task_kind
+        # Device the batches already live on (set by the dataset's loaders);
+        # place the model here in ``load_model`` so it matches ``X``.
+        self.device = meta.get("device", "cpu")
         self.meta = {
             **meta, "n_classes": n_classes, "task": task,
             "task_kind": task_kind,

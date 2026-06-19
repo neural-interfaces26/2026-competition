@@ -20,8 +20,10 @@ from benchopt import BaseDataset
 from benchopt.config import get_data_path
 from neuralfetch.studies.kemp2000analysis import Kemp2000Analysis
 
-from benchmark_utils.data import make_loader
-from benchmark_utils.neuralset_task import load_dense
+from benchmark_utils.data import (
+    chs_info_from_names, get_device, group_split, make_segment_loader,
+)
+from benchmark_utils.neuralset_task import build_dense, channel_names
 
 # Sleep stages -> class index; background/null is the last class.
 STAGE_MAP = {"W": 0, "N1": 1, "N2": 2, "N3": 3, "R": 4}
@@ -55,11 +57,16 @@ class Dataset(BaseDataset):
 
     def _study(self):
         path = get_data_path("compet_eeg")
+        path.mkdir(parents=True, exist_ok=True)
         query = f'subject == "Kemp2000Analysis/{self.subject}"'
         return Kemp2000Analysis(path=str(path), query=query)
 
     def _ensure_prepared(self):
-        # Idempotent: mne skips already-downloaded files.
+        # NB: neuralfetch downloads the *whole* study (all ~78 subjects) and
+        # its ``run()`` integrity check requires every timeline to be present
+        # (``_info.num_timelines``), so the download cannot be scoped to a
+        # single subject — the ``query`` only narrows what is *loaded*, not
+        # what is *downloaded*. Idempotent: mne skips existing files.
         self._study().download()
 
     def prepare(self):
@@ -68,7 +75,7 @@ class Dataset(BaseDataset):
     def get_data(self):
         self._ensure_prepared()
 
-        X, y, record_id, onset = load_dense(
+        ds, y, record_id, onset = build_dense(
             self._study(),
             signal_event_type="Eeg",
             window_s=self.window_s,
@@ -79,27 +86,31 @@ class Dataset(BaseDataset):
             background=BACKGROUND,
         )
 
-        # Window-level train/test split (reproducible).
-        rng = np.random.default_rng(self.get_seed())
-        idx = rng.permutation(len(X))
-        n_test = int(round(self.test_size * len(X)))
-        te, tr = idx[:n_test], idx[n_test:]
+        # Recording-level split (a whole night stays on one side).
+        tr, te = group_split(record_id, self.test_size, self.get_seed())
+
+        # Peek one window (lazy) for the channel/time dimensions; channel
+        # names come from the extractor's channel map (see channel_names).
+        sample = np.asarray(ds[0].data["eeg"])  # (1, C, T)
+        ch_names = channel_names(ds)
+        device = get_device()
 
         return dict(
-            train_loader=make_loader(
-                X[tr], y[tr], shuffle=True,
-                record_id=record_id[tr], onset=onset[tr],
+            train_loader=make_segment_loader(
+                ds.select(tr), y[tr], record_id[tr], onset[tr], shuffle=True,
+                device=device,
             ),
-            test_loader=make_loader(
-                X[te], y[te], record_id=record_id[te], onset=onset[te],
+            test_loader=make_segment_loader(
+                ds.select(te), y[te], record_id[te], onset[te], device=device,
             ),
             task="sleep",
             task_kind="dense",
             metrics=["staging_balanced_accuracy", "onset_f1"],
             n_classes=N_CLASSES,
             sfreq=self.frequency,
-            ch_names=None,
-            chs_info=None,
-            n_chans=X.shape[1],
-            n_times=X.shape[2],
+            ch_names=ch_names,
+            chs_info=chs_info_from_names(ch_names),
+            n_chans=sample.shape[-2],
+            n_times=sample.shape[-1],
+            device=device,
         )

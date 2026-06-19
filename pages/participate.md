@@ -41,19 +41,19 @@ sequence, e.g. sleep staging / onset detection) use `time_embed`.
 
 ## Specialist track (task-specific model)
 
-A specialist is **task-specific**: subclass `CompetEEGGeneralSolver`, set the
+A specialist is **task-specific**: subclass `CompetEEGSpecificSolver`, set the
 `task` class attribute to the task you target (one submission per task), and
 implement `load_model(self, meta)` returning a model with `fit(train_loader)`
 and `predict(X)`. Labels *do* reach your model here. The base class gates on
-the general track *and* your targeted task — see
-`solution/submission_general.py` and the per-task references in
-`benchmark/solvers/general_*.py`.
+the specific track *and* your targeted task — see
+`solution/submission_specific.py` and the per-task references in
+`benchmark/solvers/specific_*.py`.
 
 ```python
-from benchmark_utils.base_solver import CompetEEGGeneralSolver
+from benchmark_utils.base_solver import CompetEEGSpecificSolver
 
 
-class Solver(CompetEEGGeneralSolver):
+class Solver(CompetEEGSpecificSolver):
     name = "MyMISpecialist"
     task = "mi"   # the task this submission targets
 

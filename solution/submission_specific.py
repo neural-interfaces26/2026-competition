@@ -1,7 +1,7 @@
-"""Sample submission for the EEG competition — general (specialist) track.
+"""Sample submission for the EEG competition — specific (specialist) track.
 
 A specialist submission is a **valid benchopt solver** subclassing
-``CompetEEGGeneralSolver``. Unlike the foundation-model track, a specialist is
+``CompetEEGSpecificSolver``. Unlike the foundation-model track, a specialist is
 **task-specific**: you declare the task you target via the ``task`` class
 attribute (one submission per task) and train a model directly on that task's
 data — labels *do* reach the model here. You implement:
@@ -18,9 +18,9 @@ EEGNet trained on the dataloader) the same way.
 Test it locally (from the bundle root) — ``Simulated`` mimics the ``mi`` task
 with no downloads, so you can validate the full pipeline in seconds:
 
-    cp solution/submission_general.py benchmark/solvers/_submission_general.py
+    cp solution/submission_specific.py benchmark/solvers/_submission_spec.py
     benchopt run benchmark/ -d "Simulated[task=mi]" -s MI-LogVar
-    rm benchmark/solvers/_submission_general.py
+    rm benchmark/solvers/_submission_spec.py
 
     # then on the real task (downloads MOABB once): -d MOABB-MI
 """
@@ -30,7 +30,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from benchmark_utils.base_solver import CompetEEGGeneralSolver
+from benchmark_utils.base_solver import CompetEEGSpecificSolver
 from benchmark_utils.data import to_numpy
 
 
@@ -64,7 +64,7 @@ class LogVarMI:
         return self.clf.predict(self._features(X))
 
 
-class Solver(CompetEEGGeneralSolver):
+class Solver(CompetEEGSpecificSolver):
 
     name = "MI-LogVar"
     task = "mi"
