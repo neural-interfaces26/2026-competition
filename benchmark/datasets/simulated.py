@@ -82,6 +82,10 @@ class Dataset(BaseDataset):
                 y[i, a:b] = k
         return X, y
 
+    def prepare(self):
+        # No downloads, so nothing to prepare.
+        pass
+
     def get_data(self):
         rng = np.random.default_rng(self.get_seed())
         templates = self._class_templates(rng)
