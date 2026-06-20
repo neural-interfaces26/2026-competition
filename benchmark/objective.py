@@ -35,7 +35,7 @@ class Objective(BaseObjective):
 
     requirements = ["scikit-learn", "pip::torch"]
 
-    min_benchopt_version = "1.8"
+    min_benchopt_version = "1.9.2"
 
     # Each solver runs once to completion (no convergence curve).
     sampling_strategy = "run_once"
