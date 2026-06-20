@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-    test:
+    test-docker:
         runs-on: ubuntu-latest
         env:
             DOCKER_IMAGE_NAME: docker-codabench-test
@@ -67,7 +67,7 @@ jobs:
                 cache: 'pip' # caching pip dependencies
 
             - name: Prepare input/output directories
-              run: python tools/setup_data.py
+              run: python tools/setup_data.py -d moabb-mi
 
             - name: Test ingestion program
               run: |
