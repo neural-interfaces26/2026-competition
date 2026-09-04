@@ -1,0 +1,64 @@
+"""Image decoding on THINGS-EEG2 (Gifford2022Large), the public proxy.
+
+Wraps the official neuralbench ``eeg/image`` task config — see
+``compet_core.nb_task``: 1.2-s epochs around each ``Image`` stimulus
+(−0.2 → 1.0 s), targets = DINOv2-giant embeddings of the viewed images
+(``HuggingFaceImage`` extractor, computed once and cached), predefined
+timeline-based split.
+
+Requires a one-time download of the study **and** a one-time embedding pass
+over the stimulus images (GPU strongly recommended — run ``benchopt
+prepare`` on a compute node). The zero-dependency ``Simulated`` dataset
+covers no-network smoke testing.
+"""
+
+from benchopt import BaseDataset
+from benchopt.config import get_data_path
+
+from compet_core.data import get_device
+from compet_core.nb_task import download_study, load_task
+
+
+class Dataset(BaseDataset):
+
+    name = "THINGS-EEG2"
+
+    requirements = [
+        "pip::neuralset", "pip::neuralfetch", "pip::neuralbench",
+        "pip::mne", "pip::transformers", "scikit-learn", "pip::torch",
+    ]
+
+    parameters = {
+        "batch_size": [64],
+    }
+
+    def prepare(self):
+        # Idempotent one-time download of the whole study (large).
+        download_study("eeg", "image", self._data_dir())
+
+    def _data_dir(self):
+        path = get_data_path("neural_compet")
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def get_data(self):
+        device = get_device()
+        loaders, meta = load_task(
+            "eeg", "image",
+            data_dir=self._data_dir(),
+            device=device,
+            batch_size=self.batch_size,
+            seed=self.get_seed(),
+            # Run the image-embedding extractor locally (no exca cluster) and
+            # cache it next to the data.
+            overrides={
+                "target.infra.cluster": None,
+                "target.infra.folder": str(self._data_dir() / "cache"),
+            },
+        )
+        return dict(
+            train_loader=loaders["train"],
+            test_loader=loaders["test"],
+            n_outputs=int(meta.pop("target_shape")[-1]),
+            **{k: v for k, v in meta.items() if k != "raw_target_shape"},
+        )

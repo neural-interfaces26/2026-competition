@@ -54,6 +54,28 @@ class ConstantClassifier:
         return np.zeros(len(to_numpy(X)), dtype=np.int64)
 
 
+class ConstantEmbedder:
+    """Always predict the same embedding — used as retrieval floor/test."""
+
+    def __init__(self, n_outputs):
+        self.n_outputs = n_outputs
+        self.value = np.ones(n_outputs, dtype=np.float32)
+
+    def fit(self, train_loader):
+        # Mean training embedding (a slightly-better-than-arbitrary constant).
+        total, count = 0.0, 0
+        for _X, y, _info in train_loader:
+            y = to_numpy(y)
+            total = total + y.sum(axis=0)
+            count += len(y)
+        if count:
+            self.value = (total / count).astype(np.float32)
+        return self
+
+    def predict(self, X):
+        return np.tile(self.value, (len(to_numpy(X)), 1))
+
+
 class MedianRegressor:
     """Always predict the median of the train targets — one value/window."""
 
