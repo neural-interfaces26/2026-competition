@@ -27,6 +27,7 @@ exact competition data through the starting kit.
 ```python
 import torch
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
 
 
@@ -49,10 +50,11 @@ benchopt, neuralset or neuralbench knowledge is needed inside your model).
 
 ## Test locally
 
-The starting kit is the benchmark itself. From the competition repo:
+The starting kit is the benchmark itself. From the competition repo (no
+install of the repo needed — `benchmark_utils` locates the shared
+`compet_core` package):
 
 ```bash
-pip install -e .                   # the shared compet_core package
 benchopt install tracks/<track>    # solvers/datasets requirements
 benchopt run tracks/<track> -d Simulated   # zero-download smoke test
 ```

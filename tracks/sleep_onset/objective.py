@@ -15,6 +15,7 @@ Data flows as lazy dataloaders — see ``compet_core/data.py``.
 import numpy as np
 from benchopt import BaseObjective
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.data import to_numpy
 from compet_core.metrics import binned_mae
 
@@ -26,12 +27,7 @@ class Objective(BaseObjective):
     name = "Sleep-onset"
     url = "https://github.com/tomMoral/2026-neurips_compet-eeg"
 
-    requirements = [
-        "scikit-learn", "pip::torch",
-        # Shared competition components (repo root package).
-        "pip::git+https://github.com/tomMoral/2026-neurips_compet-eeg"
-        "@4-track-restructure",
-    ]
+    requirements = ["scikit-learn", "pip::torch"]
 
     min_benchopt_version = "1.9.2"
 

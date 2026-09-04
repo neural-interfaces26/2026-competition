@@ -5,6 +5,7 @@ submission contract: subclass :class:`~compet_core.base_solver.CompetSolver`,
 build the model in ``load_model``, train it in ``fit``.
 """
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
 from compet_core.baselines import MeanLogReg
 

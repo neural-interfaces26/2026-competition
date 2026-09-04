@@ -35,12 +35,14 @@ this monorepo.
   `data_dir`, local execution). Loaders are re-wrapped to the competition
   contract (`(X, y, info)` torch batches on `meta["device"]`) so submissions
   stay pure-PyTorch. neuralbench pins `torch==2.6` + needs Python ≥ 3.12.
-- **`compet_core` is a real package** (pyproject at root; `pip install -e .`
-  locally). Track requirements reference it as
-  `pip::git+https://github.com/tomMoral/2026-neurips_compet-eeg@4-track-restructure`
-  — **update the branch ref to `@main` when merging**. In the Codabench
-  bundle it ships as sources and ingestion `sys.path`-inserts the bundle
-  root (no install needed in the image).
+- **`compet_core` needs no install.** Each track ships a
+  `benchmark_utils/__init__.py` that walks up from the benchmark dir to the
+  first parent holding `compet_core/` (repo root in a checkout, bundle root
+  on Codabench) and puts it on `sys.path`; every benchmark module does
+  `import benchmark_utils` before `from compet_core import ...`. This is what
+  lets CI work on the **private** repo (a `pip::git+...` requirement cannot
+  be installed there — that was the first CI failure). The root
+  `pyproject.toml` remains for optional `pip install -e .` convenience.
 - **Bundles**: `tools/create_bundle.py --track <t>` ships the track's
   benchmark under the canonical `benchmark/` name + `compet_core/` + shared
   ingestion/scoring + `codabench/competition_<t>.yaml` (as

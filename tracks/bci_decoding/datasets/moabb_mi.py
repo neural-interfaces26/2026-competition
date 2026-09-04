@@ -16,6 +16,7 @@ from benchopt.config import get_data_path
 from neuralfetch.studies.moabb2025 import Tangermann2012Review
 from sklearn.preprocessing import LabelEncoder
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.data import (
     chs_info_from_names, get_device, group_split, make_segment_loader,
 )

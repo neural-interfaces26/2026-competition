@@ -69,6 +69,11 @@ def main(submission_dir, output_dir, benchmark_dir, datasets):
     # Point the solvers at the submission folder (shipped weights).
     os.environ["COMPET_SUBMISSION_DIR"] = str(submission_dir)
 
+    # The benchmark dir on sys.path, so a submission's
+    # ``import benchmark_utils`` resolves at discovery time (benchopt does
+    # the same when running the copied solver).
+    sys.path.insert(0, str(benchmark_dir))
+
     solvers_dir = benchmark_dir / "solvers"
     found = discover_submission_solvers(submission_dir)
     if not found:

@@ -8,6 +8,7 @@ frozen per-class template matcher from ``weights.npz`` shipped alongside
 
 import numpy as np
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
 from compet_core.data import to_numpy
 

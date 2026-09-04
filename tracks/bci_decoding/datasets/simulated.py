@@ -12,6 +12,7 @@ and ``benchopt test``.
 import numpy as np
 from benchopt import BaseDataset
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.data import chs_info_from_names, get_device, make_loader
 
 # Standard 10-20 electrode names, so name-based models (e.g. REVE) can

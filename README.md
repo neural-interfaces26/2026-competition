@@ -65,9 +65,11 @@ tools/                  create_bundle --track, setup_data --track,
 
 ## Run locally
 
-```bash
-pip install -e .                          # the shared compet_core package
+No install needed — each track's `benchmark_utils` locates the shared
+`compet_core` package from the repo (or bundle) root. `pip install -e .` is
+optional (IDE/import convenience).
 
+```bash
 # zero-download smoke test, any track
 benchopt run tracks/bci_decoding -d Simulated
 

@@ -9,6 +9,7 @@ import torch
 from torch import nn
 from braindecode.models import EEGNetv4
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
 
 CAP_S = 600.0

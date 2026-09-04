@@ -14,6 +14,7 @@ Only depends on numpy + torch (the benchmark's base stack), so it powers
 import numpy as np
 from benchopt import BaseDataset
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.data import get_device, make_loader
 
 

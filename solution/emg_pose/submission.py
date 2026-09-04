@@ -8,6 +8,7 @@ time-step to joint angles with a fixed linear read-out loaded from
 
 import numpy as np
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
 from compet_core.data import to_numpy
 

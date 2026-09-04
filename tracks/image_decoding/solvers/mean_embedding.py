@@ -5,6 +5,7 @@ prediction, so ranking is uninformative. Also the minimal example of the
 submission contract on this track.
 """
 
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
 from compet_core.baselines import ConstantEmbedder
 

@@ -15,6 +15,12 @@ covers no-network smoke testing.
 from benchopt import BaseDataset
 from benchopt.config import get_data_path
 
+# Hard requirements of the real-data path, imported at module level so
+# benchopt reports the dataset as not-installed when they are missing.
+import neuralbench  # noqa: F401
+import transformers  # noqa: F401
+
+import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.data import get_device
 from compet_core.nb_task import download_study, load_task
 
