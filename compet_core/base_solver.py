@@ -10,11 +10,12 @@ neuralbench knowledge is required:
   ``meta["device"]``. The model must expose ``predict(X)`` taking a torch
   batch ``(B, C, T)``; the output shape is track-specific (see each track's
   objective docstring).
-- ``fit(self, model, train_loader)`` (optional, default no-op). Training /
-  light fine-tuning on the track's train split. It runs both locally (the
-  starting kit trains baselines this way) and **on the competition server**,
-  within the compute budget — heavy pre-training should happen offline and be
-  shipped as weights loaded in ``load_model``.
+- ``fit(self, model, train_loader)`` (optional, default no-op). **Local
+  training only** — this is how the starting kit trains the baselines and how
+  you can train your own model with the exact competition data. On the
+  competition server the ingestion program runs **inference only**
+  (``COMPET_INFERENCE_ONLY=1`` skips ``fit``): the submitted model must be
+  fully trained offline and shipped as weights loaded in ``load_model``.
 
 ``meta`` is a plain dict: ``sfreq, ch_names, chs_info, n_chans, n_times,
 n_classes`` (classification) or ``n_outputs`` (regression), ``device,
@@ -52,7 +53,11 @@ class CompetSolver(BaseSolver):
         self.model = self.load_model(self.meta)
 
     def run(self, _):
-        self.fit(self.model, self.train_loader)
+        # On the competition server, submissions are evaluated inference-only
+        # (the ingestion program sets COMPET_INFERENCE_ONLY=1); ``fit`` is a
+        # local-training convenience for baselines and participants.
+        if not os.environ.get("COMPET_INFERENCE_ONLY"):
+            self.fit(self.model, self.train_loader)
 
     def get_result(self):
         return dict(model=self.model)
