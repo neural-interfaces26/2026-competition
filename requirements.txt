@@ -1,6 +1,8 @@
 # Dependencies to run the ingestion + scoring programs (Codabench worker /
-# Docker image). The ingestion program runs the bundled benchopt benchmark, so
-# it needs benchopt plus everything the benchmark imports at run time.
+# Docker image). The ingestion program runs the bundled benchopt benchmark
+# inference-only on the submission, so it needs benchopt plus everything the
+# tracks import at run time (compet_core itself ships inside the bundle and
+# is put on sys.path by the ingestion program).
 benchopt
 pandas
 scikit-learn
@@ -8,7 +10,8 @@ torch
 # Data stack for the real tasks (Simulated needs none of these):
 neuralset
 neuralfetch
+neuralbench
 moabb
 mne
-# Sample foundation-model submission (REVE); optional — falls back if absent:
+# Used by the EEGNet baselines / many torch submissions:
 braindecode

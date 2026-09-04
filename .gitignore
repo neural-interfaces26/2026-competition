@@ -11,3 +11,5 @@ dev_phase/*
 **/__cache__/
 **/data/
 *.egg-info/
+bundle_*.zip
+solution/**/*.npz

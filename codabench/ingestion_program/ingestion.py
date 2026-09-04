@@ -1,41 +1,50 @@
-"""Ingestion program for the EEG competition.
+"""Ingestion program, shared by the 4 track competitions.
 
-A submission is a **benchopt solver** (a ``submission.py`` defining
-``class Solver`` — see ``solution/``). This program:
+A submission is a folder with a ``submission.py`` defining a **benchopt
+solver** (``class Solver(CompetSolver)``) plus any weight files. Each
+competition bundle ships one track's benchmark under ``benchmark/`` next to
+this program, together with the ``compet_core`` package. This program:
 
-1. copies the submission solver(s) into the bundled benchmark's ``solvers/``
-   so benchopt discovers them,
-2. runs the benchmark on them via the programmatic API
+1. puts the bundle root on ``sys.path`` (so ``import compet_core`` works
+   without an install) and exports ``COMPET_SUBMISSION_DIR`` (so the solver
+   finds its shipped weights) and ``COMPET_INFERENCE_ONLY=1`` (submissions
+   are evaluated **inference-only** — models must arrive fully trained),
+2. copies the submission solver(s) into the benchmark's ``solvers/`` so
+   benchopt discovers them,
+3. runs the benchmark on them via the programmatic API
    (``benchopt.run_benchmark``, no subprocess), and
-3. stores the **raw** benchopt results dataframe with ``save_results`` (so the
-   full result — including any packed prediction artefacts — round-trips, and
-   we can keep predictions later if we want).
+4. stores the **raw** benchopt results dataframe with ``save_results``.
 
 The scoring program only reads that dataframe (``read_results``) — all
 evaluation happens here.
 """
 
 import os
-# scikit-learn array-API dispatch (torch tensors through the linear head)
-# needs scipy's array-API support, read at scipy import time.
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).parent.resolve()
+BUNDLE_ROOT = HERE.parent
+
+# The bundled shared package (no install needed, deps are in the image).
+sys.path.insert(0, str(BUNDLE_ROOT))
+
+# Submissions are evaluated inference-only: CompetSolver.run skips ``fit``.
+os.environ["COMPET_INFERENCE_ONLY"] = "1"
+
+# scikit-learn array-API dispatch (torch tensors through linear heads) needs
+# scipy's array-API support, read at scipy import time.
 os.environ.setdefault("SCIPY_ARRAY_API", "1")
 
 import argparse  # noqa: E402
 import importlib.util  # noqa: E402
 import json  # noqa: E402
 import shutil  # noqa: E402
-import sys  # noqa: E402
 import time  # noqa: E402
-from pathlib import Path  # noqa: E402
 
 
-def discover_submission_solvers(submission_dir, benchmark_dir):
-    """Find ``class Solver`` in the submission and return their names.
-
-    Importing requires the benchmark on ``sys.path`` (submissions subclass
-    ``benchmark_utils.base_solver.CompetEEGSolver``).
-    """
-    sys.path.insert(0, str(benchmark_dir))
+def discover_submission_solvers(submission_dir):
+    """Find ``class Solver`` in the submission and return their names."""
     names = []
     for path in sorted(submission_dir.glob("*.py")):
         spec = importlib.util.spec_from_file_location(
@@ -57,8 +66,11 @@ def main(submission_dir, output_dir, benchmark_dir, datasets):
     from benchopt import run_benchmark
     from benchopt.results import read_results, save_results
 
+    # Point the solvers at the submission folder (shipped weights).
+    os.environ["COMPET_SUBMISSION_DIR"] = str(submission_dir)
+
     solvers_dir = benchmark_dir / "solvers"
-    found = discover_submission_solvers(submission_dir, benchmark_dir)
+    found = discover_submission_solvers(submission_dir)
     if not found:
         raise SystemExit(
             f"No submission solver (class Solver) found in {submission_dir}."
@@ -78,10 +90,7 @@ def main(submission_dir, output_dir, benchmark_dir, datasets):
         save_file = run_benchmark(
             str(benchmark_dir),
             solver_names=solver_names,
-            dataset_names=datasets,                 # None -> all tasks
-            objective_filters=[
-                "EEG[track=linear_probe]", "EEG[track=specific]",
-            ],
+            dataset_names=datasets,                 # None -> all datasets
             max_runs=1,
             n_repetitions=1,
             plot_result=False,
@@ -105,13 +114,12 @@ def main(submission_dir, output_dir, benchmark_dir, datasets):
 
 
 if __name__ == "__main__":
-    here = Path(__file__).parent.resolve()
-
-    parser = argparse.ArgumentParser(description="EEG competition ingestion")
+    parser = argparse.ArgumentParser(description="Competition ingestion")
     parser.add_argument("--submission-dir", default="/app/ingested_program")
     parser.add_argument("--output-dir", default="/app/output")
     parser.add_argument(
-        "--benchmark-dir", default=str(here.parent / "benchmark"),
+        "--benchmark-dir", default=str(BUNDLE_ROOT / "benchmark"),
+        help="The track's benchopt benchmark (bundles ship it as benchmark/)",
     )
     parser.add_argument(
         "--datasets", nargs="*", default=None,
@@ -122,6 +130,6 @@ if __name__ == "__main__":
     main(
         Path(args.submission_dir),
         Path(args.output_dir),
-        Path(args.benchmark_dir),
+        Path(args.benchmark_dir).resolve(),
         args.datasets,
     )
