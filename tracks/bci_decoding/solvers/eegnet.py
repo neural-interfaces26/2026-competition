@@ -1,11 +1,10 @@
-"""Specialist example — EEGNet on GPU (specific track, ``mi`` task).
+"""Baseline — EEGNet trained end-to-end (torch, GPU-ready).
 
-Unlike the dependency-light ``Specific-MI`` baseline, this is a **real torch
-model trained end-to-end**, and the reference for *how a specialist handles the
-device*: the contract only requires a model exposing ``fit(train_loader)`` /
-``predict(X)``, so device placement is entirely internal to the model.
+The reference for *how a submission handles the device*: the contract only
+requires a model exposing ``predict(X)`` (plus the solver's optional ``fit``),
+so device placement is entirely internal to the model.
 
-The pattern (mirror it in your own specialist):
+The pattern (mirror it in your own submission):
 
 - batches already arrive on ``meta["device"]`` (the dataset's loaders move
   ``X``/``y`` there), so the network just has to live on the same device —
@@ -15,24 +14,23 @@ The pattern (mirror it in your own specialist):
 - ``predict`` moves its input to the device defensively (cheap no-op when the
   caller already did) and returns per-window labels.
 
-Targets the *epoched* ``mi`` task (one label per trial). braindecode is a hard
-requirement: it is imported at module top so that, if it is missing, benchopt
-reports the solver as *not installed* rather than a fallback silently hiding
-the missing dependency.
+braindecode is a hard requirement: it is imported at module top so that, if
+it is missing, benchopt reports the solver as *not installed* rather than a
+fallback silently hiding the missing dependency.
 """
 
 import torch
 from torch import nn
 from braindecode.models import EEGNetv4
 
-from benchmark_utils.base_solver import CompetEEGSpecificSolver
+from compet_core.base_solver import CompetSolver
 
 
 class EEGNetModel:
-    """Torch specialist (``fit``/``predict``) that owns its device.
+    """Torch model (``fit``/``predict``) that owns its device.
 
     Trains an EEGNet for ``n_epochs`` with Adam + cross-entropy. ``X`` is
-    ``(B, C, T)`` and predictions are ``(B,)`` labels — the epoched regime.
+    ``(B, C, T)`` and predictions are ``(B,)`` labels.
     """
 
     def __init__(self, n_chans, n_times, n_classes, device,
@@ -40,12 +38,9 @@ class EEGNetModel:
         self.device = device
         self.n_epochs = n_epochs
         self.lr = lr
-        self.net = self._build(n_chans, n_times, n_classes).to(device)
-
-    def _build(self, n_chans, n_times, n_classes):
-        return EEGNetv4(
+        self.net = EEGNetv4(
             n_chans=n_chans, n_outputs=n_classes, n_times=n_times,
-        )
+        ).to(device)
 
     def fit(self, train_loader):
         opt = torch.optim.Adam(self.net.parameters(), lr=self.lr)
@@ -67,10 +62,9 @@ class EEGNetModel:
         return self.net(X).argmax(dim=1)  # (B,)
 
 
-class Solver(CompetEEGSpecificSolver):
+class Solver(CompetSolver):
 
-    name = "EEGNet-MI"
-    task = "mi"
+    name = "EEGNet"
 
     requirements = ["pip::braindecode"]
 
@@ -81,3 +75,6 @@ class Solver(CompetEEGSpecificSolver):
             n_classes=meta["n_classes"],
             device=self.device,
         )
+
+    def fit(self, model, train_loader):
+        model.fit(train_loader)

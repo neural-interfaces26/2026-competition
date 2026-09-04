@@ -14,18 +14,17 @@ Pipeline (see brainai design docs ``studies.md`` / ``dataloader-pipeline``)::
 
 The ``SegmentDataset`` is itself a torch ``Dataset`` (``ds[i]`` lazily
 extracts one window's signal), so it is returned **un-materialized** and
-wrapped by :class:`~benchmark_utils.data.SegmentWindows`; the EEG signal is
-never loaded into memory all at once. Each builder also returns the small
-per-window metadata (labels, ``record_id``, ``onset``) needed to split the data
-by recording (see :func:`~benchmark_utils.data.group_split`) and to reassemble
-dense predictions.
+wrapped by :class:`~compet_core.data.SegmentWindows`; the EEG signal is
+never loaded into memory all at once. The builder also returns the small
+per-window metadata (labels, ``record_id``, ``onset``) needed to split the
+data by recording (see :func:`~compet_core.data.group_split`).
 
-- **epoched** tasks trigger on trial events; labels come from a cheap
-  label-only ``LabelEncoder`` pass (no signal), aligned 1:1 with the signal
-  segments.
-- **dense** tasks trigger sliding windows over the continuous recording; the
-  per-step target is rebuilt from the annotation events (kept independent of
-  neuralset's labelling extractors, to stay loosely coupled).
+Epoched windows trigger on trial events; labels come from a cheap label-only
+``LabelEncoder`` pass (no signal), aligned 1:1 with the signal segments.
+
+Note: new datasets should prefer the neuralbench-config path in
+``compet_core.data`` (``neuralbench.data.Data``); this module remains for
+studies addressed directly through neuralset/neuralfetch.
 """
 
 import numpy as np
@@ -108,63 +107,4 @@ def build_epoched(study, *, trigger_query, trial_event_type, duration,
          else np.asarray(y)).reshape(-1)
 
     record_id, onset = _segment_meta(ds.segments, frequency)
-    return ds, y, record_id, onset
-
-
-def _dense_targets(events, segments, frequency, window_samples, *,
-                   event_type, field, mapping, background):
-    """Rebuild per-time-step labels for dense windows from events.
-
-    Every sample is labelled with the class of the annotation event (e.g. a
-    sleep stage) covering that time, or ``background`` if none. Kept
-    independent of neuralset's labelling extractors on purpose.
-    """
-    ev = events[events["type"] == event_type].copy()
-    ev["cls"] = ev[field].map(mapping)
-    ev = ev.dropna(subset=["cls"])
-
-    y = np.full((len(segments), window_samples), background, dtype=np.int64)
-    for i, seg in enumerate(segments):
-        tl = getattr(seg, "timeline", None)
-        w_start = float(getattr(seg, "start", 0.0))
-        rows = ev[ev["timeline"] == tl] if tl is not None else ev
-        for r in rows.itertuples():
-            a = int(round((r.start - w_start) * frequency))
-            b = int(round((r.start + r.duration - w_start) * frequency))
-            a, b = max(a, 0), min(b, window_samples)
-            if b > a:
-                y[i, a:b] = int(r.cls)
-    return y
-
-
-def build_dense(study, *, signal_event_type, window_s, frequency, event_type,
-                field, mapping, background, picks=("eeg",)):
-    """Build a lazy dense ``SegmentDataset`` + per-step labels/metadata.
-
-    Non-overlapping sliding windows of ``window_s`` seconds are cut over the
-    continuous recording. Returns ``(ds, y, record_id, onset)`` with ``ds`` a
-    *prepared* ``SegmentDataset`` (lazy signal) and ``y`` the ``(N, T)``
-    per-sample class sequence rasterized from the annotation events. The signal
-    is **not** materialized here.
-    """
-    events = study.run()
-    ds = dl.Segmenter(
-        trigger_query=f"type=='{signal_event_type}'",
-        start=0.0,
-        duration=float(window_s),
-        stride=float(window_s),
-        extractors={"eeg": _eeg_extractor(frequency, picks)},
-        drop_incomplete=True,
-        drop_unused_events=False,
-    ).apply(events)
-    ds.prepare()
-
-    # Window length in samples — peek one window (cheap) for the exact T.
-    window_samples = int(np.asarray(ds[0].data["eeg"]).shape[-1])
-    record_id, onset = _segment_meta(ds.segments, frequency)
-    y = _dense_targets(
-        events, ds.segments, frequency, window_samples,
-        event_type=event_type, field=field, mapping=mapping,
-        background=background,
-    )
     return ds, y, record_id, onset

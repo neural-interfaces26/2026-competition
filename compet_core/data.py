@@ -1,20 +1,21 @@
-"""Shared data utilities for the EEG competition benchmark.
+"""Shared data utilities for the competition track benchmarks.
 
-The benchmark passes **lazy PyTorch dataloaders** between components (not
-materialized arrays) because EEG/PSG recordings can be large. Every loader
+The tracks pass **lazy PyTorch dataloaders** between components (not
+materialized arrays) because EEG/EMG recordings can be large. Every loader
 yields ``(X, y, info)`` batches:
 
 - ``X``    : float32 tensor ``(B, C, T)`` — windows of ``C`` channels.
-- ``y``    : labels. *epoched* tasks → ``(B,)`` one label per window;
-             *dense* tasks → ``(B, T)`` one label per time-step.
+- ``y``    : targets, track-specific: class label ``(B,)``, scalar
+             regression target ``(B,)``, embedding ``(B, D)``, or per-step
+             sequence ``(B, ..., T)``. Integer targets are ``long``, float
+             targets ``float32``.
 - ``info`` : dict with ``record_id`` and ``onset`` (sample index of the
-             window start in its source recording) so dense metrics can
-             reassemble a recording's prediction sequence.
+             window start in its source recording) so metrics can trace a
+             window back to its recording.
 
-Tensors stay as **torch tensors** end-to-end (so braindecode foundation
-models receive tensors directly); conversion to numpy happens only at the
-scikit-learn boundaries (the linear head and the metrics), via
-:func:`to_numpy`.
+Tensors stay as **torch tensors** end-to-end (so torch models receive tensors
+directly); conversion to numpy happens only at the scikit-learn boundaries
+(linear heads and metrics), via :func:`to_numpy`.
 """
 
 import os
@@ -37,13 +38,13 @@ def to_numpy(x):
 def get_device():
     """Device the benchmark runs on (``cuda`` when available, else ``cpu``).
 
-    Auto-detects a GPU; override with ``COMPET_EEG_DEVICE`` (e.g. ``cpu`` to
+    Auto-detects a GPU; override with ``COMPET_DEVICE`` (e.g. ``cpu`` to
     force CPU even on a GPU box, handy for debugging). Datasets call this once
     and (a) move every batch onto the device at loading time and (b) advertise
     it through ``meta["device"]`` so a model can place itself there in
     ``load_model``.
     """
-    forced = os.environ.get("COMPET_EEG_DEVICE")
+    forced = os.environ.get("COMPET_DEVICE")
     if forced:
         return forced
     return "cuda" if torch.cuda.is_available() else "cpu"
@@ -60,6 +61,18 @@ def chs_info_from_names(ch_names):
     if ch_names is None:
         return None
     return [{"ch_name": str(n)} for n in ch_names]
+
+
+def as_target(y):
+    """Convert targets to a torch tensor with a metric-friendly dtype.
+
+    Integer targets (class labels) become ``long``; floating targets
+    (regression values, embeddings) become ``float32``.
+    """
+    y = torch.as_tensor(to_numpy(y))
+    if y.is_floating_point():
+        return y.to(torch.float32)
+    return y.to(torch.long)
 
 
 def _move_collate(device):
@@ -108,7 +121,8 @@ class ArrayWindows(Dataset):
     Parameters
     ----------
     X : array-like or tensor, shape ``(N, C, T)``
-    y : array-like or tensor, ``(N,)`` (epoched) or ``(N, T)`` (dense)
+    y : array-like or tensor, ``(N, ...)`` — track-specific target per window
+        (int targets stored as ``long``, float targets as ``float32``).
     record_id : array-like ``(N,)`` or None
         Source-recording id per window (defaults to all zeros).
     onset : array-like ``(N,)`` or None
@@ -117,7 +131,7 @@ class ArrayWindows(Dataset):
 
     def __init__(self, X, y, record_id=None, onset=None):
         self.X = torch.as_tensor(to_numpy(X), dtype=torch.float32)
-        self.y = torch.as_tensor(to_numpy(y), dtype=torch.long)
+        self.y = as_target(y)
         n = len(self.X)
         self.record_id = (
             np.zeros(n, dtype=np.int64) if record_id is None
@@ -167,7 +181,7 @@ class SegmentWindows(Dataset):
     seg_ds : neuralset SegmentDataset
         Prepared dataset whose ``seg_ds[i]`` yields a ``Batch`` with the EEG
         signal under ``eeg_key`` (shape ``(1, C, T)`` or ``(C, T)``).
-    y : array-like, ``(N,)`` (epoched) or ``(N, T)`` (dense)
+    y : array-like, ``(N, ...)`` — track-specific target per window
     record_id, onset : array-like ``(N,)``
         Source-recording id and window start sample, aligned with ``seg_ds``.
     """
@@ -175,7 +189,7 @@ class SegmentWindows(Dataset):
     def __init__(self, seg_ds, y, record_id, onset, eeg_key="eeg"):
         self.seg_ds = seg_ds
         self.eeg_key = eeg_key
-        self.y = torch.as_tensor(to_numpy(y), dtype=torch.long)
+        self.y = as_target(y)
         self.record_id = np.asarray(record_id, dtype=np.int64)
         self.onset = np.asarray(onset, dtype=np.int64)
 

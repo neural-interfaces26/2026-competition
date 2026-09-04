@@ -10,3 +10,4 @@ dev_phase/*
 **/outputs/
 **/__cache__/
 **/data/
+*.egg-info/

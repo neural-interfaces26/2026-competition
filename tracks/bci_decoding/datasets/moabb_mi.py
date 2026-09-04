@@ -1,9 +1,10 @@
-"""Motor-imagery (epoched) task from MOABB BNCI2014_001, via neuralfetch.
+"""Motor-imagery task from MOABB BNCI2014_001, via neuralfetch.
 
-One label per trial window — the *epoched* regime. Data loading goes through
-the neuralfetch ``Tangermann2012Review`` study (alias ``BNCI2014_001``) and
-the neuralset segmenter, behind ``benchmark_utils.neuralset_task`` so nothing
-downstream is tied to neuralset.
+One label per trial window. Data loading goes through the neuralfetch
+``Tangermann2012Review`` study (alias ``BNCI2014_001``) and the neuralset
+segmenter, behind ``compet_core.neuralset_task`` so nothing downstream is
+tied to neuralset. Small single-subject dataset, handy for real-data smoke
+tests next to the main ``Stieger2021`` proxy.
 
 Requires a one-time download (``benchopt prepare`` / ``tools/setup_data.py``);
 the zero-dependency ``Simulated`` dataset covers no-network smoke testing.
@@ -15,10 +16,10 @@ from benchopt.config import get_data_path
 from neuralfetch.studies.moabb2025 import Tangermann2012Review
 from sklearn.preprocessing import LabelEncoder
 
-from benchmark_utils.data import (
+from compet_core.data import (
     chs_info_from_names, get_device, group_split, make_segment_loader,
 )
-from benchmark_utils.neuralset_task import build_epoched, channel_names
+from compet_core.neuralset_task import build_epoched, channel_names
 
 
 class Dataset(BaseDataset):
@@ -91,9 +92,6 @@ class Dataset(BaseDataset):
             test_loader=make_segment_loader(
                 ds.select(te), y[te], record_id[te], onset[te], device=device,
             ),
-            task="mi",
-            task_kind="epoched",
-            metrics=["accuracy", "balanced_accuracy"],
             n_classes=n_classes,
             sfreq=self.frequency,
             ch_names=ch_names,
