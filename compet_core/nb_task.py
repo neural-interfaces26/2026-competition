@@ -41,6 +41,16 @@ _NEURO_DEFAULTS = {
 }
 
 
+def _strip_markers(cfg):
+    """Drop leftover ``=replace=`` markers (kept verbatim by ``ConfDict``
+    when the updated key did not pre-exist) before pydantic validation."""
+    for key in list(cfg):
+        if key == "=replace=":
+            del cfg[key]
+        elif isinstance(cfg[key], dict):
+            _strip_markers(cfg[key])
+
+
 def _data_config(modality, task, dataset, data_dir, overrides):
     """Compose the ``data:`` config: defaults <- task <- dataset <- overrides.
 
@@ -72,6 +82,7 @@ def _data_config(modality, task, dataset, data_dir, overrides):
         for key, value in source.items():
             cfg["study"]["source"].setdefault(key, value)
     cfg.update(overrides or {})
+    _strip_markers(cfg)
     return cfg
 
 
