@@ -45,7 +45,7 @@ jobs:
           pip install -U pip
           pip install "benchopt @ git+https://github.com/benchopt/benchopt@main"
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install scikit-learn
+          pip install scikit-learn pytest
       - name: Test (Simulated only, no per-class installs)
         run: |
           benchopt test tracks/${{ matrix.track }} --skip-install \
