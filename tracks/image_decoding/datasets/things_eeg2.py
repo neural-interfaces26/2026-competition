@@ -42,6 +42,7 @@ class Dataset(BaseDataset):
         return path
 
     def get_data(self):
+        self.prepare()  # idempotent — so plain ``benchopt run`` also works
         device = get_device()
         loaders, meta = load_task(
             "eeg", "image",
