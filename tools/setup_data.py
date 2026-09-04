@@ -10,7 +10,8 @@ No-network smoke testing needs nothing here — the zero-dependency
 Usage
 -----
     python tools/setup_data.py --track bci_decoding             # all datasets
-    python tools/setup_data.py --track bci_decoding -d "BCI[study=tangermann2012]"
+    python tools/setup_data.py --track bci_decoding \
+        -d "BCI[study=tangermann2012]"
 """
 
 import argparse
