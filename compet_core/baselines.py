@@ -52,3 +52,18 @@ class ConstantClassifier:
 
     def predict(self, X):
         return np.zeros(len(to_numpy(X)), dtype=np.int64)
+
+
+class MedianRegressor:
+    """Always predict the median of the train targets — one value/window."""
+
+    def __init__(self, value=0.0):
+        self.value = value
+
+    def fit(self, train_loader):
+        targets = [to_numpy(y).ravel() for _X, y, _info in train_loader]
+        self.value = float(np.median(np.concatenate(targets)))
+        return self
+
+    def predict(self, X):
+        return np.full(len(to_numpy(X)), self.value, dtype=np.float64)
