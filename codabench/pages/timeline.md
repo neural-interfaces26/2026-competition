@@ -1,11 +1,17 @@
 # Timeline
 
-## Development phase
-This phase should be used to tune your models, testing against a small
-set of testing data
+## Warm-up phase — Sep 16 to Oct 15, 2026
 
-## Final phase
-Resubmit your preferred submission from the development phase to test
-against a new set of testing data. Your model will be trained against
-the same set of training data as in the development phase. You may only
-make one submission to this phase, so choose wisely.
+Datasets, baselines and this starting kit are released; up to 5 submissions
+per day. Use this phase to build and tune your model against the public
+splits.
+
+## Sealed final phase — Oct 16 to Nov 16, 2026 (AoE)
+
+Up to 2 submissions per day; the final ranking is the best of your last five
+sealed submissions, evaluated on held-out test data. The top-3 of each track
+are re-run in a reproducibility audit.
+
+## Winners announced — Dec 11–12, 2026
+
+At the NeurIPS 2026 competition workshop in Sydney.

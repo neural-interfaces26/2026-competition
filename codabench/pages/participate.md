@@ -1,90 +1,80 @@
 # How to participate
 
-Your submission is a single `submission.py` that defines a **benchopt solver**.
-Two tracks are available:
+Your submission is a folder containing a `submission.py` that defines a
+**benchopt solver**, plus any weight files your model needs. The competition
+server evaluates it **inference-only**: your model must arrive fully trained.
 
-## Foundation-model track (linear probing)
+## The contract
 
-Subclass `CompetEEGSolver` and ship only your *frozen* encoder — the
-competition fits the scikit-learn linear head for you and scores every task.
-You implement:
+Subclass `CompetSolver` (from the bundled `compet_core` package) and
+implement:
 
-- `load_model(self, meta)` — load and return your frozen model (once). `meta`
-  carries `sfreq, ch_names, chs_info, n_chans, n_times, n_classes, task`.
-- `time_embed(self, model, X)` — map a batch of windows `X: (B, C, T)` (torch
-  tensor) to a temporal embedding `(B, T', D)`.
-- `embed(self, model, X)` — *optional* window embedding `(B, D)`; defaults to
-  mean-pooling `time_embed` over time.
+- `load_model(self, meta)` — build your model and load your shipped weights
+  from `meta["weights_dir"]`, placing it on `meta["device"]`. Return an
+  object exposing `predict(X)`.
+- `predict(X)` receives torch batches `X: (B, C, T)` already on
+  `meta["device"]`; the expected output shape is track-specific (see the
+  competition description — e.g. class labels `(B,)`, latencies `(B,)`,
+  embeddings `(B, D)`, or joint-angle sequences `(B, J, T)`).
+
+`meta` also carries `sfreq, ch_names, chs_info, n_chans, n_times` and the
+track's output size (`n_classes` / `n_outputs` / `n_joints`).
+
+Optionally, implement `fit(self, model, train_loader)` — it only runs
+**locally** (never on the server) and lets you train your model with the
+exact competition data through the starting kit.
 
 ```python
 import torch
-from benchmark_utils.base_solver import CompetEEGSolver
+
+from compet_core.base_solver import CompetSolver
 
 
-class Solver(CompetEEGSolver):
+class Solver(CompetSolver):
     name = "MyModel"
-    requirements = CompetEEGSolver.requirements + ["pip::my-model-pkg"]
+    requirements = CompetSolver.requirements + ["pip::my-model-pkg"]
 
     def load_model(self, meta):
-        model = load_my_pretrained_model()
-        model.eval()
-        return model
-
-    def time_embed(self, model, X):
-        with torch.inference_mode():
-            return model.encode(X)   # (B, T', D)
+        model = build_my_model(
+            n_chans=meta["n_chans"], n_times=meta["n_times"],
+        )
+        state = torch.load(meta["weights_dir"] / "weights.pt",
+                           map_location=meta["device"])
+        model.load_state_dict(state)
+        return model.to(meta["device"]).eval()
 ```
 
-The same encoder serves both regimes: **epoched** tasks (one label per window,
-e.g. motor imagery) use `embed`; **dense** tasks (a per-time-step label
-sequence, e.g. sleep staging / onset detection) use `time_embed`.
+Your `predict` can be a method of the returned model (plain PyTorch — no
+benchopt, neuralset or neuralbench knowledge is needed inside your model).
 
-## Specialist track (task-specific model)
+## Test locally
 
-A specialist is **task-specific**: subclass `CompetEEGSpecificSolver`, set the
-`task` class attribute to the task you target (one submission per task), and
-implement `load_model(self, meta)` returning a model with `fit(train_loader)`
-and `predict(X)`. Labels *do* reach your model here. The base class gates on
-the specific track *and* your targeted task — see
-`solution/submission_specific.py` and the per-task references in
-`benchmark/solvers/specific_*.py`.
-
-```python
-from benchmark_utils.base_solver import CompetEEGSpecificSolver
-
-
-class Solver(CompetEEGSpecificSolver):
-    name = "MyMISpecialist"
-    task = "mi"   # the task this submission targets
-
-    def load_model(self, meta):
-        return MyTaskSpecificModel(meta)   # fit(loader) / predict(X)
-```
-
-## Test your submission locally
-
-You run the **exact same code** the competition runs — only the data path and
-settings change, via config. From a checkout of the benchmark:
+The starting kit is the benchmark itself. From the competition repo:
 
 ```bash
-# 1. (once) install the benchmark dependencies
-benchopt install benchmark/
-
-# 2. quick check on the zero-download Simulated data
-cp submission.py benchmark/solvers/_submission.py
-benchopt run benchmark/ -d Simulated -s MyModel
-rm benchmark/solvers/_submission.py
-
-# 3. on the real tasks (downloads the data once)
-benchopt prepare benchmark/        # or: python tools/setup_data.py
-cp submission.py benchmark/solvers/_submission.py
-benchopt run benchmark/ -s MyModel
-rm benchmark/solvers/_submission.py
+pip install -e .                   # the shared compet_core package
+benchopt install tracks/<track>    # solvers/datasets requirements
+benchopt run tracks/<track> -d Simulated   # zero-download smoke test
 ```
 
-`Simulated` provides both an epoched and a dense variant with no downloads, so
-you can validate the full pipeline (encoder → linear probe → metrics) in
-seconds before pulling the real datasets.
+To iterate on a submission before uploading, drop your `submission.py` into
+the track's `solvers/` folder and run the same command; or mirror the
+platform exactly with the ingestion program:
 
-See the "Seed" page for a complete starter `submission.py`, and the "Timeline"
-page for the competition phases.
+```bash
+python codabench/ingestion_program/ingestion.py \
+    --submission-dir my_submission/ \
+    --benchmark-dir tracks/<track> --datasets Simulated
+python codabench/scoring_program/scoring.py \
+    --prediction-dir output/ --output-dir scores/
+```
+
+Training on the real data locally: `python tools/setup_data.py --track
+<track>` downloads it once, then use your solver's `fit` with
+`benchopt run tracks/<track>`.
+
+## Submit
+
+Zip the submission folder (`submission.py` + weights) and upload it on the
+*My Submissions* tab. Baselines and reference submissions live in the
+`solution/` folder of the bundle.

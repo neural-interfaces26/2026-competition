@@ -1,7 +1,7 @@
-# CI for the bundled benchopt benchmark (compet2026/benchmark/).
+# CI for the 4 track benchmarks (tracks/<name>/).
 # Mirrors benchopt/template_benchmark's main.yml, but points the reusable
-# test workflow at the ``benchmark`` sub-folder via the ``benchmark_dir`` input
-# (the benchmark lives in a subdirectory of the Codabench bundle repo).
+# test workflow at each track sub-folder via the ``benchmark_dir`` input
+# (the benchmarks live in subdirectories of the competition monorepo).
 name: Benchmark
 
 on:
@@ -20,14 +20,17 @@ on:
 
 jobs:
   benchopt_dev:
+    strategy:
+      fail-fast: false
+      matrix:
+        track:
+          - image_decoding
+          - bci_decoding
+          - sleep_onset
+          - emg_pose
     uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
     with:
       benchopt_branch: benchopt@main
-      benchmark_dir: ./benchmark
-  benchopt_release:
-    uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
-    with:
-      benchopt_version: latest
-      benchmark_dir: ./benchmark
+      benchmark_dir: ./tracks/${{ matrix.track }}
   lint:
     uses: benchopt/template_benchmark/.github/workflows/lint_benchmarks.yml@main

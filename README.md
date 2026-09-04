@@ -1,97 +1,102 @@
-# EEG Models Competition 2026 — Codabench bundle
+# Neural Interfaces 2026 — competition benchmarks & Codabench bundles
 
-A [Codabench](https://www.codabench.org) competition to evaluate **EEG
-foundation models** (via linear probing) against **task-specific specialist
-models**, powered by [benchopt](https://benchopt.github.io). It ships two tasks
-spanning the two data regimes EEG decoding needs:
+The code behind the [NeurIPS 2026 neural-interfaces
+competition](https://neural-interfaces26.github.io): **4 tracks**, each a
+standalone [benchopt](https://benchopt.github.io) benchmark and its own
+[Codabench](https://www.codabench.org) competition, sharing the data layer
+(built on
+[neuralset / neuralbench](https://facebookresearch.github.io/neuroai/)) and
+the submission contract.
 
-- **Motor imagery** (MOABB BNCI2014_001) — *epoched*: one label per trial.
-- **Sleep staging / onset detection** (Sleep-EDF) — *continuous / dense*: a
-  per-time-step label sequence over a long window.
+| Track | Benchmark | Task | Metric |
+|---|---|---|---|
+| 1 | `tracks/image_decoding` | decode the viewed image from an EEG epoch (retrieval) | top-5 accuracy |
+| 2 | `tracks/bci_decoding` | cued mental-command classification | balanced accuracy |
+| 3 | `tracks/sleep_onset` | regress seconds to the first stable N2 epoch | binned MAE (s) |
+| 4 | `tracks/emg_pose` | regress hand-joint angles from wrist EMG | angular MAE (°) |
 
 ## Design choices
 
-- **The benchmark is a standalone benchopt benchmark** (`benchmark/`), runnable
-  on its own (`benchopt run benchmark/`) and developed independently of the
-  Codabench bundle. Participants test locally with the *same* code the
-  competition runs — only data paths / settings change, via config.
-- **Two tracks via an Objective switch** `track ∈ {linear_probe, specific}`:
-  - *linear_probe* (foundation models): a submission ships only a frozen
-    encoder; the infra auto-fits a scikit-learn linear head. This is the
-    track's constraint — labels never reach the encoder.
-  - *specific* (specialists): a submission trains a **task-specific** model
-    directly — one submission per task.
-- **A submission is a benchopt solver.** Foundation-model submissions subclass
-  `benchmark_utils.base_solver.CompetEEGSolver` and implement `load_model` +
-  `time_embed`/`embed` (see `solution/submission_fm.py`); the base class handles
-  track gating and fitting the linear probe. Specialist submissions subclass
-  `CompetEEGSpecificSolver`, set the `task` class attribute they target, and
-  implement `load_model` returning a model with `fit`/`predict` (see
-  `solution/submission_specific.py`); the base gates on the specific track *and*
-  the targeted task.
-- **One contract for both regimes.** The encoder produces a *temporal*
-  embedding `(B, C, T) → (B, T', D)`; the linear head is applied per time
-  position. Epoched tasks pool over `T'` (one label/window); dense tasks keep
-  the sequence (`(B, T', K+1)`) and upsample predictions to the raw time axis.
-- **Torch end-to-end.** Dataloaders yield torch tensors so braindecode/REVE-style
-  models run directly; thanks to scikit-learn's **array API** the torch features
-  flow straight through the linear head (on-device, no numpy round-trip), with a
-  numpy fallback. (`SCIPY_ARRAY_API=1` must be set before scipy import — the
-  ingestion and probe modules set it.)
-- **neuralset is confined to data loading.** neuralset / neuralfetch (Study →
-  events → Segmenter → SegmentDataset) live only behind
-  `benchmark_utils/neuralset_task.py` and the `datasets/`; everything is
-  converted to torch tensors at that boundary, so nothing downstream is tied to
-  the data stack.
-- **Everything runs in ingestion; scoring only parses.** `ingestion_program`
-  runs the benchmark on the submission via `benchopt.run_benchmark` (programmatic
-  API, no subprocess) and stores the **raw** benchopt results dataframe with
-  `save_results`. `scoring_program` reads it back with `read_results` and emits
-  `scores.json`. Keeping the raw dataframe lets us store predictions later.
+- **Each track is a standalone benchopt benchmark** (`tracks/<name>/`),
+  runnable on its own (`benchopt run tracks/<name>`). Participants test
+  locally with the *same* code the competition runs.
+- **A submission is a trained model.** It ships as a benchopt solver
+  (`submission.py` subclassing `compet_core.base_solver.CompetSolver` +
+  weight files); the platform evaluates **inference-only**
+  (`COMPET_INFERENCE_ONLY=1` — the solver's optional `fit` is a local
+  training convenience, never run on the server).
+- **Pure-PyTorch submissions.** Batches reach the model as plain torch
+  tensors `(X, y, info)` already on `meta["device"]`; no benchopt / neuralset
+  / neuralbench types cross the solver boundary.
+- **The data layer reuses the official neuralbench pipelines.**
+  `compet_core.nb_task.load_task` instantiates the task configs shipped in
+  the `neuralbench` wheel (study, split, segmenter, target extractors,
+  samplers) and adapts the loaders to the competition contract. Every track
+  also has a zero-download `Simulated` dataset for smoke tests.
+- **Everything runs in ingestion; scoring only parses.** The shared
+  `codabench/ingestion_program` runs the bundled benchmark on the submission
+  via `benchopt.run_benchmark` and stores the raw results dataframe; the
+  shared `codabench/scoring_program` turns its float metric columns into
+  `scores.json`.
 
 ## Structure
 
 ```
-benchmark/              standalone benchopt benchmark
-  objective.py          EEGObjective: `track` switch + epoched/dense metrics
-  datasets/             simulated (zero-dep), moabb_mi, sleep_edf
-  solvers/              linear_probe (reference FM); specific_{mi,sleep} (per-task reference specialists)
-  benchmark_utils/      base_solver, linear_probe, data, baselines, neuralset_task
-ingestion_program/      runs the benchmark on a submission -> raw results dataframe
-scoring_program/        parses the dataframe -> scores.json
-solution/submission_fm.py        sample foundation-model submission (REVE)
-solution/submission_specific.py  sample task-specific specialist submission (MI)
-tools/                  setup_data (benchopt prepare), create_bundle, Dockerfile
-dev_phase/              placeholder data dirs (data is loaded by the benchmark)
-pages/                  Codabench competition pages
+compet_core/            shared package: data utils, nb_task (neuralbench
+                        wrapper), base_solver (submission contract),
+                        baselines, metrics, linear_probe
+tracks/
+  image_decoding/       objective (top-5 retrieval) + THINGS-EEG2 proxy
+  bci_decoding/         objective (balanced acc) + Stieger2021/Tangermann2012/
+                        Dreyer2023 studies + MOABB-MI legacy dataset
+  sleep_onset/          objective (binned MAE) + Sleep-EDF proxy
+  emg_pose/             objective (angular MAE) + Simulated only (the real
+                        Salter2024 emg2pose loader is upstream work)
+codabench/
+  ingestion_program/    shared, inference-only; bundles ship one track as
+                        benchmark/
+  scoring_program/      shared, parses the results dataframe
+  competition_*.yaml    one Codabench config per track
+  pages/                competition pages
+solution/<track>/       sample submission per track
+tools/                  create_bundle --track, setup_data --track,
+                        Dockerfile, run_docker
 ```
 
 ## Run locally
 
 ```bash
-# zero-download smoke test (both tracks, both regimes)
-benchopt run benchmark/ -d Simulated
+pip install -e .                          # the shared compet_core package
 
-# benchopt test on the tiny config
-benchopt test benchmark/ -k Simulated --skip-install
+# zero-download smoke test, any track
+benchopt run tracks/bci_decoding -d Simulated
+
+# benchopt test on the tiny configs
+benchopt test tracks/bci_decoding --skip-install
 
 # end-to-end ingestion + scoring on Simulated (mirrors Codabench)
-python ingestion_program/ingestion.py --submission-dir solution/ \
-    --output-dir ingestion_res --datasets Simulated
-python scoring_program/scoring.py --prediction-dir ingestion_res \
-    --output-dir scoring_res
+python codabench/ingestion_program/ingestion.py \
+    --submission-dir solution/bci_decoding --output-dir ingestion_res \
+    --benchmark-dir tracks/bci_decoding --datasets Simulated
+python codabench/scoring_program/scoring.py \
+    --prediction-dir ingestion_res --output-dir scoring_res
 
-# real data (downloads MOABB + Sleep-EDF once)
-python tools/setup_data.py
+# real data (one-time download; large for some tracks)
+python tools/setup_data.py --track bci_decoding
 ```
 
-See `pages/participate.md` for writing and testing a submission.
+See `codabench/pages/participate.md` for writing and testing a submission.
 
 ## Build & CI
 
-- `python tools/create_bundle.py` produces `bundle.zip` (includes `benchmark/`)
-  to upload to Codabench.
-- `.github/workflows/benchmark.yml` runs `benchopt test` on `benchmark/` (via
-  the reusable `benchopt/template_benchmark` workflows, with
-  `benchmark_dir: ./benchmark`) plus lint. `.github/workflows/test.yml` builds
-  the Docker image and runs the ingestion/scoring end-to-end.
+- `python tools/create_bundle.py --all` produces one `bundle_<track>.zip` per
+  track to upload to Codabench (the track's benchmark is shipped as
+  `benchmark/`, next to `compet_core/` and the shared programs).
+- `.github/workflows/benchmark.yml` runs `benchopt test` on the 4 tracks
+  (matrix over `benchmark_dir`, via the reusable
+  `benchopt/template_benchmark` workflows) plus lint;
+  `test-docker.yml` builds the Docker image and runs ingestion/scoring
+  end-to-end on Simulated.
+
+Note: the benchmarks require benchopt ≥ 1.9.2 (currently the `main` branch);
+the CI release-version job will be re-enabled once it is on PyPI.
