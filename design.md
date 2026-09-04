@@ -78,17 +78,21 @@ this monorepo.
 - End-to-end ingestion → scoring on Simulated for all 4 tracks; expected
   score keys; `create_bundle.py --all` builds the 4 bundles.
 - Inference-only gating verified (fit skipped ⇒ untrained model scores).
-- Real-data validation of the neuralbench layer: **in progress on margaret**
-  (SLURM job; `BCI[study=tangermann2012]`) — container is CPU-only/small, and
-  neuralset needs Python ≥ 3.12 → env at `.venv-margaret/` (torch 2.6 cu124).
-  On margaret use `sbatch`, never detached tmux (login node reaps it).
+- Real-data validation of the neuralbench layer: **passed on margaret**
+  (`BCI[study=tangermann2012]`, MeanLogReg → bal-acc 0.266 on the 4-class
+  subject-level split, chance 0.25 — sane for that baseline). Data lands in
+  `tracks/bci_decoding/data/neural_compet/` (NEMAR/BIDS download, ~1.7 GB,
+  ~2 h mostly at slow S3 throughput). Sleep-EDF and stieger2021 validation
+  jobs submitted (531149/531150). The container is CPU-only/small and
+  neuralset needs Python ≥ 3.12 → env at `.venv-margaret/` (torch 2.6 cu124,
+  benchopt installed from the `~/workspace/benchopt` checkout — PyPI 1.9.1 is
+  too old). On margaret use `sbatch`, never detached tmux (login node reaps
+  it).
 
 ## TODOs / open issues
 
-- Validate on real data: `BCI[study=tangermann2012]` (running), then
-  stieger2021, sleep_edf (large download), things_eeg2 (large + embedding
-  pass). Check the `_NBWindows` shape assumptions (`(1, C, T)` squeeze,
-  one-hot target squeeze) against real batches.
+- Validate on real data: tangermann2012 done; stieger2021 + sleep_edf jobs
+  submitted; things_eeg2 (large + DINOv2 embedding pass) still to run.
 - REVE frozen-probe baseline per track (linear_probe.py kept for this) —
   braindecode envs may clash with the neuralbench torch pin.
 - emg_pose real data loader (Salter2024) — upstream.
