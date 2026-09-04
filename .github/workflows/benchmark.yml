@@ -32,5 +32,9 @@ jobs:
     with:
       benchopt_branch: benchopt@main
       benchmark_dir: ./tracks/${{ matrix.track }}
+      # Restrict to the zero-download Simulated tests: installing the real
+      # data stack (neuralbench -> torch==2.6 + CUDA wheels) exceeds the
+      # runners' disk. Real-data runs happen on the cluster instead.
+      extra_args: "-k simulated"
   lint:
     uses: benchopt/template_benchmark/.github/workflows/lint_benchmarks.yml@main
