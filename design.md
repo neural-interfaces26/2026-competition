@@ -93,8 +93,12 @@ this monorepo.
 
 ## TODOs / open issues
 
-- Validate on real data: tangermann2012 done; stieger2021 + sleep_edf jobs
-  submitted; things_eeg2 (large + DINOv2 embedding pass) still to run.
+- Validate on real data: tangermann2012 done (bal-acc 0.266); sleep_edf done
+  (Median → bMAE 165.5 s vs official EEGNet-sleep 143.3 s — sane floor);
+  stieger2021 still downloading (~large); things_eeg2 (large + DINOv2
+  embedding pass) still to run. NB: editing the NFS working tree while a
+  cluster run is live trips benchopt's "class changed between pickle and
+  unpickle" cache guard — `benchopt clean tracks/<t>` and rerun.
 - REVE frozen-probe baseline per track (linear_probe.py kept for this) —
   braindecode envs may clash with the neuralbench torch pin.
 - emg_pose real data loader (Salter2024) — upstream.
