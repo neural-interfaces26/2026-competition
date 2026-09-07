@@ -8,7 +8,7 @@ splits.
 
 ## Sealed final phase — Oct 16 to Nov 16, 2026 (AoE)
 
-Up to 2 submissions per day; the final ranking is the best of your last five
+One submission per day; the final ranking is the best of your last five
 sealed submissions, evaluated on held-out test data. The top-3 of each track
 are re-run in a reproducibility audit.
 

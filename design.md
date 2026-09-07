@@ -117,7 +117,19 @@ this monorepo.
 - Hidden-test isolation on Codabench (sealed phase) — still deferred; public
   proxy test splits for now.
 - `benchopt_release` CI job disabled until benchopt 1.9.2 hits PyPI.
-- Competition yaml dates are placeholders (`terms.md` written 2026-09-07).
+- Competition yamls (2026-09-07): 2 phases — Warm-up 2026-09-01 → 10-16
+  (5 subs/day) and Sealed Final 10-16 → 11-16 (1 sub/day), both with a
+  3600 s `execution_time_limit`; `docker_image: sylvchev/codabench-py314:v1`;
+  detailed results + forum disabled; `contact_email` set. The prose dates in
+  `pages/timeline.md`, `pages/terms.md` (Rule 3) and the competition page's
+  tail still say Sep 16 – Oct 15; the user decided (2026-09-07) to leave them
+  as they are, so the *announced* warm-up window is deliberately narrower than
+  the phase the platform opens. Only timeline.md's sealed-final rate was
+  corrected (2 → 1 sub/day) to match the yamls.
+- The sealed final phase reuses task 0 (the public proxy split); real
+  hidden-test isolation is still deferred.
+- `tools/Dockerfile` (pytorch 2.8 base) is not the source of
+  `sylvchev/codabench-py314:v1` — reconcile or drop it.
 - `logo.png` is superseded by `logo.jpg` (what the bundles ship) but is still
   tracked — delete it once nothing references it.
 - The old MOABB-MI dataset + `neuralset_task.py` → drop after nb_task real

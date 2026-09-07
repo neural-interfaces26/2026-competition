@@ -65,8 +65,10 @@
   background: #fff; border: 1px solid var(--ni-line); border-radius: 10px;
 }
 .ni26-logos a { display: inline-flex; align-items: center; }
-.ni26-logos img { height: 38px; width: auto; max-width: 190px; object-fit: contain; }
-.ni26-logos.ni26-logos--sm img { height: 30px; max-width: 150px; }
+/* No width/height here on purpose: author CSS overrides the per-logo width=
+   / height= attributes set in _competition_tail.html, which is where each
+   logo's size is tuned. Only cap the size for narrow viewports. */
+.ni26-logos img { max-width: 100%; object-fit: contain; }
 .ni26-kicker {
   font-size: .72rem; font-weight: 700; letter-spacing: .09em;
   text-transform: uppercase; color: var(--ni-muted); margin: 1.5rem 0 .1rem;
