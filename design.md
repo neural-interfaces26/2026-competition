@@ -46,7 +46,19 @@ this monorepo.
 - **Bundles**: `tools/create_bundle.py --track <t>` ships the track's
   benchmark under the canonical `benchmark/` name + `compet_core/` + shared
   ingestion/scoring + `codabench/competition_<t>.yaml` (as
-  `competition.yaml`) + `solution/<t>/`.
+  `competition.yaml`) + `solution/<t>/` + `logo.jpg`. The tracks' short keys
+  (`image`/`bci`/`sleep`/`emg`) name both the yaml and the competition page.
+- **Competition page** (first tab, before Participation/Timeline): shipped as
+  `pages/competition.html` — Codabench accepts HTML pages, which markdown
+  cannot match for the figure/logo layout. Assembled at bundle time from
+  `codabench/pages/_competition_head.html` (styles, all scoped under `.ni26`
+  so nothing leaks into Codabench's own CSS) + `competition_<key>.html` (the
+  track's own section, mirroring the website's track card) +
+  `_competition_tail.html` (four-track overview + the 18 sponsor/institution
+  logos), so the shared parts live in one file. Figures and logos are hot-
+  linked to `https://neural-interfaces26.github.io/assets/img/...` rather than
+  vendored — Codabench serves page markdown/HTML from its own origin, so
+  bundle-relative image paths would not resolve.
 - The legacy direct-neuralset path (`compet_core/neuralset_task.py`,
   `tracks/bci_decoding/datasets/moabb_mi.py`) is kept alongside the
   neuralbench path until the latter is fully validated on real data; then it
@@ -105,7 +117,9 @@ this monorepo.
 - Hidden-test isolation on Codabench (sealed phase) — still deferred; public
   proxy test splits for now.
 - `benchopt_release` CI job disabled until benchopt 1.9.2 hits PyPI.
-- `terms.md` is lorem ipsum; competition yaml dates are placeholders.
+- Competition yaml dates are placeholders (`terms.md` written 2026-09-07).
+- `logo.png` is superseded by `logo.jpg` (what the bundles ship) but is still
+  tracked — delete it once nothing references it.
 - The old MOABB-MI dataset + `neuralset_task.py` → drop after nb_task real
   validation.
 

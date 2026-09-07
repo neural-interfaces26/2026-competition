@@ -5,11 +5,13 @@ description: >
   Submissions ship a trained model (code + weights); the platform runs
   inference-only on the held-out split and ranks by balanced accuracy.
   Powered by benchopt + neuralbench.
-image: logo.png
+image: logo.jpg
 registration_auto_approve: False
 
 terms: pages/terms.md
 pages:
+  - title: Competition
+    file: pages/competition.html
   - title: Participation
     file: pages/participate.md
   - title: Timeline

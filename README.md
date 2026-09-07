@@ -57,7 +57,9 @@ codabench/
                         benchmark/
   scoring_program/      shared, parses the results dataframe
   competition_*.yaml    one Codabench config per track
-  pages/                competition pages
+  pages/                competition pages; competition_<key>.html is the
+                        per-track page, assembled by create_bundle with the
+                        shared _competition_{head,tail}.html fragments
 solution/<track>/       sample submission per track
 tools/                  create_bundle --track, setup_data --track,
                         Dockerfile, run_docker
