@@ -1,0 +1,12 @@
+# Phase config — bci_decoding, development phase.
+# A native `benchopt run --config` file; the extra `data_home` and `scoring`
+# keys are read by the ingestion/scoring programs (benchopt ignores them).
+dataset:
+  - Simulated
+  # - BCI[study=dreyer2023]      # public proxy — enable once /data is staged
+seed: 42
+no_timeout: true
+scoring:
+  columns:
+    balanced_accuracy: objective_balanced_accuracy
+    accuracy: objective_accuracy

@@ -58,10 +58,40 @@ this monorepo.
   lets CI work on the **private** repo (a `pip::git+...` requirement cannot
   be installed there — that was the first CI failure). The root
   `pyproject.toml` remains for optional `pip install -e .` convenience.
+- **Ingestion = a thin wrapper around `benchopt run` (2026-09-09).** The
+  phase's Codabench `input_data` holds a `config.yaml` that is a *native*
+  `benchopt run --config` file (`dataset`, `seed`, `no_timeout`, ...) plus
+  two competition-only keys ingestion strips before the run (benchopt
+  rejects unknown config options): `data_home` (-> `$BENCHOPT_DATA_HOME`)
+  and `scoring.columns` (leaderboard key -> dataframe column, forwarded to
+  and parsed by scoring — missing/NaN columns fail loudly). Ingestion copies
+  the benchmark to a writable workdir (with `compet_core` as sibling for the
+  `benchmark_utils` walk), drops in `input_data/datasets/*.py`
+  (sealed-phase splits — the hidden-test mechanism: upload as a private
+  Codabench dataset, never in the public repo) and the submission solver,
+  then execs `benchopt run ... --no-cache` (`BENCHOPT_DEBUG=true` so a
+  solver error exits nonzero with the traceback). Dev-phase configs live in
+  `codabench/phases/dev/<track>/`. Planned benchopt 1.10 features (file
+  paths for `-s`/`-d`/`--output`, see
+  `~/workspace/benchopt/note_feature_path_selectors.md`) will delete the
+  copy steps.
+- **One Docker recipe, 4 images.** `tools/Dockerfile` takes
+  `--build-arg TRACK=<t>` and bakes `tracks/<t>` at `/compet/benchmark`
+  (`$COMPET_BENCHMARK_DIR`) + `compet_core` + the programs; deps from
+  `requirements.txt` are the submissions' dependency contract (no install at
+  submission time; benchopt from git until 1.10 is on PyPI). Data is
+  downloaded on the docker host with the same image
+  (`docker run -v <host>:/data <img> benchopt prepare $COMPET_BENCHMARK_DIR
+  -d <ds>`; `ENV BENCHOPT_DATA_HOME=/data`) and bind-mounted as `/data` for
+  scoring runs — **to verify**: the self-hosted Codabench compute worker
+  must support the extra volume mount (fallback: private derived image with
+  `COPY data /data`). `tools/run_docker.py --track <t>` is the local test.
 - **Bundles**: `tools/create_bundle.py --track <t>` ships the track's
-  benchmark under the canonical `benchmark/` name + `compet_core/` + shared
-  ingestion/scoring + `codabench/competition_<t>.yaml` (as
-  `competition.yaml`) + `solution/<t>/`.
+  benchmark under the canonical `benchmark/` name + `compet_core/` (both
+  kept as no-docker fallback) + shared ingestion/scoring +
+  `codabench/competition_<t>.yaml` (as `competition.yaml`) +
+  `solution/<t>/` + `codabench/phases/dev/<t>/` as
+  `dev_phase/input_data/`. `data/` dirs are always skipped.
 - The legacy direct-neuralset path (`compet_core/neuralset_task.py`,
   `tracks/bci_decoding/datasets/moabb_mi.py`) is kept alongside the
   neuralbench path until the latter is fully validated on real data; then it
@@ -120,8 +150,10 @@ this monorepo.
 - REVE frozen-probe baseline per track (linear_probe.py kept for this) —
   braindecode envs may clash with the neuralbench torch pin.
 - emg_pose real data loader (Salter2024) — upstream.
-- Hidden-test isolation on Codabench (sealed phase) — still deferred; public
-  proxy test splits for now.
+- Hidden-test isolation on Codabench: mechanism in place (final phase =
+  private Codabench `input_data` dataset with `config.yaml` +
+  `datasets/*.py` sealed split); the sealed dataset files themselves remain
+  to be written. Public proxy test splits for now.
 - `benchopt_release` CI job disabled until benchopt 1.9.2 hits PyPI.
 - `terms.md` is lorem ipsum; competition yaml dates are placeholders.
 - The old MOABB-MI dataset + `neuralset_task.py` → drop after nb_task real

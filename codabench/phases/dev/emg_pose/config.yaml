@@ -1,0 +1,10 @@
+# Phase config — emg_pose, development phase.
+# A native `benchopt run --config` file; the extra `data_home` and `scoring`
+# keys are read by the ingestion/scoring programs (benchopt ignores them).
+dataset:
+  - Simulated                    # real EMG2Pose loader is upstream work
+seed: 42
+no_timeout: true
+scoring:
+  columns:
+    angular_mae: objective_angular_mae
