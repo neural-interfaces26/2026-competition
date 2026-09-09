@@ -35,6 +35,21 @@ this monorepo.
   `data_dir`, local execution). Loaders are re-wrapped to the competition
   contract (`(X, y, info)` torch batches on `meta["device"]`) so submissions
   stay pure-PyTorch. neuralbench pins `torch==2.6` + needs Python ≥ 3.12.
+- **CPU/GPU via benchopt's requirements dict.** Objectives declare
+  `requirements = {"cpu": ["scikit-learn", "pytorch-cpu"], "gpu": [...,
+  "pytorch-gpu"]}` (conda-forge metapackages), selected by `benchopt install
+  [--gpu]`; the default cpu variant is what CI's test env installs.
+  `CompetSolver.requirements` is empty — torch/sklearn come from the
+  objective env; submissions declare only their extras.
+- **CI = benchopt's reusable workflow, tamed via `test_config.py` hooks.**
+  The hook mechanism resolves `check_<any test function>` — beyond the two
+  run-time hooks, each track defines `check_test_dataset_install` (real
+  datasets: their pip stack pins CUDA `torch==2.6`, exceeding runner disk)
+  and `check_test_solver_install` for the braindecode solvers (pip pulls a
+  CUDA torchaudio that cannot load against CPU torch). Neither hook nor the
+  cpu/gpu dict is documented in the `using-benchopt` skill — see
+  `~/workspace/benchopt/note_skill_update_test_config.md` for the planned
+  upstream skill addition.
 - **`compet_core` needs no install.** Each track ships a
   `benchmark_utils/__init__.py` that walks up from the benchmark dir to the
   first parent holding `compet_core/` (repo root in a checkout, bundle root
@@ -95,10 +110,13 @@ this monorepo.
 
 - Validate on real data: tangermann2012 done (bal-acc 0.266); sleep_edf done
   (Median → bMAE 165.5 s vs official EEGNet-sleep 143.3 s — sane floor);
-  stieger2021 still downloading (~large); things_eeg2 (large + DINOv2
-  embedding pass) still to run. NB: editing the NFS working tree while a
-  cluster run is live trips benchopt's "class changed between pickle and
-  unpickle" cache guard — `benchopt clean tracks/<t>` and rerun.
+  **stieger2021 hit the 24 h SLURM limit mid-download** (2026-09-05; NEMAR S3
+  often throttles to ~100-250 kB/s and the study is tens of GB) — finished
+  files persist, so resubmit `~/workspace/tmp/sbatch_bci_stieger.sh` with a
+  longer `--time` to resume; things_eeg2 (large + DINOv2 embedding pass)
+  still to run. NB: editing the NFS working tree while a cluster run is live
+  trips benchopt's "class changed between pickle and unpickle" cache guard —
+  `benchopt clean tracks/<t>` and rerun.
 - REVE frozen-probe baseline per track (linear_probe.py kept for this) —
   braindecode envs may clash with the neuralbench torch pin.
 - emg_pose real data loader (Salter2024) — upstream.

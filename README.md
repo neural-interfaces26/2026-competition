@@ -28,6 +28,11 @@ the submission contract.
 - **Pure-PyTorch submissions.** Batches reach the model as plain torch
   tensors `(X, y, info)` already on `meta["device"]`; no benchopt / neuralset
   / neuralbench types cross the solver boundary.
+- **CPU and GPU.** The objectives declare cpu/gpu requirement variants
+  (`requirements = {"cpu": [...], "gpu": [...]}`): `benchopt install
+  tracks/<t>` sets up a CPU env (what CI uses), `benchopt install tracks/<t>
+  --gpu` a CUDA one. The code is device-agnostic — batches follow
+  `meta["device"]` (auto-detected, override with `COMPET_DEVICE`).
 - **The data layer reuses the official neuralbench pipelines.**
   `compet_core.nb_task.load_task` instantiates the task configs shipped in
   the `neuralbench` wheel (study, split, segmenter, target extractors,
@@ -98,7 +103,9 @@ See `codabench/pages/participate.md` for writing and testing a submission.
   (matrix over `benchmark_dir`, via the reusable
   `benchopt/template_benchmark` workflows) plus lint;
   `test-docker.yml` builds the Docker image and runs ingestion/scoring
-  end-to-end on Simulated.
+  end-to-end on Simulated. Each track's `test_config.py` skips the tests
+  that cannot run on CI runners (real-data installs/downloads pinning CUDA
+  builds); those paths are validated on the cluster instead.
 
 Note: the benchmarks require benchopt ≥ 1.9.2 (currently the `main` branch);
 the CI release-version job will be re-enabled once it is on PyPI.
