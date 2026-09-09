@@ -56,7 +56,7 @@ install of the repo needed — `benchmark_utils` locates the shared
 `compet_core` package):
 
 ```bash
-benchopt install tracks/<track>    # solvers/datasets requirements
+benchopt install tracks/<track>            # CPU env (add --gpu for CUDA)
 benchopt run tracks/<track> -d Simulated   # zero-download smoke test
 ```
 
