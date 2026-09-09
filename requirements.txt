@@ -3,8 +3,9 @@
 # inference-only on the submission, so it needs benchopt plus everything the
 # tracks import at run time (compet_core itself ships inside the bundle and
 # is put on sys.path by the ingestion program).
-# From git until 1.10 (`benchopt prepare` + up-to-date run CLI) hits PyPI.
-benchopt @ git+https://github.com/benchopt/benchopt
+# main tarball until 1.10 (`benchopt prepare` + up-to-date run CLI) hits
+# PyPI — a tarball, not git+https: the docker image has no git.
+benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
 pandas
 scikit-learn
 torch
