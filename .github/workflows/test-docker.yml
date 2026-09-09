@@ -1,7 +1,10 @@
-# Test that the docker image builds correctly and that running the ingestion
-# and scoring programs works (bundle layout: benchmark/ + compet_core/ at the
-# bundle root next to the programs). Runs on the zero-download Simulated
-# dataset of one track per family (classification + regression).
+# Build each track's Docker image (tools/Dockerfile --build-arg TRACK) and
+# evaluate it end-to-end: run the baked-in ingestion + scoring programs on
+# the zero-download Simulated dataset — the image's default dev-phase config
+# at /app/input_data — exactly as the Codabench worker would (only the
+# submission and output dirs are mounted). The heavy base + requirements
+# layers are shared across the 4 matrix builds via the buildx GHA cache, so
+# only the small per-track COPY layers differ.
 name: Test Docker Image
 
 on:
@@ -16,8 +19,16 @@ concurrency:
 jobs:
     test-docker:
         runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                track:
+                    - image_decoding
+                    - bci_decoding
+                    - sleep_onset
+                    - emg_pose
         env:
-            DOCKER_IMAGE_NAME: docker-codabench-test
+            DOCKER_IMAGE_NAME: neural-compet-${{ matrix.track }}:ci
 
         steps:
             - name: Delete huge unnecessary tools folder
@@ -38,30 +49,28 @@ jobs:
             - name: Docker build
               uses: docker/build-push-action@v6
               with:
+                context: .
                 file: ./tools/Dockerfile
+                build-args: TRACK=${{ matrix.track }}
                 push: false
                 load: true
                 tags: ${{ env.DOCKER_IMAGE_NAME }}
-                cache-from: type=gha,scope=${{ env.DOCKER_IMAGE_NAME }}-${{ hashFiles('**/Dockerfile') }}-${{ hashFiles('**/requirements.txt') }}
-                cache-to: type=gha,mode=max,scope=${{ env.DOCKER_IMAGE_NAME }}-${{ hashFiles('**/Dockerfile') }}-${{ hashFiles('**/requirements.txt') }}
+                # One shared cache scope for all tracks: the base +
+                # requirements layers precede ARG TRACK, so every matrix job
+                # reuses them and only rebuilds its COPY layers.
+                cache-from: type=gha,scope=docker-${{ hashFiles('tools/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
+                cache-to: type=gha,mode=max,scope=docker-${{ hashFiles('tools/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
 
-            - name: Test ingestion + scoring programs (per track)
+            - name: Evaluate the sample submission in the image
               run: |
-                for track in bci_decoding sleep_onset; do
-                    echo "=== $track ==="
-                    docker run --rm -u root \
-                        -v "./codabench/ingestion_program":/app/ingestion_program \
-                        -v "./compet_core":/app/compet_core \
-                        -v "./tracks/$track":/app/benchmark \
-                        -v "./ingestion_res_$track":/app/output \
-                        -v "./solution/$track":/app/ingested_program \
-                        --name ingestion ${{ env.DOCKER_IMAGE_NAME }} \
-                            python /app/ingestion_program/ingestion.py \
-                                --datasets Simulated
-                    docker run --rm -u root \
-                        -v "./codabench/scoring_program":/app/scoring_program \
-                        -v "./ingestion_res_$track":/app/input/res \
-                        -v "./scoring_res_$track":/app/output \
-                        --name scoring ${{ env.DOCKER_IMAGE_NAME }} \
-                            python /app/scoring_program/scoring.py
-                done
+                docker run --rm -u root \
+                    -v "./solution/${{ matrix.track }}":/app/ingested_program \
+                    -v "./ingestion_res":/app/output \
+                    ${{ env.DOCKER_IMAGE_NAME }} \
+                    python3 /compet/ingestion_program/ingestion.py
+                docker run --rm -u root \
+                    -v "./ingestion_res":/app/input/res \
+                    -v "./scoring_res":/app/output \
+                    ${{ env.DOCKER_IMAGE_NAME }} \
+                    python3 /compet/scoring_program/scoring.py
+                echo "leaderboard scores:"; cat scoring_res/scores.json
