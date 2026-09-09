@@ -1,7 +1,15 @@
-# CI for the bundled benchopt benchmark (compet2026/benchmark/).
-# Mirrors benchopt/template_benchmark's main.yml, but points the reusable
-# test workflow at the ``benchmark`` sub-folder via the ``benchmark_dir`` input
-# (the benchmark lives in a subdirectory of the Codabench bundle repo).
+# CI for the 4 track benchmarks (tracks/<name>/), using benchopt's reusable
+# test workflow with one matrix entry per track (``benchmark_dir`` input).
+#
+# The test env stays runner-sized through benchopt's own mechanisms:
+# - the objectives declare ``requirements = {"cpu": ..., "gpu": ...}`` and the
+#   test env installs the cpu variant (conda-forge ``pytorch-cpu``);
+# - each track's ``test_config.py`` skips the install/get_data tests of the
+#   real datasets, whose pip stack pins a CUDA torch build (their runs are
+#   validated on the cluster instead).
+#
+# The release job (benchopt_version: latest) is disabled until benchopt 1.9.2
+# is on PyPI (the benchmarks' min_benchopt_version).
 name: Benchmark
 
 on:
@@ -20,14 +28,17 @@ on:
 
 jobs:
   benchopt_dev:
+    strategy:
+      fail-fast: false
+      matrix:
+        track:
+          - image_decoding
+          - bci_decoding
+          - sleep_onset
+          - emg_pose
     uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
     with:
       benchopt_branch: benchopt@main
-      benchmark_dir: ./benchmark
-  benchopt_release:
-    uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
-    with:
-      benchopt_version: latest
-      benchmark_dir: ./benchmark
+      benchmark_dir: ./tracks/${{ matrix.track }}
   lint:
     uses: benchopt/template_benchmark/.github/workflows/lint_benchmarks.yml@main

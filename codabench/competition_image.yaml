@@ -1,0 +1,58 @@
+version: 2
+title: "Neural Interfaces 2026 — Track 1: Image Decoding (EEG-to-Image)"
+description: >
+  Decode which image a subject viewed from a single EEG epoch. Submissions
+  ship a trained model (code + weights); the platform runs inference-only on
+  the held-out split and ranks by top-5 retrieval accuracy. Powered by
+  benchopt + neuralbench.
+image: logo.png
+registration_auto_approve: False
+
+terms: pages/terms.md
+pages:
+  - title: Participation
+    file: pages/participate.md
+  - title: Timeline
+    file: pages/timeline.md
+
+tasks:
+  - index: 0
+    name: Image decoding
+    description: >
+      The ingestion program runs the bundled benchopt benchmark inference-only
+      on your submission; scoring parses the produced results dataframe.
+    input_data: dev_phase/input_data/
+    reference_data: dev_phase/reference_data/
+    ingestion_program: ingestion_program/
+    scoring_program: scoring_program/
+
+solutions:
+  - index: 0
+    tasks:
+      - 0
+    path: solution/
+
+phases:
+  - name: Development Phase
+    description: 'Development phase: build and test your model.'
+    start: 01-01-2026
+    end: 11-16-2026
+    tasks:
+      - 0
+
+leaderboards:
+  - title: Results
+    key: main
+    columns:
+      - title: Top-5 accuracy
+        key: top5_acc
+        index: 0
+        sorting: desc
+      - title: Top-1 accuracy
+        key: top1_acc
+        index: 1
+        sorting: desc
+      - title: Duration (s)
+        key: duration
+        index: 2
+        sorting: asc

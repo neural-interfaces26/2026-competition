@@ -1,0 +1,54 @@
+version: 2
+title: "Neural Interfaces 2026 — Track 4: EMG-to-Pose"
+description: >
+  Regress hand-joint angle trajectories from 16-channel wrist surface EMG.
+  Submissions ship a trained model (code + weights); the platform runs
+  inference-only on the held-out split and ranks by mean angular MAE
+  (degrees). Powered by benchopt + neuralbench.
+image: logo.png
+registration_auto_approve: False
+
+terms: pages/terms.md
+pages:
+  - title: Participation
+    file: pages/participate.md
+  - title: Timeline
+    file: pages/timeline.md
+
+tasks:
+  - index: 0
+    name: EMG-to-pose
+    description: >
+      The ingestion program runs the bundled benchopt benchmark inference-only
+      on your submission; scoring parses the produced results dataframe.
+    input_data: dev_phase/input_data/
+    reference_data: dev_phase/reference_data/
+    ingestion_program: ingestion_program/
+    scoring_program: scoring_program/
+
+solutions:
+  - index: 0
+    tasks:
+      - 0
+    path: solution/
+
+phases:
+  - name: Development Phase
+    description: 'Development phase: build and test your model.'
+    start: 01-01-2026
+    end: 11-16-2026
+    tasks:
+      - 0
+
+leaderboards:
+  - title: Results
+    key: main
+    columns:
+      - title: Angular MAE (deg)
+        key: angular_mae
+        index: 0
+        sorting: asc
+      - title: Duration (s)
+        key: duration
+        index: 1
+        sorting: asc
