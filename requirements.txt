@@ -3,14 +3,20 @@
 # inference-only on the submission, so it needs benchopt plus everything the
 # tracks import at run time (compet_core itself ships inside the bundle and
 # is put on sys.path by the ingestion program).
-benchopt
+# main tarball until 1.10 (`benchopt prepare` + up-to-date run CLI) hits
+# PyPI — a tarball, not git+https: the docker image has no git.
+benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
 pandas
 scikit-learn
-torch
-# Data stack for the real tasks (Simulated needs none of these):
-neuralset
-neuralfetch
-neuralbench
+# neuralbench's pin; the PyPI linux wheel is cu124 and bundles the CUDA libs.
+torch==2.6.0
+# Data stack for the real tasks (Simulated needs none of these). Pinned to
+# the combination validated on the cluster — unpinned, pip resolves an exca
+# incompatible with neuralset (`exca.steps.base.NoValue` missing).
+neuralset==0.2.3
+neuralfetch==0.2.3
+neuralbench==0.2.3
+exca==0.5.29
 moabb
 mne
 # Used by the EEGNet baselines / many torch submissions:

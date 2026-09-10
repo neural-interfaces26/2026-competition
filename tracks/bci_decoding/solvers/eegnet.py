@@ -21,7 +21,7 @@ fallback silently hiding the missing dependency.
 
 import torch
 from torch import nn
-from braindecode.models import EEGNetv4
+from braindecode.models import EEGNet
 
 import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
@@ -39,7 +39,7 @@ class EEGNetModel:
         self.device = device
         self.n_epochs = n_epochs
         self.lr = lr
-        self.net = EEGNetv4(
+        self.net = EEGNet(
             n_chans=n_chans, n_outputs=n_classes, n_times=n_times,
         ).to(device)
 

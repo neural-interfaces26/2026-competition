@@ -60,20 +60,18 @@ benchopt install tracks/<track>            # CPU env (add --gpu for CUDA)
 benchopt run tracks/<track> -d Simulated   # zero-download smoke test
 ```
 
-To iterate on a submission before uploading, drop your `submission.py` into
-the track's `solvers/` folder and run the same command; or mirror the
-platform exactly with the ingestion program:
+To iterate on a submission before uploading, drop your files (code +
+weights) into the track's `solvers/` folder and run it like any benchopt
+solver — the platform evaluation is the same `benchopt run`,
+inference-only:
 
 ```bash
-python codabench/ingestion_program/ingestion.py \
-    --submission-dir my_submission/ \
-    --benchmark-dir tracks/<track> --datasets Simulated
-python codabench/scoring_program/scoring.py \
-    --prediction-dir output/ --output-dir scores/
+cp my_submission/* tracks/<track>/solvers/
+benchopt run tracks/<track> -d Simulated -s my-solver
 ```
 
-Training on the real data locally: `python tools/setup_data.py --track
-<track>` downloads it once, then use your solver's `fit` with
+Training on the real data locally: `benchopt prepare tracks/<track>`
+downloads it once, then your solver's `fit` runs with
 `benchopt run tracks/<track>`.
 
 ## Submit
