@@ -79,7 +79,11 @@ this monorepo.
   `--build-arg TRACK=<t>` and bakes `tracks/<t>` at `/compet/benchmark`
   (`$COMPET_BENCHMARK_DIR`) + `compet_core` + the programs; deps from
   `requirements.txt` are the submissions' dependency contract (no install at
-  submission time; benchopt from git until 1.10 is on PyPI). Data is
+  submission time; benchopt from the main tarball until 1.10 is on PyPI).
+  Base = `python:3.12-slim` + pip `torch==2.6.0` (cu124 wheels bundle the
+  CUDA runtime): neuralset needs Python ≥ 3.12 while `pytorch/pytorch`
+  images ship 3.11 — unpinned, pip silently resolved the ancient py311
+  neuralset 0.0.2, hence the pins in requirements.txt. Data is
   downloaded on the docker host with the same image
   (`docker run -v <host>:/data <img> benchopt prepare $COMPET_BENCHMARK_DIR
   -d <ds>`; `ENV BENCHOPT_DATA_HOME=/data`) and bind-mounted as `/data` for

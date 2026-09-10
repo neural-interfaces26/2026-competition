@@ -8,7 +8,8 @@
 benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
 pandas
 scikit-learn
-torch
+# neuralbench's pin; the PyPI linux wheel is cu124 and bundles the CUDA libs.
+torch==2.6.0
 # Data stack for the real tasks (Simulated needs none of these). Pinned to
 # the combination validated on the cluster — unpinned, pip resolves an exca
 # incompatible with neuralset (`exca.steps.base.NoValue` missing).

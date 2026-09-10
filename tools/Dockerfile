@@ -15,8 +15,10 @@
 #     docker run --gpus all -v <host-data>:/data \
 #         -v <submission>:/app/ingested_program -v <results>:/app/output \
 #         <image> python3 /compet/ingestion_program/ingestion.py
-# torch 2.6 to match neuralbench's pin (no downgrade at requirements install).
-FROM pytorch/pytorch:2.6.0-cuda12.4-cudnn9-runtime
+# Python 3.12 base (neuralset needs >= 3.12; pytorch/pytorch images ship
+# 3.11). torch 2.6 comes from pip — the cu124 wheels bundle the CUDA runtime,
+# so GPU works through the nvidia container runtime without a CUDA base.
+FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
