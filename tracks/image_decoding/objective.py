@@ -29,7 +29,12 @@ class Objective(BaseObjective):
     name = "Image-decoding"
     url = "https://github.com/tomMoral/2026-neurips_compet-eeg"
 
-    requirements = ["scikit-learn", "pip::torch"]
+    # CPU/GPU variants resolved by ``benchopt install [--gpu]``; the conda
+    # metapackages pin the matching torch build (CI installs the cpu one).
+    requirements = {
+        "cpu": ["scikit-learn", "pytorch-cpu"],
+        "gpu": ["scikit-learn", "pytorch-gpu"],
+    }
 
     min_benchopt_version = "1.9.2"
 

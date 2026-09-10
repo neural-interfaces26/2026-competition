@@ -33,7 +33,8 @@ from compet_core.base_solver import CompetSolver
 
 class Solver(CompetSolver):
     name = "MyModel"
-    requirements = CompetSolver.requirements + ["pip::my-model-pkg"]
+    # torch/scikit-learn come with the benchmark env; declare only extras.
+    requirements = ["pip::my-model-pkg"]
 
     def load_model(self, meta):
         model = build_my_model(
@@ -55,7 +56,7 @@ install of the repo needed — `benchmark_utils` locates the shared
 `compet_core` package):
 
 ```bash
-benchopt install tracks/<track>    # solvers/datasets requirements
+benchopt install tracks/<track>            # CPU env (add --gpu for CUDA)
 benchopt run tracks/<track> -d Simulated   # zero-download smoke test
 ```
 

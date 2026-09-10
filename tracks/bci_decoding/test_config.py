@@ -1,12 +1,30 @@
 import pytest
 
+# Real datasets whose pip stack (neuralset/neuralfetch/neuralbench) pins a
+# CUDA torch build — installing it exceeds the CI runners' disk. Their
+# install (and slow-download get_data) tests are skipped; use
+# ``benchopt install`` locally / on a compute node instead.
+HEAVY_DATASETS = ("bci", "moabb-mi")
+
+
+def check_test_dataset_install(dataset_class):
+    """Hook to skip dataset install test cases in benchopt tests."""
+    if dataset_class.name.lower() in HEAVY_DATASETS:
+        pytest.skip("real-data stack is too heavy for CI runners")
+
 
 def check_test_dataset_get_data(dataset_class):
     """Hook to skip dataset test cases in benchopt tests."""
-    if dataset_class.name.lower() == "bci":
-        # The NEMAR/BIDS download (~1.7 GB, often throttled) is too slow
-        # for CI; MOABB-MI covers the real-data path there.
-        pytest.skip("BCI studies download is too slow for CI")
+    if dataset_class.name.lower() in HEAVY_DATASETS:
+        pytest.skip("real-data download is too slow/large for CI")
+
+
+def check_test_solver_install(solver_class):
+    """Hook to skip solver install test cases in benchopt tests."""
+    if "eegnet" in solver_class.name.lower():
+        # pip braindecode pulls a CUDA torchaudio that cannot load against
+        # the CPU torch of the CI env; exercised on the cluster instead.
+        pytest.skip("braindecode/torchaudio stack unavailable on CI runners")
 
 
 def check_test_solver_run(solver_class, test_dataset_name):

@@ -31,9 +31,14 @@ from benchopt import BaseSolver
 
 
 class CompetSolver(BaseSolver):
-    """Base class for all track submissions (and built-in baselines)."""
+    """Base class for all track submissions (and built-in baselines).
 
-    requirements = ["scikit-learn", "pip::torch"]
+    torch and scikit-learn are provided by the benchmark environment (the
+    Objective's cpu/gpu requirements); submissions only declare their own
+    extras, e.g. ``requirements = ["pip::my-model-pkg"]``.
+    """
+
+    requirements = []
 
     sampling_strategy = "run_once"
 

@@ -1,12 +1,15 @@
-# CI for the 4 track benchmarks (tracks/<name>/).
+# CI for the 4 track benchmarks (tracks/<name>/), using benchopt's reusable
+# test workflow with one matrix entry per track (``benchmark_dir`` input).
 #
-# Uses a self-managed test job rather than benchopt/template_benchmark's
-# reusable test workflow: that workflow lets `benchopt test` create a conda
-# env and install the objective requirements, and `pip install torch` on the
-# Linux runners pulls the CUDA wheel stack (~6 GB), exceeding their disk.
-# Here we pre-install a CPU-only torch and run the tests with
-# `--skip-install -k simulated` (the zero-download tests) — real-data runs
-# happen on the cluster instead. Lint keeps the reusable workflow.
+# The test env stays runner-sized through benchopt's own mechanisms:
+# - the objectives declare ``requirements = {"cpu": ..., "gpu": ...}`` and the
+#   test env installs the cpu variant (conda-forge ``pytorch-cpu``);
+# - each track's ``test_config.py`` skips the install/get_data tests of the
+#   real datasets, whose pip stack pins a CUDA torch build (their runs are
+#   validated on the cluster instead).
+#
+# The release job (benchopt_version: latest) is disabled until benchopt 1.9.2
+# is on PyPI (the benchmarks' min_benchopt_version).
 name: Benchmark
 
 on:
@@ -24,32 +27,18 @@ on:
     - cron: '42 7 1 * *'
 
 jobs:
-  test_tracks:
+  benchopt_dev:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
         track:
           - image_decoding
           - bci_decoding
           - sleep_onset
           - emg_pose
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install benchopt (dev) + CPU test stack
-        run: |
-          pip install -U pip
-          pip install "benchopt @ git+https://github.com/benchopt/benchopt@main"
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install scikit-learn pytest
-      - name: Test (Simulated only, no per-class installs)
-        run: |
-          benchopt test tracks/${{ matrix.track }} --skip-install \
-              -k simulated -vl
-
+    uses: benchopt/template_benchmark/.github/workflows/test_benchmarks.yml@main
+    with:
+      benchopt_branch: benchopt@main
+      benchmark_dir: ./tracks/${{ matrix.track }}
   lint:
     uses: benchopt/template_benchmark/.github/workflows/lint_benchmarks.yml@main
