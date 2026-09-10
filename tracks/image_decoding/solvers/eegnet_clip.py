@@ -9,7 +9,7 @@ EEGNet baselines.
 
 import torch
 from torch.nn import functional as F
-from braindecode.models import EEGNetv4
+from braindecode.models import EEGNet
 
 import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
@@ -31,7 +31,7 @@ class EEGNetClip:
         self.device = device
         self.n_epochs = n_epochs
         self.lr = lr
-        self.net = EEGNetv4(
+        self.net = EEGNet(
             n_chans=n_chans, n_outputs=n_outputs, n_times=n_times,
         ).to(device)
 
