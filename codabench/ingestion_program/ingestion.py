@@ -81,6 +81,15 @@ def install_submission_solvers(submission_dir, workdir):
 
 
 def main(submission_dir, output_dir, benchmark_dir, input_dir):
+    print(f"[ingestion] benchmark: {benchmark_dir}")
+    if not benchmark_dir.exists():
+        raise SystemExit(
+            f"[ingestion] no benchmark at {benchmark_dir}: run inside a "
+            "track image (which sets $COMPET_BENCHMARK_DIR) or pass "
+            "--benchmark-dir. On Codabench, set the competition's docker "
+            "image to the track image."
+        )
+
     # Point the solvers at the submission folder (shipped weights).
     os.environ["COMPET_SUBMISSION_DIR"] = str(submission_dir)
     workdir = setup_workdir(benchmark_dir, input_dir)
