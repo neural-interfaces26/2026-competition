@@ -95,17 +95,21 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
     workdir = setup_workdir(benchmark_dir, input_dir)
 
     config, run_config = input_dir / "config.yaml", None
-    if config.exists():
-        cfg = yaml.safe_load(config.read_text()) or {}
-        if cfg.get("data_home"):
-            os.environ["BENCHOPT_DATA_HOME"] = str(cfg["data_home"])
-        # benchopt rejects unknown config keys: strip the competition-only
-        # ones and pass the rest as a genuine `benchopt run` config file.
-        cfg = {k: v for k, v in cfg.items()
-               if k not in ("scoring", "data_home")}
-        if cfg:
-            run_config = workdir.parent / "run_config.yml"
-            run_config.write_text(yaml.safe_dump(cfg))
+    if not config.exists():
+        raise SystemExit(
+            f"[ingestion] no phase config at {config} — refusing to run "
+            "every dataset. Provide an input_data dir with a config.yaml "
+            "(on Codabench, upload the phase's input_data dataset)."
+        )
+    cfg = yaml.safe_load(config.read_text()) or {}
+    if cfg.get("data_home"):
+        os.environ["BENCHOPT_DATA_HOME"] = str(cfg["data_home"])
+    # benchopt rejects unknown config keys: strip the competition-only
+    # ones and pass the rest as a genuine `benchopt run` config file.
+    cfg = {k: v for k, v in cfg.items() if k not in ("scoring", "data_home")}
+    if cfg:
+        run_config = workdir.parent / "run_config.yml"
+        run_config.write_text(yaml.safe_dump(cfg))
 
     cmd = [
         "benchopt", "run", str(workdir),
@@ -126,8 +130,7 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
     shutil.copyfile(result_file, output_dir / "results.parquet")
     (output_dir / "metadata.json").write_text(
         json.dumps({"duration": time.time() - start}))
-    if config.exists():
-        shutil.copyfile(config, output_dir / "config.yaml")
+    shutil.copyfile(config, output_dir / "config.yaml")
 
 
 if __name__ == "__main__":
