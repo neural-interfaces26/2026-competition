@@ -4,7 +4,7 @@ import pytest
 # CUDA torch build — installing it exceeds the CI runners' disk. Their
 # install (and slow-download get_data) tests are skipped; use
 # ``benchopt install`` locally / on a compute node instead.
-HEAVY_DATASETS = ("bci", "moabb-mi")
+HEAVY_DATASETS = ("bci",)
 
 
 def check_test_dataset_install(dataset_class):

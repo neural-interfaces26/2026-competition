@@ -20,7 +20,7 @@ Differences with running neuralbench itself:
   torch batches moved onto ``device``, see ``compet_core.data``), so nothing
   downstream is tied to neuralset/neuralbench types;
 - ``subset="test"`` restricts the pipeline to the test split (see
-  :func:`test_only_filter`) so workers can stage evaluation data only.
+  :func:`build_test_only_filter`) so workers can stage evaluation data only.
 
 Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
@@ -55,7 +55,7 @@ def _merged_data_config(modality, task, dataset, data_dir, overrides):
     return cfg
 
 
-def test_only_filter(data_cfg):
+def build_test_only_filter(data_cfg):
     """``filter_stimuli`` override restricting a study to its test split.
 
     Composes a :class:`neuralset.events.transforms.QueryEvents` query that
@@ -87,6 +87,21 @@ def test_only_filter(data_cfg):
     if existing.get("query"):
         query = f"({existing['query']}) and ({query})"
     return {"name": "QueryEvents", "query": query}
+
+
+def _channel_names(seg_ds):
+    """Ordered channel names of a prepared ``SegmentDataset``'s extractor.
+
+    The extracted signal is a bare tensor, but the neuro extractor keeps a
+    name -> column-index map assigned during ``prepare()``. There is no
+    public accessor (neuralbench's ``Data.prepare`` reads the same private
+    attribute); returns ``None`` when unavailable so datasets degrade
+    gracefully (``chs_info`` stays ``None``).
+    """
+    chans = getattr(seg_ds.extractors["neuro"], "_channels", None)
+    if not chans:
+        return None
+    return [name for name, _ in sorted(chans.items(), key=lambda kv: kv[1])]
 
 
 def download_study(modality, task, data_dir, dataset=None):
@@ -186,9 +201,9 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         Applied to each window's target (e.g. one-hot -> class index).
     subset : {"all", "test"}
         ``"test"`` restricts the study to its test split via a
-        ``filter_stimuli`` override (see :func:`test_only_filter`) — e.g. to
-        stage only the evaluation data on a worker. The train/val loaders
-        are then (near-)empty; only use the test loader.
+        ``filter_stimuli`` override (:func:`build_test_only_filter`) —
+        e.g. to stage only the evaluation data on a worker. The
+        train/val loaders are then (near-)empty; only use the test one.
 
     Returns
     -------
@@ -201,7 +216,6 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     from neuralbench.data import get_default_dataloaders
 
     from compet_core.data import chs_info_from_names
-    from compet_core.neuralset_task import channel_names
 
     # Merged view of the config (for meta + the subset filter)...
     cfg = _merged_data_config(modality, task, dataset, data_dir, overrides)
@@ -210,7 +224,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     all_overrides.update({"batch_size": batch_size, "seed": seed,
                           "pin_memory": False, "persistent_workers": False})
     if subset == "test":
-        all_overrides["study.filter_stimuli"] = test_only_filter(cfg)
+        all_overrides["study.filter_stimuli"] = build_test_only_filter(cfg)
     elif subset != "all":
         raise ValueError(f"subset must be 'all' or 'test', got {subset!r}")
 
@@ -226,7 +240,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     raw_y0 = to_numpy(nb_loaders["test"].dataset[0].data["target"])
     if raw_y0.ndim and raw_y0.shape[0] == 1:
         raw_y0 = raw_y0[0]
-    ch_names = channel_names(nb_loaders["test"].dataset, key="neuro")
+    ch_names = _channel_names(nb_loaders["test"].dataset)
     meta = dict(
         sfreq=float(cfg["neuro"]["frequency"]),
         ch_names=ch_names,

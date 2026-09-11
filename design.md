@@ -96,10 +96,9 @@ this monorepo.
   `codabench/competition_<t>.yaml` (as `competition.yaml`) +
   `solution/<t>/` + `codabench/phases/dev/<t>/` as
   `dev_phase/input_data/`. `data/` dirs are always skipped.
-- The legacy direct-neuralset path (`compet_core/neuralset_task.py`,
-  `tracks/bci_decoding/datasets/moabb_mi.py`) is kept alongside the
-  neuralbench path until the latter is fully validated on real data; then it
-  can be dropped.
+- The legacy direct-neuralset path (`neuralset_task.py`, `moabb_mi.py`) was
+  dropped once the neuralbench path was validated on real data (tangermann,
+  identical metrics on the 0.2.3 and 0.3.1 stacks).
 
 ## Per-track notes
 
@@ -164,8 +163,6 @@ this monorepo.
   to be written. Public proxy test splits for now.
 - `benchopt_release` CI job disabled until benchopt 1.9.2 hits PyPI.
 - `terms.md` is lorem ipsum; competition yaml dates are placeholders.
-- The old MOABB-MI dataset + `neuralset_task.py` → drop after nb_task real
-  validation.
 
 ## Pointers
 
