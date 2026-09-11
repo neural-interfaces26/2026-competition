@@ -3,7 +3,10 @@
 # keys are read by the ingestion/scoring programs (benchopt ignores them).
 dataset:
   - Simulated
-  # - THINGS-EEG2                # public proxy — uncommenting it makes the worker stage it in /data
+  # Warm-up proxy — Alljoined-1.6M, same 32-ch Emotiv hardware as the hidden
+  # eval cohort. Uncommenting it makes the worker stage it in /data; needs
+  # the neuralbench >= 0.3 stack in the image (overlay yaml + study class).
+  # - Image[study=xu2025alljoined]
 seed: 42
 no_timeout: true
 scoring:
