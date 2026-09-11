@@ -222,8 +222,12 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     cfg = _merged_data_config(modality, task, dataset, data_dir, overrides)
 
     all_overrides = _base_overrides(data_dir, overrides)
+    # single-process loaders: the defaults inject num_workers=N_CPUS, which
+    # over-subscribes platform/CI runners (our rewrapped loaders extract
+    # windows lazily in-process anyway).
     all_overrides.update({"batch_size": batch_size, "seed": seed,
-                          "pin_memory": False, "persistent_workers": False})
+                          "num_workers": 0, "pin_memory": False,
+                          "persistent_workers": False})
     if subset == "test":
         all_overrides["study.filter_stimuli"] = build_test_only_filter(cfg)
     elif subset != "all":
