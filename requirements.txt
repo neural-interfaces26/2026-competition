@@ -8,14 +8,15 @@
 benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
 pandas
 scikit-learn
-# neuralbench's pin; the PyPI linux wheel is cu124 and bundles the CUDA libs.
+# neuralbench 0.3.x only needs torch>=2.5.1; kept pinned for reproducible
+# images (the PyPI linux wheel is cu124 and bundles the CUDA libs).
 torch==2.6.0
-# Data stack for the real tasks (Simulated needs none of these). Pinned to
-# the combination validated on the cluster — unpinned, pip resolves an exca
-# incompatible with neuralset (`exca.steps.base.NoValue` missing).
-neuralset==0.2.3
-neuralfetch==0.2.3
-neuralbench==0.2.3
+# Data stack for the real tasks (Simulated needs none of these). Pinned for
+# reproducibility; 0.3.x adds the emg/pose task, the image-dataset overlays
+# (xu2025alljoined, ...) and get_default_dataloaders.
+neuralset==0.3.1
+neuralfetch==0.3.1
+neuralbench==0.3.1
 exca==0.5.29
 moabb
 mne
