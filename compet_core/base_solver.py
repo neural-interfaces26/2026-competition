@@ -11,13 +11,13 @@ neuralbench knowledge is required:
   batch ``(B, C, T)``; the output shape is track-specific (see each track's
   objective docstring).
 - ``fit(self, model, train_loader)`` (optional, default no-op). **Opt-in
-  training**: it only runs when ``COMPET_TRAINING=1`` is set — this is how
-  the starting kit trains the baselines and how you can train your own model
-  with the exact competition data and evaluation. A plain ``benchopt run``
-  is inference-only, mirroring the competition server (where ingestion
-  additionally sets ``COMPET_INFERENCE_ONLY=1``, which always disables
-  ``fit``): the submitted model must be fully trained offline and shipped as
-  weights loaded in ``load_model``.
+  training**: it only runs when the objective's ``training`` parameter is
+  selected (``benchopt run ... -o "<objective>[training=True]"``) — this is
+  how the baselines are trained and how you can train your own model with
+  the exact competition data and evaluation. A plain ``benchopt run`` is
+  inference-only, mirroring the competition server (whose phase configs
+  never select ``training``): the submitted model must be fully trained
+  offline and shipped as weights loaded in ``load_model``.
 
 ``meta`` is a plain dict: ``sfreq, ch_names, chs_info, n_chans, n_times,
 n_classes`` (classification) or ``n_outputs`` (regression), ``device,
@@ -60,12 +60,10 @@ class CompetSolver(BaseSolver):
         self.model = self.load_model(self.meta)
 
     def run(self, _):
-        # Training is opt-in (COMPET_TRAINING=1): a plain run is
-        # inference-only, exactly like the competition platform. The platform
-        # guard (COMPET_INFERENCE_ONLY, set by ingestion outside training
-        # phases) always wins over the opt-in.
-        if (os.environ.get("COMPET_TRAINING")
-                and not os.environ.get("COMPET_INFERENCE_ONLY")):
+        # Training is opt-in through the objective's ``training`` parameter
+        # (`-o "<objective>[training=True]"`): a plain run is inference-only,
+        # exactly like the competition platform.
+        if self.meta.get("training"):
             self.fit(self.model, self.train_loader)
 
     def get_result(self):

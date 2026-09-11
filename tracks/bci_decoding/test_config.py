@@ -1,11 +1,5 @@
 import pytest
 
-import os
-
-# The benchmark tests exercise the full contract including training: enable
-# the opt-in fit (a plain run is inference-only, like the platform).
-os.environ.setdefault("COMPET_TRAINING", "1")
-
 
 # Real datasets whose pip stack (neuralset/neuralfetch/neuralbench) pins a
 # CUDA torch build — installing it exceeds the CI runners' disk. Their

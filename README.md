@@ -43,8 +43,9 @@ tools/                  bundle builder, data preparation, Docker helpers
 
 ```bash
 # zero-download smoke test, any track. Runs are inference-only by default
-# (like the platform); COMPET_TRAINING=1 lets the solvers' fit train first.
-COMPET_TRAINING=1 benchopt run tracks/bci_decoding -d Simulated
+# (like the platform); the objective's training variant trains the
+# solvers' fit first — this is how the baselines are trained.
+benchopt run tracks/bci_decoding -d Simulated -o "BCI-decoding[training=True]"
 
 # benchopt test on the tiny configs
 benchopt test tracks/bci_decoding --skip-install

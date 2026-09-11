@@ -20,10 +20,11 @@ implement:
 `meta` also carries `sfreq, ch_names, chs_info, n_chans, n_times` and the
 track's output size (`n_classes` / `n_outputs` / `n_joints`).
 
-Optionally, implement `fit(self, model, train_loader)` and run with
-`COMPET_TRAINING=1` to train your model with the exact competition data and
-evaluation through the starting kit. Without it a run is inference-only,
-mirroring the competition server (which never runs `fit`).
+Optionally, implement `fit(self, model, train_loader)` and select the
+objective's `training` variant to train your model with the exact
+competition data and evaluation through the starting kit. Without it a run
+is inference-only, mirroring the competition server (which never runs
+`fit`).
 
 ```python
 import torch
@@ -75,10 +76,12 @@ Training on the real data locally: `benchopt prepare tracks/<track>`
 downloads it once, then
 
 ```bash
-COMPET_TRAINING=1 benchopt run tracks/<track> -s my-solver
+benchopt run tracks/<track> -s my-solver -o "<objective>[training=True]"
 ```
 
-trains your solver (`fit`) and evaluates it exactly like the platform does.
+trains your solver (`fit`) and evaluates it exactly like the platform does
+(`<objective>` is the track's objective name, e.g. `BCI-decoding` — this is
+also how the baselines shipped in `solvers/` are trained).
 
 ## Submit
 
