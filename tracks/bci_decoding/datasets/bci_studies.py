@@ -47,7 +47,8 @@ class Dataset(BaseDataset):
         "study": ["stieger2021"],
         "batch_size": [64],
         # "test" restricts the study to its test split (worker staging /
-        # evaluation-only runs) — see compet_core.nb_task.
+        # evaluation-only runs; incompatible with the objective's
+        # training=True) — see compet_core.nb_task.
         "subset": ["all"],
     }
 
@@ -84,6 +85,7 @@ class Dataset(BaseDataset):
         )
         return dict(
             train_loader=loaders["train"],
+            subset=self.subset,
             test_loader=loaders["test"],
             n_classes=int(meta.pop("raw_target_shape")[-1]),
             **{k: v for k, v in meta.items() if k != "target_shape"},
