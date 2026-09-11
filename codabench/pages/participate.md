@@ -83,6 +83,16 @@ trains your solver (`fit`) and evaluates it exactly like the platform does
 (`<objective>` is the track's objective name, e.g. `BCI-decoding` — this is
 also how the baselines shipped in `solvers/` are trained).
 
+## Develop with benchopt
+
+The starting kit is a set of plain [benchopt](https://benchopt.github.io)
+benchmarks — while iterating on your model you get hyperparameter grids in
+one flag (`-s "my-solver[lr=[1e-4,1e-3]]"`), cached reruns, interactive HTML
+reports (`benchopt plot`), reproducible experiment yamls (`--config`), and
+parallel/SLURM execution (`-j`, `--parallel-config`). If you code with an AI
+assistant, `benchopt sync-skills --global` teaches it the solver
+conventions. See the starting-kit README for the full tour.
+
 ## Submit
 
 Zip the submission folder (`submission.py` + weights) and upload it on the
