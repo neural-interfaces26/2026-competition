@@ -3,7 +3,7 @@
 # keys are read by the ingestion/scoring programs (benchopt ignores them).
 dataset:
   - Simulated
-  # - BCI[study=dreyer2023]      # public proxy — enable once /data is staged
+  # - BCI[study=dreyer2023]      # public proxy — uncommenting it makes the worker stage it in /data
 seed: 42
 no_timeout: true
 scoring:

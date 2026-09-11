@@ -39,8 +39,16 @@ COPY codabench/scoring_program /compet/scoring_program
 # Codabench mounts the live phase's input_data over /app/input_data.
 COPY codabench/phases/dev/${TRACK} /app/input_data
 
+# All phase configs, addressable by name — used to stage /data on the
+# workers from the same yaml that drives the run:
+#     docker run -v /data:/data <image> sh -c \
+#         'benchopt prepare "$COMPET_BENCHMARK_DIR" \
+#              --config /compet/phases/dev/$COMPET_TRACK/config.yaml'
+COPY codabench/phases /compet/phases
+
 # Data is bind-mounted at /data (host-downloaded via `benchopt prepare`).
 ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
+    COMPET_TRACK=${TRACK} \
     BENCHOPT_DATA_HOME=/data
 VOLUME /data
 

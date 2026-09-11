@@ -3,7 +3,7 @@
 # keys are read by the ingestion/scoring programs (benchopt ignores them).
 dataset:
   - Simulated
-  # - THINGS-EEG2                # public proxy — enable once /data is staged
+  # - THINGS-EEG2                # public proxy — uncommenting it makes the worker stage it in /data
 seed: 42
 no_timeout: true
 scoring:

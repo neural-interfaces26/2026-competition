@@ -3,7 +3,7 @@
 # keys are read by the ingestion/scoring programs (benchopt ignores them).
 dataset:
   - Simulated
-  # - Sleep-EDF[batch_size=64]   # public proxy — enable once /data is staged
+  # - Sleep-EDF[batch_size=64]   # public proxy — uncommenting it makes the worker stage it in /data
 seed: 42
 no_timeout: true
 scoring:
