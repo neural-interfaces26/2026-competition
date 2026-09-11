@@ -64,6 +64,12 @@ class CompetSolver(BaseSolver):
         # (`-o "<objective>[training=True]"`): a plain run is inference-only,
         # exactly like the competition platform.
         if self.meta.get("training"):
+            if self.meta.get("subset") == "test":
+                raise ValueError(
+                    "The objective's training=True needs the train split, "
+                    "but the dataset was loaded with subset='test' "
+                    "(evaluation data only) — select it with subset='all'."
+                )
             self.fit(self.model, self.train_loader)
 
     def get_result(self):
