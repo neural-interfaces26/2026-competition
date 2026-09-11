@@ -63,6 +63,40 @@ cp solution/bci_decoding/* tracks/bci_decoding/solvers/
 benchopt run tracks/bci_decoding -d Simulated -s Sample-BCI
 ```
 
+## Develop & train your model with benchopt
+
+The tracks are plain [benchopt](https://benchopt.github.io) benchmarks, so
+your whole development loop lives in one tool. Start from a baseline: copy
+one from `tracks/<t>/solvers/`, rename it, edit `load_model` / `fit`, and
+
+```bash
+benchopt run tracks/bci_decoding -d Simulated -s my-solver \
+    -o "BCI-decoding[training=True]"
+```
+
+trains and scores it exactly like the platform will. Along the way, benchopt
+gives you the things you end up wanting when iterating on a model:
+
+- **Hyperparameter grids, one flag** — declare `parameters` on your solver
+  and sweep them inline: `-s "my-solver[lr=[1e-4,1e-3],n_epochs=[20,50]]"`
+  runs every combination and collects them in one results file.
+- **Caching** — completed runs are cached; rerunning after adding a variant
+  only computes what is new (`--no-cache` to force).
+- **Interactive reports** — every run writes an HTML dashboard next to the
+  parquet results; `benchopt plot` (or `--all` to merge runs) compares your
+  variants and the baselines visually.
+- **Reproducible experiment files** — pin datasets, solvers and seed in a
+  yaml and `benchopt run --config my_config.yml`; the competition phases are
+  driven by exactly such files.
+- **Parallel & cluster runs** — `-j 4` fans out locally,
+  `--parallel-config slurm.yml` sends the grid to a SLURM cluster.
+- **AI-assistant ready** — `benchopt sync-skills --global` installs
+  benchopt's agent skill (Claude Code, Copilot, ...), so your coding
+  assistant knows the solver/dataset conventions when it writes one for you.
+- **Introspection** — `benchopt info tracks/<t>` lists solvers/datasets and
+  their parameters; `benchopt test tracks/<t> --skip-install` sanity-checks
+  a new solver against the tiny test configs.
+
 The platform evaluation (`codabench/ingestion_program/ingestion.py` +
 `scoring_program/scoring.py`) is a thin wrapper around that same
 `benchopt run` — inference-only, driven by the phase's `config.yaml`
