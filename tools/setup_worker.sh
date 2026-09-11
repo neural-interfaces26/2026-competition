@@ -2,8 +2,13 @@
 # Provision a Codabench compute worker for the 4 track competitions.
 #
 # Run as root on a GPU VM with /data mounted (staging can take hours — see
-# the README: launch with nohup). The optional first argument is a root-only
-# environment file:
+# the README: launch with nohup):
+#
+#     setup_worker.sh [config_file] [track ...]
+#
+# Extra arguments restrict which tracks are staged (handy for testing, e.g.
+# `setup_worker.sh /etc/codabench-worker.env emg_pose`); default: all 4.
+# The optional first argument is a root-only environment file:
 #
 #   Required: BROKER_URL      the Codabench queue broker.
 #   Optional: BROKER_USE_SSL, CODALAB_IGNORE_CLEANUP_STEP, WORKER_IMAGE,
@@ -22,9 +27,15 @@
 # idempotent: re-running this script only re-validates.
 set -exuo pipefail
 
-TRACKS=(bci_decoding emg_pose image_decoding sleep_onset)
+ALL_TRACKS=(bci_decoding emg_pose image_decoding sleep_onset)
 
 config_file="${1:-/etc/codabench-worker.env}"
+shift $(( $# > 0 ? 1 : 0 ))
+if [[ $# -gt 0 ]]; then TRACKS=("$@"); else TRACKS=("${ALL_TRACKS[@]}"); fi
+for track in "${TRACKS[@]}"; do
+  [[ " ${ALL_TRACKS[*]} " == *" $track "* ]] || {
+    echo "Unknown track '$track'. Tracks: ${ALL_TRACKS[*]}" >&2; exit 1; }
+done
 
 if [[ ! -r "$config_file" ]]; then
   echo "Configuration file not readable: $config_file" >&2
