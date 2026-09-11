@@ -46,6 +46,9 @@ class Dataset(BaseDataset):
     parameters = {
         "study": ["stieger2021"],
         "batch_size": [64],
+        # "test" restricts the study to its test split (worker staging /
+        # evaluation-only runs) — see compet_core.nb_task.
+        "subset": ["all"],
     }
 
     test_parameters = {
@@ -75,6 +78,7 @@ class Dataset(BaseDataset):
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
+            subset=self.subset,
             # One-hot ``(K,)`` -> integer class label.
             target_transform=lambda y: y.argmax(-1),
         )

@@ -34,6 +34,9 @@ class Dataset(BaseDataset):
 
     parameters = {
         "batch_size": [64],
+        # "test" restricts the study to its test split (worker staging /
+        # evaluation-only runs) — see compet_core.nb_task.
+        "subset": ["all"],
     }
 
     def prepare(self):
@@ -54,6 +57,7 @@ class Dataset(BaseDataset):
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
+            subset=self.subset,
         )
         return dict(
             train_loader=loaders["train"],

@@ -1,9 +1,11 @@
 """Data loading through neuralbench task configs (the official pipelines).
 
-Builds :class:`neuralbench.data.Data` from the task configs shipped in the
-``neuralbench`` wheel (``neuralbench/tasks/<modality>/<task>/config.yaml``),
-so each track's benchopt dataset reuses the *exact* official data pipeline
-(study, split, segmenter, target extractor, sampler) in a few lines::
+Built on the official neuralbench (>= 0.3) entry points —
+:func:`neuralbench.experiment_config.merge_task_config` for the config
+composition (defaults <- task <- dataset overlay) and
+:func:`neuralbench.data.get_default_dataloaders` for the loaders — so each
+track's benchopt dataset reuses the *exact* official data pipeline (study,
+split, segmenter, target extractor, sampler) in a few lines::
 
     loaders, meta = load_task(
         "eeg", "motor_imagery", data_dir=..., dataset="tangermann2012",
@@ -11,11 +13,14 @@ so each track's benchopt dataset reuses the *exact* official data pipeline
 
 Differences with running neuralbench itself:
 
-- no ``~/.neuralbench/config.json`` and no exca cluster infra — everything
-  runs locally with explicit ``data_dir``;
+- everything runs locally with an explicit ``data_dir`` (the study path and
+  the exca infra are overridden — the ``~/.neuralbench`` config resolves in
+  the background but none of its paths are used);
 - the returned loaders follow the competition contract (``(X, y, info)``
   torch batches moved onto ``device``, see ``compet_core.data``), so nothing
-  downstream is tied to neuralset/neuralbench types.
+  downstream is tied to neuralset/neuralbench types;
+- ``subset="test"`` restricts the pipeline to the test split (see
+  :func:`test_only_filter`) so workers can stage evaluation data only.
 
 Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
@@ -26,64 +31,59 @@ import torch
 
 from compet_core.data import to_numpy
 
-# Mirrors ``neuralbench/defaults/config.yaml``'s ``data:`` section, minus the
-# exca infra blocks (cluster caching) and the user-config paths, which we
-# replace with explicit arguments.
-_NEURO_DEFAULTS = {
-    "name": "EegExtractor",
-    "picks": ["eeg"],
-    "frequency": 120.0,
-    "filter": [0.1, 75.0],
-    "notch_filter": [50.0, 60.0],
-    "baseline": None,
-    "scaler": "RobustScaler",
-    "clamp": 20.0,
-}
 
-
-def _strip_markers(cfg):
-    """Drop leftover ``=replace=`` markers (kept verbatim by ``ConfDict``
-    when the updated key did not pre-exist) before pydantic validation."""
-    for key in list(cfg):
-        if key == "=replace=":
-            del cfg[key]
-        elif isinstance(cfg[key], dict):
-            _strip_markers(cfg[key])
-
-
-def _data_config(modality, task, dataset, data_dir, overrides):
-    """Compose the ``data:`` config: defaults <- task <- dataset <- overrides.
-
-    Reproduces ``neuralbench.experiment_config.prepare_task_configs``'s
-    overlay chain for the ``data`` section only (ConfDict handles the
-    ``=replace=`` markers used by the task configs).
-    """
-    from exca import ConfDict
-    from neuralbench.registry import _resolve_task_dir, load_yaml_config
-
-    task_dir = _resolve_task_dir(modality, task)
-
-    cfg = ConfDict({
-        "study": {"source": {"path": str(data_dir)}},
-        "neuro": dict(_NEURO_DEFAULTS),
-        "channel_positions": {"n_spatial_dims": 3},
-    })
-    # ``safe=True`` skips the ``!!python/...`` tags (metrics/config-manager
-    # lookups) that live outside the ``data:`` section anyway.
-    task_cfg = load_yaml_config(task_dir / "config.yaml", safe=True)
-    cfg.update(task_cfg["data"])
-    if dataset is not None:
-        ds_cfg = load_yaml_config(
-            task_dir / "datasets" / f"{dataset}.yaml", safe=True
-        )
-        source = dict(cfg["study"]["source"])
-        cfg.update(ds_cfg["data"])
-        # ``=replace=`` may wipe the source; restore the defaults (path).
-        for key, value in source.items():
-            cfg["study"]["source"].setdefault(key, value)
+def _base_overrides(data_dir, overrides):
+    """Overrides shared by every call: explicit paths, no exca cluster."""
+    cfg = {
+        "study.source.path": str(data_dir),
+        "neuro.infra.cluster": None,
+        "neuro.infra.folder": str(data_dir / "cache"),
+    }
     cfg.update(overrides or {})
-    _strip_markers(cfg)
     return cfg
+
+
+def _merged_data_config(modality, task, dataset, data_dir, overrides):
+    """The task's merged ``data`` config with our overrides applied."""
+    from neuralbench.experiment_config import merge_task_config
+
+    cfg = merge_task_config(modality, task, dataset)["data"]
+    cfg.update(_base_overrides(data_dir, overrides))
+    return cfg
+
+
+def test_only_filter(data_cfg):
+    """``filter_stimuli`` override restricting a study to its test split.
+
+    Composes a :class:`neuralset.events.transforms.QueryEvents` query that
+    keeps non-trigger events untouched and selects trigger events with the
+    split's ``test_split_query`` when the config defines one, or on the
+    ``split`` column otherwise (predefined splits shipped with the source
+    data). Any ``filter_stimuli`` already present in the config is preserved
+    (queries are and-composed).
+
+    Only expressible for ``PredefinedSplit`` — runtime splits (e.g.
+    ``SklearnSplit`` by subject hash) are not a stimuli query; asking for
+    ``subset="test"`` on such a study raises.
+    """
+    split = dict(data_cfg.get("study", {}).get("split") or {})
+    if split.get("name") != "PredefinedSplit":
+        raise ValueError(
+            "subset='test' requires a PredefinedSplit (an explicit "
+            f"test_split_query or split column); got {split.get('name')!r}."
+        )
+    selector = split.get("test_split_query")
+    if not selector:
+        selector = f"{split.get('col_name', 'split')} == 'test'"
+
+    trigger = data_cfg["trigger_event_type"]
+    triggers = [trigger] if isinstance(trigger, str) else list(trigger)
+    query = f"type not in {triggers!r} or ({selector})"
+
+    existing = dict(data_cfg.get("study", {}).get("filter_stimuli") or {})
+    if existing.get("query"):
+        query = f"({existing['query']}) and ({query})"
+    return {"name": "QueryEvents", "query": query}
 
 
 def download_study(modality, task, data_dir, dataset=None):
@@ -92,7 +92,7 @@ def download_study(modality, task, data_dir, dataset=None):
 
     import neuralset as ns
 
-    cfg = _data_config(modality, task, dataset, data_dir, None)
+    cfg = _merged_data_config(modality, task, dataset, data_dir, None)
     study = dict(cfg["study"]["source"])
     study["path"] = Path(study["path"]) / study["name"]
     ns.Study(**study).download()
@@ -130,8 +130,8 @@ class _NBWindows(torch.utils.data.Dataset):
         return X, y, info
 
 
-def _make_loaders(data, loaders, device, target_transform):
-    """Rebuild the competition loaders from ``Data.prepare()``'s output.
+def _make_loaders(loaders, device, target_transform):
+    """Rebuild the competition loaders from the neuralbench ones.
 
     Keeps neuralbench's per-split datasets and train sampler (e.g. the
     ``RegressionBinSampler``) but swaps the collate for the competition one
@@ -157,7 +157,8 @@ def _make_loaders(data, loaders, device, target_transform):
 
 
 def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
-              batch_size=64, seed=0, overrides=None, target_transform=None):
+              batch_size=64, seed=0, overrides=None, target_transform=None,
+              subset="all"):
     """Build the competition loaders + meta from a neuralbench task config.
 
     Parameters
@@ -176,10 +177,15 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     batch_size, seed : int
         Dataloader settings.
     overrides : dict or None
-        Extra ``data:``-section overrides (ConfDict dotted keys work, e.g.
+        Extra ``data:``-section overrides, as dotted keys (e.g.
         ``{"study.source.query": ...}``).
     target_transform : callable or None
         Applied to each window's target (e.g. one-hot -> class index).
+    subset : {"all", "test"}
+        ``"test"`` restricts the study to its test split via a
+        ``filter_stimuli`` override (see :func:`test_only_filter`) — e.g. to
+        stage only the evaluation data on a worker. The train/val loaders
+        are then (near-)empty; only use the test loader.
 
     Returns
     -------
@@ -187,19 +193,29 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         ``{"train", "val", "test"}`` -> competition-contract DataLoaders.
     meta : dict
         ``sfreq, ch_names, chs_info, n_chans, n_times, device`` (+ target
-        shape info under ``target_shape``).
+        shape info under ``target_shape`` / ``raw_target_shape``).
     """
-    from neuralbench.data import Data
+    from neuralbench.data import get_default_dataloaders
 
     from compet_core.data import chs_info_from_names
     from compet_core.neuralset_task import channel_names
 
-    cfg = _data_config(modality, task, dataset, data_dir, overrides)
-    cfg.update({"batch_size": batch_size, "seed": seed,
-                "pin_memory": False, "persistent_workers": False})
-    data = Data(**cfg)
-    nb_loaders = data.prepare()
-    loaders = _make_loaders(data, nb_loaders, device, target_transform)
+    # Merged view of the config (for meta + the subset filter)...
+    cfg = _merged_data_config(modality, task, dataset, data_dir, overrides)
+
+    all_overrides = _base_overrides(data_dir, overrides)
+    all_overrides.update({"batch_size": batch_size, "seed": seed,
+                          "pin_memory": False, "persistent_workers": False})
+    if subset == "test":
+        all_overrides["study.filter_stimuli"] = test_only_filter(cfg)
+    elif subset != "all":
+        raise ValueError(f"subset must be 'all' or 'test', got {subset!r}")
+
+    # ... and the official loader entry point for the pipeline itself.
+    nb_loaders = get_default_dataloaders(
+        modality, task, dataset=dataset, **all_overrides
+    )
+    loaders = _make_loaders(nb_loaders, device, target_transform)
 
     # Peek one window (lazy) for shapes; channel names come from the prepared
     # neuro extractor's channel map.
