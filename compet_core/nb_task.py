@@ -26,6 +26,8 @@ Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
 """
 
+from pathlib import Path
+
 import numpy as np
 import torch
 
@@ -34,6 +36,7 @@ from compet_core.data import to_numpy
 
 def _base_overrides(data_dir, overrides):
     """Overrides shared by every call: explicit paths, no exca cluster."""
+    data_dir = Path(data_dir)
     cfg = {
         "study.source.path": str(data_dir),
         # keep every cache next to the data (the studies' timeline loaders
@@ -106,8 +109,6 @@ def _channel_names(seg_ds):
 
 def download_study(modality, task, data_dir, dataset=None):
     """One-time download of a task's study data (``Dataset.prepare``)."""
-    from pathlib import Path
-
     import neuralset as ns
 
     cfg = _merged_data_config(modality, task, dataset, data_dir, None)
