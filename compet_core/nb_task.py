@@ -36,6 +36,9 @@ def _base_overrides(data_dir, overrides):
     """Overrides shared by every call: explicit paths, no exca cluster."""
     cfg = {
         "study.source.path": str(data_dir),
+        # keep every cache next to the data (the studies' timeline loaders
+        # need a folder for their exca Cached backend).
+        "study.source.infra.folder": str(data_dir / "cache"),
         "neuro.infra.cluster": None,
         "neuro.infra.folder": str(data_dir / "cache"),
     }
