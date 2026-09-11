@@ -146,7 +146,7 @@ this monorepo.
 
 ## TODOs / open issues
 
-- Validate on real data: tangermann2012 done (bal-acc 0.266); sleep_edf done
+- Validate on real data: tangermann2012 done (bal-acc 0.266 — identical on the 0.2.3 and 0.3.1 stacks, revalidated 2026-09-11); sleep_edf done
   (Median → bMAE 165.5 s vs official EEGNet-sleep 143.3 s — sane floor);
   **stieger2021 hit the 24 h SLURM limit mid-download** (2026-09-05; NEMAR S3
   often throttles to ~100-250 kB/s and the study is tens of GB) — finished
