@@ -12,8 +12,10 @@ phase's sealed dataset files, then execs::
 The phase ``config.yaml`` is a **native benchopt run config** (``dataset``,
 ``seed``, ``no_timeout``, ...) plus two competition-only keys stripped
 before the run (benchopt rejects unknown options): ``data_home``
-(-> $BENCHOPT_DATA_HOME) and ``scoring`` (parsed by scoring.py — the config
-is forwarded with the raw results parquet; all evaluation happens here).
+(-> $BENCHOPT_DATA_HOME), ``scoring`` (parsed by scoring.py — the config
+is forwarded with the raw results parquet; all evaluation happens here) and
+``training`` (lets the solvers' ``fit`` run on the platform — off by
+default).
 Submissions are evaluated inference-only ($COMPET_INFERENCE_ONLY) and any
 solver error aborts the run with its traceback ($BENCHOPT_DEBUG).
 """
@@ -104,9 +106,14 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
     cfg = yaml.safe_load(config.read_text()) or {}
     if cfg.get("data_home"):
         os.environ["BENCHOPT_DATA_HOME"] = str(cfg["data_home"])
+    if cfg.get("training"):
+        # Training phase: the solvers' fit also runs on the platform.
+        os.environ.pop("COMPET_INFERENCE_ONLY", None)
+        os.environ["COMPET_TRAINING"] = "1"
     # benchopt rejects unknown config keys: strip the competition-only
     # ones and pass the rest as a genuine `benchopt run` config file.
-    cfg = {k: v for k, v in cfg.items() if k not in ("scoring", "data_home")}
+    cfg = {k: v for k, v in cfg.items()
+           if k not in ("scoring", "data_home", "training")}
     if cfg:
         run_config = workdir.parent / "run_config.yml"
         run_config.write_text(yaml.safe_dump(cfg))

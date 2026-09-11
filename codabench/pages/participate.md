@@ -20,9 +20,10 @@ implement:
 `meta` also carries `sfreq, ch_names, chs_info, n_chans, n_times` and the
 track's output size (`n_classes` / `n_outputs` / `n_joints`).
 
-Optionally, implement `fit(self, model, train_loader)` — it only runs
-**locally** (never on the server) and lets you train your model with the
-exact competition data through the starting kit.
+Optionally, implement `fit(self, model, train_loader)` and run with
+`COMPET_TRAINING=1` to train your model with the exact competition data and
+evaluation through the starting kit. Without it a run is inference-only,
+mirroring the competition server (which never runs `fit`).
 
 ```python
 import torch
@@ -71,8 +72,13 @@ benchopt run tracks/<track> -d Simulated -s my-solver
 ```
 
 Training on the real data locally: `benchopt prepare tracks/<track>`
-downloads it once, then your solver's `fit` runs with
-`benchopt run tracks/<track>`.
+downloads it once, then
+
+```bash
+COMPET_TRAINING=1 benchopt run tracks/<track> -s my-solver
+```
+
+trains your solver (`fit`) and evaluates it exactly like the platform does.
 
 ## Submit
 

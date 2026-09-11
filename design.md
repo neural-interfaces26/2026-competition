@@ -19,6 +19,14 @@ this monorepo.
 - **One benchmark per track, no `track` objective parameter.** Each
   competition holds a single task, so leaderboard keys are plain metric names
   and solvers need no gating.
+- **Training is opt-in everywhere (`COMPET_TRAINING=1`).** A plain
+  `benchopt run tracks/<t>` is inference-only — exactly what the platform
+  does — and the solvers' optional `fit(model, train_loader)` only runs with
+  the env var set (how baselines are trained and how participants can train
+  through the starting kit). A phase config key `training: true` lets a
+  hypothetical training phase enable it on the platform (ingestion swaps the
+  guards). NB: cluster validation scripts must export `COMPET_TRAINING=1` to
+  fit the baselines.
 - **A submission is a trained model, evaluated inference-only.** The user
   decided (2026-09-04): no training and no fine-tuning on the platform. The
   contract (`compet_core/base_solver.py::CompetSolver`) is

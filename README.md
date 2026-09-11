@@ -42,8 +42,9 @@ tools/                  bundle builder, data preparation, Docker helpers
 ## Run locally
 
 ```bash
-# zero-download smoke test, any track
-benchopt run tracks/bci_decoding -d Simulated
+# zero-download smoke test, any track. Runs are inference-only by default
+# (like the platform); COMPET_TRAINING=1 lets the solvers' fit train first.
+COMPET_TRAINING=1 benchopt run tracks/bci_decoding -d Simulated
 
 # benchopt test on the tiny configs
 benchopt test tracks/bci_decoding --skip-install
