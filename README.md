@@ -127,9 +127,10 @@ ship there as `datasets/*.py`, never in this repo.
 
 On a GPU VM with `/data` mounted, copy `tools/setup_worker.sh` and an env
 file with the queue's `BROKER_URL` (and `COMPET_PHASE` when several phases
-exist), then run it as root. The script stages the datasets of all 4 tracks
-in `/data` before starting the worker — this downloads for hours, so detach
-it:
+exist), then run it as root. The script stages the tracks' datasets in
+`/data` before starting the worker (all 4 tracks by default; pass track
+names as extra arguments to restrict, e.g. for testing). The full staging
+downloads for hours, so detach it:
 
 ```bash
 sudo nohup ./setup_worker.sh /etc/codabench-worker.env \

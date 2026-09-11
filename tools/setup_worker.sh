@@ -6,10 +6,7 @@
 #
 #     setup_worker.sh [config_file] [track ...]
 #
-# Extra arguments restrict which tracks are staged (handy for testing, e.g.
-# `setup_worker.sh /etc/codabench-worker.env emg_pose`); default: all 4.
-# The optional first argument is a root-only environment file:
-#
+# config_file  root-only environment file (default: /etc/codabench-worker.env)
 #   Required: BROKER_URL      the Codabench queue broker.
 #   Optional: BROKER_USE_SSL, CODALAB_IGNORE_CLEANUP_STEP, WORKER_IMAGE,
 #             WORKER_NAME     worker settings (same as upstream Codabench);
@@ -18,13 +15,15 @@
 #             COMPET_PHASE    competition phase to stage /data for. Mandatory
 #                             when the images ship several phases; defaults
 #                             to the only one otherwise.
+# track ...    tracks to stage (default: all 4). Restricting them is handy
+#              for testing, e.g. `setup_worker.sh my.env emg_pose`.
 #
-# The worker is shared across the 4 tracks: the script pulls each track's
-# image (deterministic name: $REGISTRY/neural-compet-<track>:$TAG) and stages
-# its datasets in /data by running `benchopt prepare` on the phase's
-# config.yaml baked in the image — the same file that drives the ingestion
-# runs, so staging and evaluation cannot drift. `benchopt prepare` is
-# idempotent: re-running this script only re-validates.
+# The worker is shared across the tracks: the script pulls the selected
+# tracks' images (deterministic name: $REGISTRY/neural-compet-<track>:$TAG)
+# and stages their datasets in /data by running `benchopt prepare` on the
+# phase's config.yaml baked in each image — the same file that drives the
+# ingestion runs, so staging and evaluation cannot drift. `benchopt prepare`
+# is idempotent: re-running this script only re-validates.
 set -exuo pipefail
 
 ALL_TRACKS=(bci_decoding emg_pose image_decoding sleep_onset)
