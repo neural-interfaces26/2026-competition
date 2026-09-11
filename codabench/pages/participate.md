@@ -96,5 +96,7 @@ conventions. See the starting-kit README for the full tour.
 ## Submit
 
 Zip the submission folder (`submission.py` + weights) and upload it on the
-*My Submissions* tab. Baselines and reference submissions live in the
+*My Submissions* tab. If your solver implements `save_model(model, path)`
+(the mirror of `load_model`), a training run builds that zip for you —
+`outputs/submission_<name>.zip`, ready to upload. Baselines and reference submissions live in the
 `solution/` folder of the bundle.

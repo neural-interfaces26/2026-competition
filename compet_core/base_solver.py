@@ -18,6 +18,11 @@ neuralbench knowledge is required:
   inference-only, mirroring the competition server (whose phase configs
   never select ``training``): the submitted model must be fully trained
   offline and shipped as weights loaded in ``load_model``.
+- ``save_model(self, model, path)`` (optional). Write the trained model's
+  weight files into the directory ``path`` — the mirror of ``load_model``.
+  When implemented, a training run ends by zipping your solver file (as
+  ``submission.py``) together with those files into
+  ``<track>/outputs/submission_<name>.zip``, ready to upload on Codabench.
 
 ``meta`` is a plain dict: ``sfreq, ch_names, chs_info, n_chans, n_times,
 n_classes`` (classification) or ``n_outputs`` (regression), ``device,
@@ -27,6 +32,8 @@ weights_dir``. Batches are torch tensors ``(X, y, info)`` already moved onto
 
 import inspect
 import os
+import shutil
+import tempfile
 from pathlib import Path
 
 from benchopt import BaseSolver
@@ -71,6 +78,22 @@ class CompetSolver(BaseSolver):
                     "(evaluation data only) — select it with subset='all'."
                 )
             self.fit(self.model, self.train_loader)
+            self._export_submission()
+
+    def _export_submission(self):
+        """Zip the solver file + saved weights into a submittable artifact."""
+        if type(self).save_model is CompetSolver.save_model:
+            return
+        src = Path(inspect.getfile(type(self)))
+        out_dir = src.parents[1] / "outputs"
+        out_dir.mkdir(exist_ok=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            shutil.copyfile(src, Path(tmp) / "submission.py")
+            self.save_model(self.model, Path(tmp))
+            archive = shutil.make_archive(
+                str(out_dir / f"submission_{self.name}"), "zip", tmp)
+        print(f"[compet] submission artifact ready: {archive} — upload it"
+              " on the competition's 'My Submissions' tab.")
 
     def get_result(self):
         return dict(model=self.model)
@@ -83,3 +106,6 @@ class CompetSolver(BaseSolver):
 
     def fit(self, model, train_loader):
         """Optional training / light fine-tuning on the train split."""
+
+    def save_model(self, model, path):
+        """Optional: write the trained weights into ``path`` (see above)."""

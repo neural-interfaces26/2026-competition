@@ -96,6 +96,11 @@ gives you the things you end up wanting when iterating on a model:
 - **Introspection** — `benchopt info tracks/<t>` lists solvers/datasets and
   their parameters; `benchopt test tracks/<t> --skip-install` sanity-checks
   a new solver against the tiny test configs.
+- **Submission artifact** — implement `save_model(model, path)` next to your
+  `fit` and every training run ends with a ready-to-upload
+  `outputs/submission_<name>.zip` (your solver as `submission.py` + the
+  weights it saved). `solution/bci_decoding/submission.py` shows the full
+  load/fit/save triple.
 
 The platform evaluation (`codabench/ingestion_program/ingestion.py` +
 `scoring_program/scoring.py`) is a thin wrapper around that same
