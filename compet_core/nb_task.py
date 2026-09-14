@@ -1,11 +1,8 @@
 """Data loading through neuralbench task configs (the official pipelines).
 
-Built on the official neuralbench (>= 0.3) entry points —
-:func:`neuralbench.experiment_config.merge_task_config` for the config
+Built on :func:`neuralbench.experiment_config.merge_task_config` for config
 composition (defaults <- task <- dataset overlay) and
-:func:`neuralbench.data.get_default_dataloaders` for the loaders — so each
-track's benchopt dataset reuses the *exact* official data pipeline (study,
-split, segmenter, target extractor, sampler) in a few lines::
+:func:`neuralbench.data.get_default_dataloaders` for the loaders::
 
     loaders, meta = load_task(
         "eeg", "motor_imagery", data_dir=..., dataset="tangermann2012",
@@ -218,25 +215,22 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
 
     from compet_core.data import chs_info_from_names
 
-    # Merged view of the config (for meta + the subset filter)...
-    cfg = _merged_data_config(modality, task, dataset, data_dir, overrides)
-
-    all_overrides = _base_overrides(data_dir, overrides)
+    cfg = _base_overrides(data_dir, overrides)
     # single-process loaders: the defaults inject num_workers=N_CPUS, which
     # over-subscribes platform/CI runners (our rewrapped loaders extract
     # windows lazily in-process anyway).
-    all_overrides.update({"batch_size": batch_size, "seed": seed,
-                          "num_workers": 0, "pin_memory": False,
-                          "persistent_workers": False})
+    cfg.update({"batch_size": batch_size, "seed": seed, "num_workers": 0,
+                "pin_memory": False, "persistent_workers": False})
     if subset == "test":
-        all_overrides["study.filter_stimuli"] = build_test_only_filter(cfg)
+        # the filter derives from the merged task config
+        merged = _merged_data_config(modality, task, dataset, data_dir,
+                                     overrides)
+        cfg["study.filter_stimuli"] = build_test_only_filter(merged)
     elif subset != "full":
         raise ValueError(f"subset must be 'full' or 'test', got {subset!r}")
 
-    # ... and the official loader entry point for the pipeline itself.
-    nb_loaders = get_default_dataloaders(
-        modality, task, dataset=dataset, **all_overrides
-    )
+    nb_loaders = get_default_dataloaders(modality, task, dataset=dataset,
+                                         **cfg)
     loaders = _make_loaders(nb_loaders, device, target_transform)
 
     # Peek one window (lazy) for shapes; channel names come from the prepared
@@ -246,8 +240,9 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     if raw_y0.ndim and raw_y0.shape[0] == 1:
         raw_y0 = raw_y0[0]
     ch_names = _channel_names(nb_loaders["test"].dataset)
+    neuro = nb_loaders["test"].dataset.extractors["neuro"]
     meta = dict(
-        sfreq=float(cfg["neuro"]["frequency"]),
+        sfreq=float(neuro.frequency),
         ch_names=ch_names,
         chs_info=chs_info_from_names(ch_names),
         n_chans=int(X0.shape[-2]),
