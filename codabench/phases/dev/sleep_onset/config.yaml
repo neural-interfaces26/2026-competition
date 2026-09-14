@@ -6,7 +6,7 @@ dataset:
   # Warm-up proxy (Kemp2000Analysis, Sleep-EDF Expanded), staged in /data by
   # the worker provisioning from this very file. subset=test does not apply
   # here: the split is computed at runtime (SklearnSplit), not predefined.
-  - Sleep-EDF[batch_size=64]
+  - Sleep-EDF
 seed: 42
 no_timeout: true
 scoring:

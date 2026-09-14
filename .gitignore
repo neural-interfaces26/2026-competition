@@ -13,3 +13,5 @@ dev_phase/*
 *.egg-info/
 bundle_*.zip
 solution/**/*.npz
+worktrees/
+.venv-margaret/
