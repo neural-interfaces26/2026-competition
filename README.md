@@ -123,20 +123,6 @@ ship there as `datasets/*.py`, never in this repo.
 - CI runs `benchopt test` on the 4 tracks plus lint, and an end-to-end
   Docker test of the ingestion/scoring programs.
 
-## Setting up a compute worker
-
-On a GPU VM with `/data` mounted, copy `tools/setup_worker.sh` and an env
-file with the queue's `BROKER_URL` (and `COMPET_PHASE` when several phases
-exist), then run it as root. The script stages the tracks' datasets in
-`/data` before starting the worker (all 4 tracks by default; pass track
-names as extra arguments to restrict, e.g. for testing). The full staging
-downloads for hours, so detach it:
-
-```bash
-sudo nohup ./setup_worker.sh /etc/codabench-worker.env \
-    > setup_worker.log 2>&1 &
-tail -f setup_worker.log
-```
-
-Re-running the script is cheap (already-staged data is only re-validated) —
-do so after enabling a dataset in a phase config and rebuilding the images.
+Worker provisioning (Terraform + data staging on the VMs) lives in the
+private [`tomMoral/neural-compet-aws`](https://github.com/tomMoral/neural-compet-aws)
+repository.
