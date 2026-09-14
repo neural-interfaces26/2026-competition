@@ -72,18 +72,20 @@ One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds one image per
 track — the same image serves participants and the Codabench workers. The
 track's benchmark is baked in at `$COMPET_BENCHMARK_DIR`
 (`/compet/benchmark`); data always lives *outside* the image, read from
-`$BENCHOPT_DATA_HOME` (`/data`), so bind-mount any host folder there.
+`$BENCHOPT_DATA_HOME` (`/app/data` — the path the compute worker mounts,
+read-only, in every submission container), so bind-mount any host folder
+there.
 
 ```bash
 tools/build_images.sh [--push]   # tommoral/neural-compet-<track>:v1, all tracks
 IMG=tommoral/neural-compet-sleep_onset:v1
 
 # one-time download of a track's public dataset into a host folder
-docker run -v ~/neural-data:/data $IMG \
+docker run -v ~/neural-data:/app/data $IMG \
     benchopt prepare /compet/benchmark -d Sleep-EDF
 
 # run your submission (code + weights) against the embedded benchmark
-docker run --gpus all -v ~/neural-data:/data -v $PWD/my_submission:/sub $IMG \
+docker run --gpus all -v ~/neural-data:/app/data -v $PWD/my_submission:/sub $IMG \
     bash -c 'cp /sub/* /compet/benchmark/solvers/ &&
              benchopt run /compet/benchmark -d Sleep-EDF -s my-solver'
 ```
@@ -105,7 +107,7 @@ docker pull tommoral/neural-compet-sleep_onset:v1
 # stage the phase data once, with the same image participants use, into the
 # folder the compute worker mounts (read-only, at /app/data) in every
 # submission container: ${HOST_DIRECTORY}/data
-docker run -v /codabench/data:/data tommoral/neural-compet-sleep_onset:v1 \
+docker run -v /codabench/data:/app/data tommoral/neural-compet-sleep_onset:v1 \
     benchopt prepare /compet/benchmark -d Sleep-EDF
 ```
 

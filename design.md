@@ -88,10 +88,11 @@ this monorepo.
   (`docker run -v <host>:/data <img> benchopt prepare $COMPET_BENCHMARK_DIR
   -d <ds>`; `ENV BENCHOPT_DATA_HOME=/data`) and bind-mounted as `/data` for
   scoring runs. **Resolved**: the compute worker mounts
-  `${HOST_DIRECTORY}/data` (host) at `/app/data` (read-only) in every
-  submission container — the phase configs set `data_home: /app/data` and the
-  worker host symlinks `/codabench/data -> /data`. Read-only is a feature:
-  runs hit warm caches or fail loudly, never download. `tools/run_docker.py --track <t>` is the local test.
+  `${HOST_DIRECTORY}/data` (host, = `/codabench/data`) at `/app/data`
+  (read-only) in every submission container — the image sets
+  `BENCHOPT_DATA_HOME=/app/data` and staging writes to `/codabench/data`
+  (phase configs stay pure *run* configs). Read-only is a feature: runs hit
+  warm caches or fail loudly, never download. `tools/run_docker.py --track <t>` is the local test.
 - **Bundles**: `tools/create_bundle.py --track <t>` ships the track's
   benchmark under the canonical `benchmark/` name + `compet_core/` (both
   kept as no-docker fallback) + shared ingestion/scoring +

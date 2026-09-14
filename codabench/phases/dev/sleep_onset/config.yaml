@@ -1,13 +1,11 @@
 # Phase config — sleep_onset, development phase.
-# A native `benchopt run --config` file; the extra `data_home` and `scoring`
-# keys are read by the ingestion/scoring programs (benchopt ignores them).
+# A native `benchopt run --config` file; the extra `scoring` key is read
+# by the scoring program (stripped by ingestion before the run).
 dataset:
   - Simulated
   # Warm-up proxy (Kemp2000Analysis, Sleep-EDF Expanded), staged in /data by
   # the worker provisioning from this very file.
   - Sleep-EDF
-# where the compute worker mounts the staged data (read-only)
-data_home: /app/data
 seed: 42
 no_timeout: true
 scoring:
