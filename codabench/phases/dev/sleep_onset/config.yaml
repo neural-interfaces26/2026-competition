@@ -3,7 +3,9 @@
 # keys are read by the ingestion/scoring programs (benchopt ignores them).
 dataset:
   - Simulated
-  # - Sleep-EDF[batch_size=64]   # public proxy — enable once /data is staged
+  # Warm-up proxy (Kemp2000Analysis, Sleep-EDF Expanded), staged in /data by
+  # the worker provisioning from this very file.
+  - Sleep-EDF
 seed: 42
 no_timeout: true
 scoring:

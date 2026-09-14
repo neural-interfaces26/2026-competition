@@ -21,6 +21,8 @@ Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
 """
 
+from pathlib import Path
+
 import numpy as np
 import torch
 
@@ -64,7 +66,13 @@ def _data_config(modality, task, dataset, data_dir, overrides):
     task_dir = _resolve_task_dir(modality, task)
 
     cfg = ConfDict({
-        "study": {"source": {"path": str(data_dir)}},
+        "study": {"source": {
+            "path": str(data_dir),
+            # neuralset >= 0.3 requires a folder for the studies' cached
+            # timeline loaders (exca ``Cached`` backend).
+            "infra": {"backend": "Cached",
+                      "folder": str(Path(data_dir) / "cache")},
+        }},
         "neuro": dict(_NEURO_DEFAULTS),
         "channel_positions": {"n_spatial_dims": 3},
     })
@@ -88,8 +96,6 @@ def _data_config(modality, task, dataset, data_dir, overrides):
 
 def download_study(modality, task, data_dir, dataset=None):
     """One-time download of a task's study data (``Dataset.prepare``)."""
-    from pathlib import Path
-
     import neuralset as ns
 
     cfg = _data_config(modality, task, dataset, data_dir, None)

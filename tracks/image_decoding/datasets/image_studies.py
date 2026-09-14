@@ -1,10 +1,18 @@
-"""Image decoding on THINGS-EEG2 (Gifford2022Large), the public proxy.
+"""Image-decoding studies through the official neuralbench task pipeline.
 
-Wraps the official neuralbench ``eeg/image`` task config — see
-``compet_core.nb_task``: 1.2-s epochs around each ``Image`` stimulus
-(−0.2 → 1.0 s), targets = DINOv2-giant embeddings of the viewed images
-(``HuggingFaceImage`` extractor, computed once and cached), predefined
-timeline-based split.
+Wraps the neuralbench ``eeg/image`` task config — see ``compet_core.nb_task``:
+1.2-s epochs around each ``Image`` stimulus (−0.2 → 1.0 s), targets =
+DINOv2-giant embeddings of the viewed images (``HuggingFaceImage``
+extractor, computed once and cached), predefined timeline-based split.
+The ``study`` parameter picks the dataset overlay:
+
+- ``gifford2022large``     : THINGS-EEG2, the task default.
+- ``grootswagers2022human``: THINGS-EEG1.
+- ``xu2024alljoined``      : Alljoined-1.
+- ``xu2025alljoined``      : Alljoined-1.6M — the closest warm-up proxy (the
+                             hidden eval cohort uses the same 32-channel
+                             Emotiv hardware); overlay ships with
+                             neuralbench >= 0.3.
 
 Requires a one-time download of the study **and** a one-time embedding pass
 over the stimulus images (GPU strongly recommended — run ``benchopt
@@ -24,10 +32,18 @@ import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.data import get_device
 from compet_core.nb_task import download_study, load_task
 
+# Overlay yaml in the task's ``datasets/`` folder (None = the task default).
+_OVERLAYS = {
+    "gifford2022large": None,
+    "grootswagers2022human": "grootswagers2022human",
+    "xu2024alljoined": "xu2024alljoined",
+    "xu2025alljoined": "xu2025alljoined",
+}
+
 
 class Dataset(BaseDataset):
 
-    name = "THINGS-EEG2"
+    name = "Image"
 
     requirements = [
         "pip::neuralset", "pip::neuralfetch", "pip::neuralbench",
@@ -35,12 +51,16 @@ class Dataset(BaseDataset):
     ]
 
     parameters = {
+        "study": ["gifford2022large"],
         "batch_size": [64],
     }
 
     def prepare(self):
-        # Idempotent one-time download of the whole study (large).
-        download_study("eeg", "image", self._data_dir())
+        # Idempotent one-time download of the selected study (large).
+        download_study(
+            "eeg", "image", self._data_dir(),
+            dataset=_OVERLAYS[self.study],
+        )
 
     def _data_dir(self):
         path = get_data_path("neural_compet")
@@ -53,6 +73,7 @@ class Dataset(BaseDataset):
         loaders, meta = load_task(
             "eeg", "image",
             data_dir=self._data_dir(),
+            dataset=_OVERLAYS[self.study],
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),

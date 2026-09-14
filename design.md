@@ -111,16 +111,20 @@ this monorepo.
   scalar target = seconds to first stable N2, cap 600 s; ranking metric bMAE
   (bins [0, 40, 90, 300, 600], reimplemented numpy-side in
   `compet_core/metrics.py`, mirrors `neuralbench.metrics.BinnedMAE`).
-- **image_decoding** — `eeg/image` config (Gifford2022Large); targets are
-  DINOv2-giant embeddings via the `HuggingFaceImage` extractor (heavy one-time
-  pass — the dataset overrides `target.infra.{cluster:None,folder:...}` to run
-  it locally with a cache). Objective: cosine retrieval against the unique
-  test-split embeddings, top-5/top-1.
-- **emg_pose** — Simulated only. **No neuralfetch study exists for Salter2024
-  emg2pose** (only `Sivakumar2024Emg2qwerty`) and no `emg/pose` task config —
-  the real loader is upstream/follow-up work (coordinate with the neuralbench
-  team). Note the website/neuralbench inconsistency: the site says EMG2Pose,
-  the neuralbench example implements emg2qwerty; the user chose EMG2Pose.
+- **image_decoding** — `datasets/image_studies.py` wraps the `eeg/image`
+  config; `study` parameter ∈ {gifford2022large (task default),
+  grootswagers2022human, xu2024alljoined, **xu2025alljoined — the chosen
+  warm-up proxy** (same 32-ch Emotiv hardware as the hidden eval cohort;
+  overlay needs neuralbench ≥ 0.3)}. Targets are DINOv2-giant embeddings via
+  the `HuggingFaceImage` extractor (heavy one-time pass — the dataset
+  overrides `target.infra.{cluster:None,folder:...}` to run it locally with a
+  cache). Objective: cosine retrieval against the unique test-split
+  embeddings, top-5/top-1.
+- **emg_pose** — Simulated only for now, but **unblocked upstream**: since
+  neuralbench/neuralfetch 0.3.x, `Salter2024Emg2pose` (corpus NM000281) and
+  the `emg/pose` task config exist — implementing the real dataset needs the
+  pinned stack bumped from 0.2.3 to 0.3.x (re-validate the other tracks with
+  it, `exca` pin included).
 
 ## Current state (validated 2026-09-04)
 
@@ -142,18 +146,18 @@ this monorepo.
 
 ## TODOs / open issues
 
-- Validate on real data: tangermann2012 done (bal-acc 0.266); sleep_edf done
+- Validate on real data: tangermann2012 done (bal-acc 0.266 — identical on the 0.2.3 and 0.3.1 stacks, revalidated 2026-09-11); sleep_edf done
   (Median → bMAE 165.5 s vs official EEGNet-sleep 143.3 s — sane floor);
   **stieger2021 hit the 24 h SLURM limit mid-download** (2026-09-05; NEMAR S3
   often throttles to ~100-250 kB/s and the study is tens of GB) — finished
   files persist, so resubmit `~/workspace/tmp/sbatch_bci_stieger.sh` with a
-  longer `--time` to resume; things_eeg2 (large + DINOv2 embedding pass)
+  longer `--time` to resume; the image studies (large + DINOv2 embedding pass)
   still to run. NB: editing the NFS working tree while a cluster run is live
   trips benchopt's "class changed between pickle and unpickle" cache guard —
   `benchopt clean tracks/<t>` and rerun.
 - REVE frozen-probe baseline per track (linear_probe.py kept for this) —
   braindecode envs may clash with the neuralbench torch pin.
-- emg_pose real data loader (Salter2024) — upstream.
+- emg_pose real data loader — bump the neuro stack to 0.3.x and wrap the new `emg/pose` task config.
 - Hidden-test isolation on Codabench: mechanism in place (final phase =
   private Codabench `input_data` dataset with `config.yaml` +
   `datasets/*.py` sealed split); the sealed dataset files themselves remain

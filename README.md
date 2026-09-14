@@ -119,5 +119,6 @@ ship there as `datasets/*.py`, never in this repo.
 
 - `python tools/create_bundle.py --all` produces one `bundle_<track>.zip` per
   track, ready to upload to Codabench.
+- `tools/build_images.sh --push` builds and pushes the 4 track Docker images.
 - CI runs `benchopt test` on the 4 tracks plus lint, and an end-to-end
   Docker test of the ingestion/scoring programs.
