@@ -17,7 +17,8 @@ def check_test_dataset_get_data(dataset_class):
     """Hook to skip dataset test cases in benchopt tests."""
     if dataset_class.name.lower() in HEAVY_DATASETS:
         pytest.skip(
-            f"{dataset_class.name} is too large for full download in CI")
+            f"{dataset_class.name} is too large for full download in CI"
+        )
 
 
 def check_test_solver_install(solver_class):

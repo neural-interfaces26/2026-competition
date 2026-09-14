@@ -122,7 +122,3 @@ ship there as `datasets/*.py`, never in this repo.
 - `tools/build_images.sh --push` builds and pushes the 4 track Docker images.
 - CI runs `benchopt test` on the 4 tracks plus lint, and an end-to-end
   Docker test of the ingestion/scoring programs.
-
-Worker provisioning (Terraform + data staging on the VMs) lives in the
-private [`tomMoral/neural-compet-aws`](https://github.com/tomMoral/neural-compet-aws)
-repository.
