@@ -21,7 +21,5 @@ neuralbench==0.3.1
 exca==0.5.29
 moabb
 mne
-# fast-path data seeding from public S3 mirrors (sleep_edf prepare):
-awscli
 # Used by the EEGNet baselines / many torch submissions:
 braindecode
