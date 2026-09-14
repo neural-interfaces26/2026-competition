@@ -95,7 +95,19 @@ def _data_config(modality, task, dataset, data_dir, overrides):
 
 
 def download_study(modality, task, data_dir, dataset=None):
-    """One-time download of a task's study data (``Dataset.prepare``)."""
+    """One-time download of a task's study data (``Dataset.prepare``).
+
+    Skipped when ``data_dir`` is not writable: on the competition workers
+    the staged data is mounted read-only, and even a fully-cached
+    ``Study.download()`` ends with a ``chmod`` that would crash there.
+    """
+    import os
+
+    if not os.access(data_dir, os.W_OK):
+        print(f"[compet] {data_dir} is read-only — skipping download "
+              "(data assumed staged).")
+        return
+
     import neuralset as ns
 
     cfg = _data_config(modality, task, dataset, data_dir, None)
