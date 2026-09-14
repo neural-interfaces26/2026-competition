@@ -4,6 +4,8 @@
 dataset:
   - Simulated
   # - BCI[study=dreyer2023]      # public proxy — uncommenting it makes the worker stage it in /data
+# where the compute worker mounts the staged data (read-only)
+data_home: /app/data
 seed: 42
 no_timeout: true
 scoring:

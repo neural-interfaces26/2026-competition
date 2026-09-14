@@ -6,6 +6,8 @@ dataset:
   # Official corpus: Salter2024Emg2pose (NM000281) — neuralbench >= 0.3 now
   # ships the `emg/pose` task config and study class; the benchmark dataset
   # wrapping it is not implemented yet (needs the stack bump to 0.3.x).
+# where the compute worker mounts the staged data (read-only)
+data_home: /app/data
 seed: 42
 no_timeout: true
 scoring:

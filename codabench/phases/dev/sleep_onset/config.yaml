@@ -6,6 +6,8 @@ dataset:
   # Warm-up proxy (Kemp2000Analysis, Sleep-EDF Expanded), staged in /data by
   # the worker provisioning from this very file.
   - Sleep-EDF
+# where the compute worker mounts the staged data (read-only)
+data_home: /app/data
 seed: 42
 no_timeout: true
 scoring:

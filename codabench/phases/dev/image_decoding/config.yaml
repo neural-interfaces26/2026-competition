@@ -7,6 +7,8 @@ dataset:
   # eval cohort. Uncommenting it makes the worker stage it in /data; needs
   # the neuralbench >= 0.3 stack in the image (overlay yaml + study class).
   # - Image[study=xu2025alljoined]
+# where the compute worker mounts the staged data (read-only)
+data_home: /app/data
 seed: 42
 no_timeout: true
 scoring:

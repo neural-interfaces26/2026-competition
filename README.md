@@ -102,15 +102,15 @@ On the worker server, per track:
 ```bash
 docker pull tommoral/neural-compet-sleep_onset:v1
 
-# stage the phase data once, with the same image participants use
-mkdir -p /srv/neural-data
-docker run -v /srv/neural-data:/data tommoral/neural-compet-sleep_onset:v1 \
+# stage the phase data once, with the same image participants use, into the
+# folder the compute worker mounts (read-only, at /app/data) in every
+# submission container: ${HOST_DIRECTORY}/data
+docker run -v /codabench/data:/data tommoral/neural-compet-sleep_onset:v1 \
     benchopt prepare /compet/benchmark -d Sleep-EDF
 ```
 
-Then configure the compute worker so submission containers run with
-`-v /srv/neural-data:/data` (and the nvidia runtime for GPU tracks), and set
-the competition's docker image to the track image. Each phase's `input_data`
+Then set the competition's docker image to the track image (the nvidia
+runtime must be enabled on the worker for GPU tracks). Each phase's `input_data`
 dataset on Codabench provides the `config.yaml` (dataset selection, seed,
 scoring columns — see [`design.md`](design.md)); sealed final-phase splits
 ship there as `datasets/*.py`, never in this repo.
