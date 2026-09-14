@@ -60,21 +60,22 @@ class Dataset(BaseDataset):
     }
 
     def prepare(self):
-        # Idempotent one-time download of the selected study (large).
+        # Download the study, then run the pipeline once: the extraction —
+        # including the one-time DINOv2 embedding pass — caches next to the
+        # data, so runs only touch warm caches. Both steps are idempotent.
         download_study(
             "eeg", "image", self._data_dir(),
             dataset=_OVERLAYS[self.study],
         )
+        self._load()
 
     def _data_dir(self):
         path = get_data_path("neural_compet")
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def get_data(self):
-        self.prepare()  # idempotent — so plain ``benchopt run`` also works
-        device = get_device()
-        loaders, meta = load_task(
+    def _load(self, device="cpu"):
+        return load_task(
             "eeg", "image",
             data_dir=self._data_dir(),
             dataset=_OVERLAYS[self.study],
@@ -89,6 +90,15 @@ class Dataset(BaseDataset):
                 "target.infra.folder": str(self._data_dir() / "cache"),
             },
         )
+
+    def get_data(self):
+        # ``benchopt run`` does not call ``prepare``: download here too
+        # (idempotent); the pipeline below then hits the warm caches.
+        download_study(
+            "eeg", "image", self._data_dir(),
+            dataset=_OVERLAYS[self.study],
+        )
+        loaders, meta = self._load(device=get_device())
         return dict(
             train_loader=loaders["train"],
             subset=self.subset,
