@@ -155,7 +155,7 @@ this monorepo.
   still to run. NB: editing the NFS working tree while a cluster run is live
   trips benchopt's "class changed between pickle and unpickle" cache guard —
   `benchopt clean tracks/<t>` and rerun.
-- REVE frozen-probe baseline per track (linear_probe.py kept for this) —
+- REVE frozen-probe baseline per track (reintroduce a probe helper then) —
   braindecode envs may clash with the neuralbench torch pin.
 - emg_pose real data loader — bump the neuro stack to 0.3.x and wrap the new `emg/pose` task config.
 - Hidden-test isolation on Codabench: mechanism in place (final phase =
