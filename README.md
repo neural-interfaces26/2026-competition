@@ -96,27 +96,6 @@ The platform evaluation is that same run, inference-only, driven by
 over it) — mount your submission as `/app/ingested_program` and a results
 folder as `/app/output` to reproduce it to the letter.
 
-## Codabench worker setup (organizers)
-
-The self-hosted compute queue evaluates submissions inside the track image.
-On the worker server, per track:
-
-```bash
-docker pull tommoral/neural-compet-sleep_onset:v1
-
-# stage the phase data once, with the same image participants use, into the
-# folder the compute worker mounts (read-only, at /app/data) in every
-# submission container: ${HOST_DIRECTORY}/data
-docker run -v /codabench/data:/app/data tommoral/neural-compet-sleep_onset:v1 \
-    benchopt prepare /compet/benchmark -d Sleep-EDF
-```
-
-Then set the competition's docker image to the track image (the nvidia
-runtime must be enabled on the worker for GPU tracks). Each phase's `input_data`
-dataset on Codabench provides the `config.yaml` (dataset selection, seed,
-scoring columns — see [`design.md`](design.md)); sealed final-phase splits
-ship there as `datasets/*.py`, never in this repo.
-
 ## Build & CI
 
 - `python tools/create_bundle.py --all` produces one `bundle_<track>.zip` per
