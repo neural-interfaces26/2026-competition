@@ -2,7 +2,7 @@
 
 Built on :func:`neuralbench.experiment_config.merge_task_config` for config
 composition (defaults <- task <- dataset overlay) and
-:func:`neuralbench.data.get_default_dataloaders` for the loaders::
+:class:`neuralbench.data.Data` for the loaders::
 
     loaders, meta = load_task(
         "eeg", "motor_imagery", data_dir=..., dataset="tangermann2012",
@@ -31,27 +31,22 @@ import torch
 from compet_core.data import to_numpy
 
 
-def _base_overrides(data_dir, overrides):
-    """Overrides shared by every call: explicit paths, no exca cluster."""
+def _task_data_config(modality, task, dataset, data_dir, overrides):
+    """The task's merged ``data`` config, localized: everything runs from
+    ``data_dir`` with no exca cluster, caller overrides applied last."""
+    from neuralbench.experiment_config import merge_task_config
+
     data_dir = Path(data_dir)
-    cfg = {
+    cfg = merge_task_config(modality, task, dataset)["data"]
+    cfg.update({
         "study.source.path": str(data_dir),
         # keep every cache next to the data (the studies' timeline loaders
         # need a folder for their exca Cached backend).
         "study.source.infra.folder": str(data_dir / "cache"),
         "neuro.infra.cluster": None,
         "neuro.infra.folder": str(data_dir / "cache"),
-    }
+    })
     cfg.update(overrides or {})
-    return cfg
-
-
-def _merged_data_config(modality, task, dataset, data_dir, overrides):
-    """The task's merged ``data`` config with our overrides applied."""
-    from neuralbench.experiment_config import merge_task_config
-
-    cfg = merge_task_config(modality, task, dataset)["data"]
-    cfg.update(_base_overrides(data_dir, overrides))
     return cfg
 
 
@@ -108,7 +103,7 @@ def download_study(modality, task, data_dir, dataset=None):
     """One-time download of a task's study data (``Dataset.prepare``)."""
     import neuralset as ns
 
-    cfg = _merged_data_config(modality, task, dataset, data_dir, None)
+    cfg = _task_data_config(modality, task, dataset, data_dir, None)
     study = dict(cfg["study"]["source"])
     study["path"] = Path(study["path"]) / study["name"]
     ns.Study(**study).download()
@@ -211,26 +206,22 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         ``sfreq, ch_names, chs_info, n_chans, n_times, device`` (+ target
         shape info under ``target_shape`` / ``raw_target_shape``).
     """
-    from neuralbench.data import get_default_dataloaders
+    from neuralbench.data import Data
 
     from compet_core.data import chs_info_from_names
 
-    cfg = _base_overrides(data_dir, overrides)
+    cfg = _task_data_config(modality, task, dataset, data_dir, overrides)
     # single-process loaders: the defaults inject num_workers=N_CPUS, which
     # over-subscribes platform/CI runners (our rewrapped loaders extract
     # windows lazily in-process anyway).
     cfg.update({"batch_size": batch_size, "seed": seed, "num_workers": 0,
                 "pin_memory": False, "persistent_workers": False})
     if subset == "test":
-        # the filter derives from the merged task config
-        merged = _merged_data_config(modality, task, dataset, data_dir,
-                                     overrides)
-        cfg["study.filter_stimuli"] = build_test_only_filter(merged)
+        cfg["study.filter_stimuli"] = build_test_only_filter(cfg)
     elif subset != "full":
         raise ValueError(f"subset must be 'full' or 'test', got {subset!r}")
 
-    nb_loaders = get_default_dataloaders(modality, task, dataset=dataset,
-                                         **cfg)
+    nb_loaders = Data(**cfg).prepare()
     loaders = _make_loaders(nb_loaders, device, target_transform)
 
     # Peek one window (lazy) for shapes; channel names come from the prepared
