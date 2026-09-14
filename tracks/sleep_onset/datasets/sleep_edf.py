@@ -11,6 +11,9 @@ Requires a one-time full-study download (~78 subjects — large; prefer running
 dataset covers no-network smoke testing.
 """
 
+import shutil
+import subprocess
+
 from benchopt import BaseDataset
 from benchopt.config import get_data_path
 
@@ -41,11 +44,30 @@ class Dataset(BaseDataset):
     }
 
     def prepare(self):
-        # Download the study, then run the pipeline once: the extraction
-        # (filtering, segmenting, targets) caches next to the data, so runs
-        # only touch warm caches. Both steps are idempotent.
+        # Seed from S3 when possible, then download (validates the seeded
+        # files, fetches anything missing) and run the pipeline once: the
+        # extraction (filtering, segmenting, targets) caches next to the
+        # data, so runs only touch warm caches. All steps are idempotent.
+        self._seed_from_s3()
         download_study("eeg", "sleep_onset", self._data_dir())
         self._load()
+
+    def _seed_from_s3(self):
+        """Fast path: PhysioNet's public S3 mirror — minutes, where the
+        origin's throttled HTTP takes hours. No credentials needed
+        (``--no-sign-request``); fills both layouts the neuralfetch study
+        checks (MNE's flat files + wget's mirror). Best-effort: skipped
+        without the aws CLI, and any failure falls back to the regular
+        download."""
+        if shutil.which("aws") is None:
+            return
+        study = self._data_dir() / "Kemp2000Analysis" / "physionet-sleep-data"
+        src = "s3://physionet-open/sleep-edfx/1.0.0/sleep-cassette/"
+        mirror = study / "physionet.org/files/sleep-edfx/1.0.0/sleep-cassette"
+        for dst in (study, mirror):
+            subprocess.run(
+                ["aws", "s3", "sync", "--no-sign-request",
+                 "--only-show-errors", src, str(dst)], check=False)
 
     def _data_dir(self):
         path = get_data_path("neural_compet")
