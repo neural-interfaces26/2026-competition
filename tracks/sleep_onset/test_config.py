@@ -1,6 +1,5 @@
 import pytest
 
-
 # The real dataset's pip stack (neuralset/neuralbench) pins a CUDA torch
 # build — installing it exceeds the CI runners' disk, and the full Sleep-EDF
 # download is too large for CI anyway. Use ``benchopt install`` locally / on

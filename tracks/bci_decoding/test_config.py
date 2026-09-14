@@ -1,6 +1,5 @@
 import pytest
 
-
 # Real datasets whose pip stack (neuralset/neuralfetch/neuralbench) pins a
 # CUDA torch build — installing it exceeds the CI runners' disk. Their
 # install (and slow-download get_data) tests are skipped; use
