@@ -177,7 +177,7 @@ def _make_loaders(loaders, device, target_transform):
 
 def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
               batch_size=64, seed=0, overrides=None, target_transform=None,
-              subset="all"):
+              subset="full"):
     """Build the competition loaders + meta from a neuralbench task config.
 
     Parameters
@@ -200,7 +200,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         ``{"study.source.query": ...}``).
     target_transform : callable or None
         Applied to each window's target (e.g. one-hot -> class index).
-    subset : {"all", "test"}
+    subset : {"full", "test"}
         ``"test"`` restricts the study to its test split via a
         ``filter_stimuli`` override (:func:`build_test_only_filter`) —
         e.g. to stage only the evaluation data on a worker. The
@@ -230,8 +230,8 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
                           "persistent_workers": False})
     if subset == "test":
         all_overrides["study.filter_stimuli"] = build_test_only_filter(cfg)
-    elif subset != "all":
-        raise ValueError(f"subset must be 'all' or 'test', got {subset!r}")
+    elif subset != "full":
+        raise ValueError(f"subset must be 'full' or 'test', got {subset!r}")
 
     # ... and the official loader entry point for the pipeline itself.
     nb_loaders = get_default_dataloaders(

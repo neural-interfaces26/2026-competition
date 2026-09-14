@@ -37,7 +37,7 @@ class Dataset(BaseDataset):
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
         # training=True) — see compet_core.nb_task.
-        "subset": ["all"],
+        "subset": ["full"],
     }
 
     def prepare(self):
