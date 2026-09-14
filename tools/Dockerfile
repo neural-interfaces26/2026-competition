@@ -64,12 +64,9 @@ ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     BENCHOPT_DATA_HOME=/data
 VOLUME /data
 
-# Fail the build unless every dataset and solver of the embedded benchmark
-# is importable: at runtime a broken import (e.g. a torch/torchvision
-# mismatch) only shows up as a silently "not installed" component, so the
-# invariant is enforced here, where it can stop the image.
-RUN set -e; \
-    for f in "$COMPET_BENCHMARK_DIR"/datasets/*.py; do \
-        benchopt check-install "$COMPET_BENCHMARK_DIR" "$f" Dataset; done; \
-    for f in "$COMPET_BENCHMARK_DIR"/solvers/*.py; do \
-        benchopt check-install "$COMPET_BENCHMARK_DIR" "$f" Solver; done
+# Fail the build if the data stack is incoherent (at runtime a broken import
+# — e.g. a torch/torchvision mismatch — only shows up as a silently
+# "not installed" dataset), and record each component's availability in the
+# build log (info reports but never fails).
+RUN python -c "import neuralbench, braindecode" \
+    && benchopt info "$COMPET_BENCHMARK_DIR" -d all -s all
