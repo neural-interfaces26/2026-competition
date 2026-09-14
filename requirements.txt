@@ -8,9 +8,10 @@
 benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
 pandas
 scikit-learn
-# neuralbench 0.3.x only needs torch>=2.5.1; kept pinned for reproducible
-# images (the PyPI linux wheel is cu124 and bundles the CUDA libs).
-torch==2.6.0
+# unpinned since neuralbench 0.3.x (only needs torch>=2.5.1). Portable on
+# purpose (participants install whatever suits their machine); the docker
+# image pins the CUDA wheel channel instead (tools/Dockerfile TORCH_CHANNEL).
+torch
 # Data stack for the real tasks (Simulated needs none of these). Pinned for
 # reproducibility; 0.3.x adds the emg/pose task, the image-dataset overlays
 # (xu2025alljoined, ...) and get_default_dataloaders.
