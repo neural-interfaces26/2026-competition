@@ -23,12 +23,15 @@ FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# torch from the official PyTorch wheel index with an explicit CUDA channel:
-# PyPI's default silently tracks the newest CUDA (cu13 today), which needs
-# very recent drivers; cu126 runs on any R525+ driver. Installed first so the
-# portable `torch` in requirements.txt is already satisfied.
+# The torch trio from the official PyTorch wheel index with an explicit CUDA
+# channel: PyPI's default silently tracks the newest CUDA (cu13 today), which
+# needs very recent drivers; cu126 runs on any R525+ driver. All three come
+# from the same index so their C++ ops match (a PyPI torchvision against a
+# channel torch fails at import with `torchvision::nms does not exist`).
+# Installed first so the portable pins in requirements.txt are satisfied.
 ARG TORCH_CHANNEL=cu126
-RUN pip install -U pip && pip install --no-cache-dir torch \
+RUN pip install -U pip && pip install --no-cache-dir \
+    torch torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/${TORCH_CHANNEL}
 
 # All Python dependencies a submission may import (this is the participants'
@@ -61,5 +64,9 @@ ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     BENCHOPT_DATA_HOME=/data
 VOLUME /data
 
-# Fail the build if the embedded benchmark does not load.
-RUN benchopt info "$COMPET_BENCHMARK_DIR"
+# Fail the build if the data stack is incoherent (at runtime a broken import
+# — e.g. a torch/torchvision mismatch — only shows up as a silently
+# "not installed" dataset), and record each component's availability in the
+# build log (info reports but never fails).
+RUN python -c "import neuralbench, braindecode" \
+    && benchopt info "$COMPET_BENCHMARK_DIR" -d all -s all
