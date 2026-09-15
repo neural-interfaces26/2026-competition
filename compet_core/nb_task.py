@@ -201,7 +201,9 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         Dataloader settings.
     overrides : dict or None
         Extra ``data:``-section overrides, as dotted keys (e.g.
-        ``{"study.source.query": ...}``).
+        ``{"study.source.query": ...}``). Applied last, so they also win
+        over the loader defaults (``num_workers``, ``pin_memory``,
+        ``persistent_workers``).
     target_transform : callable or None
         Applied to each window's target (e.g. one-hot -> class index).
     subset : {"full", "test"}
@@ -222,12 +224,16 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
 
     from compet_core.data import chs_info_from_names
 
-    cfg = _task_data_config(modality, task, dataset, data_dir, overrides)
-    # single-process loaders: the defaults inject num_workers=N_CPUS, which
-    # over-subscribes platform/CI runners (our rewrapped loaders extract
-    # windows lazily in-process anyway).
-    cfg.update({"batch_size": batch_size, "seed": seed, "num_workers": 0,
-                "pin_memory": False, "persistent_workers": False})
+    # Single-process loaders: the task defaults inject num_workers=N_CPUS,
+    # which over-subscribes platform/CI runners (our rewrapped loaders
+    # extract windows lazily in-process anyway). Passed as defaults, so a
+    # dataset can raise them back through ``overrides``.
+    cfg = _task_data_config(
+        modality, task, dataset, data_dir,
+        {"num_workers": 0, "pin_memory": False, "persistent_workers": False,
+         **(overrides or {})},
+    )
+    cfg.update({"batch_size": batch_size, "seed": seed})
     if subset == "test":
         cfg["study.filter_stimuli"] = build_test_only_filter(cfg)
     elif subset != "full":
