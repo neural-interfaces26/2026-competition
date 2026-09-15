@@ -59,11 +59,13 @@ class Dataset(BaseDataset):
         checks (MNE's flat files + wget's mirror). Best-effort: skipped
         without the aws CLI, and any failure falls back to the regular
         download."""
-        if shutil.which("aws") is None:
-            return
         study = self._data_dir() / "Kemp2000Analysis" / "physionet-sleep-data"
         src = "s3://physionet-open/sleep-edfx/1.0.0/sleep-cassette/"
         mirror = study / "physionet.org/files/sleep-edfx/1.0.0/sleep-cassette"
+        # The mirror is what a complete seed creates last: an interrupted one
+        # leaves it absent and re-syncs (``aws s3 sync`` is incremental).
+        if mirror.is_dir() or shutil.which("aws") is None:
+            return
         for dst in (study, mirror):
             subprocess.run(
                 ["aws", "s3", "sync", "--no-sign-request",
@@ -85,9 +87,7 @@ class Dataset(BaseDataset):
         )
 
     def get_data(self):
-        # ``benchopt run`` does not call ``prepare``: download here too
-        # (idempotent); the pipeline below then hits the warm caches.
-        download_study("eeg", "sleep_onset", self._data_dir())
+        self.prepare()  # idempotent — so plain ``benchopt run`` also works
         loaders, meta = self._load(device=get_device())
         return dict(
             train_loader=loaders["train"],

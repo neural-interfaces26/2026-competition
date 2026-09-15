@@ -92,12 +92,7 @@ class Dataset(BaseDataset):
         )
 
     def get_data(self):
-        # ``benchopt run`` does not call ``prepare``: download here too
-        # (idempotent); the pipeline below then hits the warm caches.
-        download_study(
-            "eeg", "image", self._data_dir(),
-            dataset=_OVERLAYS[self.study],
-        )
+        self.prepare()  # idempotent — so plain ``benchopt run`` also works
         loaders, meta = self._load(device=get_device())
         return dict(
             train_loader=loaders["train"],
