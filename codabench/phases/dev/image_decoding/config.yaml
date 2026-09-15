@@ -4,9 +4,10 @@
 dataset:
   - Simulated
   # Warm-up proxy — Alljoined-1.6M, same 32-ch Emotiv hardware as the hidden
-  # eval cohort. Uncommenting it makes the worker stage it in /data; needs
-  # the neuralbench >= 0.3 stack in the image (overlay yaml + study class).
-  # - Image[study=xu2025alljoined]
+  # eval cohort. Uncommenting it makes the worker stage it in /data (needs
+  # the neuralbench >= 0.3 stack in the image). subset=test restricts
+  # extraction and the DINOv2 embedding pass to the evaluation split.
+  # - Image[study=xu2025alljoined,subset=test]
 seed: 42
 no_timeout: true
 scoring:

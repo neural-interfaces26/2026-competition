@@ -3,7 +3,10 @@
 # by the scoring program (stripped by ingestion before the run).
 dataset:
   - Simulated
-  # - BCI[study=dreyer2023]      # public proxy — uncommenting it makes the worker stage it in /data
+  # Public proxy — uncommenting it makes the worker stage it in /data.
+  # subset=test restricts extraction to the evaluation split (the raw
+  # download still fetches the full study — see compet_core.nb_task).
+  # - BCI[study=dreyer2023,subset=test]
 seed: 42
 no_timeout: true
 scoring:
