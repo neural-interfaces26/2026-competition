@@ -37,6 +37,10 @@ class Dataset(BaseDataset):
 
     parameters = {
         "batch_size": [64],
+        # Dataloader workers; 0 extracts windows in-process, which is what
+        # shared CI/platform runners want. Raise it from the phase config
+        # (``Sleep-EDF[num_workers=4]``) on a worker with spare cores.
+        "num_workers": [0],
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
         # training=True) — see compet_core.nb_task.
@@ -84,6 +88,7 @@ class Dataset(BaseDataset):
             batch_size=self.batch_size,
             seed=self.get_seed(),
             subset=self.subset,
+            overrides={"num_workers": self.num_workers},
         )
 
     def get_data(self):

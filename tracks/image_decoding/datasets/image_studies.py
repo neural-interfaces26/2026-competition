@@ -53,6 +53,10 @@ class Dataset(BaseDataset):
     parameters = {
         "study": ["gifford2022large"],
         "batch_size": [64],
+        # Dataloader workers; 0 extracts windows in-process, which is what
+        # shared CI/platform runners want. Raise it from the phase config
+        # (``Image[num_workers=4]``) on a worker with spare cores.
+        "num_workers": [0],
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
         # training=True) — see compet_core.nb_task.
@@ -86,6 +90,7 @@ class Dataset(BaseDataset):
             # Run the image-embedding extractor locally (no exca cluster) and
             # cache it next to the data.
             overrides={
+                "num_workers": self.num_workers,
                 "target.infra.cluster": None,
                 "target.infra.folder": str(self._data_dir() / "cache"),
             },
