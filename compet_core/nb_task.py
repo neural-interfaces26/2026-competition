@@ -180,8 +180,8 @@ def _make_loaders(loaders, device, target_transform):
 
 
 def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
-              batch_size=64, seed=0, overrides=None, target_transform=None,
-              subset="full"):
+              batch_size=64, seed=0, num_workers=0, overrides=None,
+              target_transform=None, subset="full"):
     """Build the competition loaders + meta from a neuralbench task config.
 
     Parameters
@@ -197,13 +197,12 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         ``"tangermann2012"``); ``None`` uses the task's default study.
     device : str
         Device the batches are moved onto (see ``compet_core.data``).
-    batch_size, seed : int
+    batch_size, seed, num_workers : int
         Dataloader settings.
     overrides : dict or None
         Extra ``data:``-section overrides, as dotted keys (e.g.
-        ``{"study.source.query": ...}``). Applied last, so they also win
-        over the loader defaults (``num_workers``, ``pin_memory``,
-        ``persistent_workers``).
+        ``{"study.source.query": ...}``). Applied last, so they win over
+        the loader settings above.
     target_transform : callable or None
         Applied to each window's target (e.g. one-hot -> class index).
     subset : {"full", "test"}
@@ -224,16 +223,16 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
 
     from compet_core.data import chs_info_from_names
 
-    # Single-process loaders: the task defaults inject num_workers=N_CPUS,
-    # which over-subscribes platform/CI runners (our rewrapped loaders
-    # extract windows lazily in-process anyway). Passed as defaults, so a
-    # dataset can raise them back through ``overrides``.
+    # Loader settings first, caller overrides last. ``num_workers=0`` keeps
+    # extraction in-process: the task defaults inject N_CPUS, which
+    # over-subscribes platform/CI runners (our rewrapped loaders extract
+    # windows lazily anyway).
     cfg = _task_data_config(
         modality, task, dataset, data_dir,
-        {"num_workers": 0, "pin_memory": False, "persistent_workers": False,
+        {"batch_size": batch_size, "seed": seed, "num_workers": num_workers,
+         "pin_memory": False, "persistent_workers": False,
          **(overrides or {})},
     )
-    cfg.update({"batch_size": batch_size, "seed": seed})
     if subset == "test":
         cfg["study.filter_stimuli"] = build_test_only_filter(cfg)
     elif subset != "full":

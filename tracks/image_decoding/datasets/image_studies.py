@@ -86,11 +86,11 @@ class Dataset(BaseDataset):
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
+            num_workers=self.num_workers,
             subset=self.subset,
             # Run the image-embedding extractor locally (no exca cluster) and
             # cache it next to the data.
             overrides={
-                "num_workers": self.num_workers,
                 "target.infra.cluster": None,
                 "target.infra.folder": str(self._data_dir() / "cache"),
             },

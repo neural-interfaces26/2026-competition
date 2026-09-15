@@ -84,8 +84,8 @@ class Dataset(BaseDataset):
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
+            num_workers=self.num_workers,
             subset=self.subset,
-            overrides={"num_workers": self.num_workers},
             # One-hot ``(K,)`` -> integer class label.
             target_transform=lambda y: y.argmax(-1),
         )
