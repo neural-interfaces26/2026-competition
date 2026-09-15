@@ -63,6 +63,12 @@ class Dataset(BaseDataset):
         "subset": ["full"],
     }
 
+    # Preparation downloads the study and warms the extraction caches (incl.
+    # the DINOv2 pass), which exca keys on the extractor config alone — the
+    # loader settings do not change its outcome, so they stay out of the
+    # prepare cache key.
+    prepare_cache_ignore = ("batch_size", "num_workers")
+
     def prepare(self):
         # Download the study, then run the pipeline once: the extraction —
         # including the one-time DINOv2 embedding pass — caches next to the
