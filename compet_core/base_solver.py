@@ -75,7 +75,7 @@ class CompetSolver(BaseSolver):
                 raise ValueError(
                     "The objective's training=True needs the train split, "
                     "but the dataset was loaded with subset='test' "
-                    "(evaluation data only) — select it with subset='all'."
+                    "(evaluation data only) — select it with subset='full'."
                 )
             self.fit(self.model, self.train_loader)
             self._export_submission()
