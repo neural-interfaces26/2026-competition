@@ -56,12 +56,18 @@ class Objective(BaseObjective):
         self.n_outputs = n_outputs  # embedding dimension D
         self.meta = meta  # sfreq, ch_names, chs_info, n_chans, n_times, ...
 
+    def skip(self, subset="full", **data):
+        # A test-only dataset carries no train split to train on.
+        if self.training and subset == "test":
+            return True, "training=True needs a dataset with subset='full'"
+        return False, None
+
     def get_objective(self):
         # Train loader goes to the solver; the test loader stays here so the
         # objective owns evaluation.
         return dict(
-            train_loader=self.train_loader,
-            training=self.training,
+            # Inference-only unless training is selected: no loader, no fit.
+            train_loader=self.train_loader if self.training else None,
             n_outputs=self.n_outputs,
             **self.meta,
         )

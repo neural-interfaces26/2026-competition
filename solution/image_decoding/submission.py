@@ -4,6 +4,10 @@ Demonstrates the contract: ship a **fully trained** model — the platform runs
 inference-only (``fit`` never runs there). This trivial example projects the
 window channel means to the embedding space with a fixed random map loaded
 from ``weights.npz`` (standing in for your real training artefacts).
+
+``solution/bci_decoding/submission.py`` shows the optional
+``fit``/``save_model`` pair: local training plus a ready-to-upload
+artifact.
 """
 
 import numpy as np

@@ -37,6 +37,7 @@ import tempfile
 from pathlib import Path
 
 from benchopt import BaseSolver
+from benchopt.benchmark import get_running_benchmark
 
 
 class CompetSolver(BaseSolver):
@@ -67,16 +68,10 @@ class CompetSolver(BaseSolver):
         self.model = self.load_model(self.meta)
 
     def run(self, _):
-        # Training is opt-in through the objective's ``training`` parameter
-        # (`-o "<objective>[training=True]"`): a plain run is inference-only,
-        # exactly like the competition platform.
-        if self.meta.get("training"):
-            if self.meta.get("subset") == "test":
-                raise ValueError(
-                    "The objective's training=True needs the train split, "
-                    "but the dataset was loaded with subset='test' "
-                    "(evaluation data only) — select it with subset='full'."
-                )
+        # No train loader means inference-only, exactly like the competition
+        # platform: the objective only hands one over when its ``training``
+        # parameter is selected (`-o "<objective>[training=True]"`).
+        if self.train_loader is not None:
             self.fit(self.model, self.train_loader)
             self._export_submission()
 
@@ -85,8 +80,7 @@ class CompetSolver(BaseSolver):
         if type(self).save_model is CompetSolver.save_model:
             return
         src = Path(inspect.getfile(type(self)))
-        out_dir = src.parents[1] / "outputs"
-        out_dir.mkdir(exist_ok=True)
+        out_dir = get_running_benchmark().get_output_folder()
         with tempfile.TemporaryDirectory() as tmp:
             shutil.copyfile(src, Path(tmp) / "submission.py")
             self.save_model(self.model, Path(tmp))

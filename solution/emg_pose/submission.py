@@ -4,6 +4,10 @@ Demonstrates the contract: ship a **fully trained** model — the platform runs
 inference-only (``fit`` never runs there). This trivial example maps each EMG
 time-step to joint angles with a fixed linear read-out loaded from
 ``weights.npz`` shipped alongside (standing in for your real artefacts).
+
+``solution/bci_decoding/submission.py`` shows the optional
+``fit``/``save_model`` pair: local training plus a ready-to-upload
+artifact.
 """
 
 import numpy as np
