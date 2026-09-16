@@ -96,6 +96,7 @@ class Dataset(BaseDataset):
             overrides={
                 "target.infra.cluster": None,
                 "target.infra.folder": str(self._data_dir() / "cache"),
+                "target.infra.permissions": None,
             },
         )
 
