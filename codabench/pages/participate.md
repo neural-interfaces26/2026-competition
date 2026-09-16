@@ -51,6 +51,30 @@ class Solver(CompetSolver):
 Your `predict` can be a method of the returned model (plain PyTorch — no
 benchopt, neuralset or neuralbench knowledge is needed inside your model).
 
+## What you can see, what stays hidden
+
+Only the **data** is hidden. Everything that loads it, evaluates it and talks
+to your model is in this starting kit, and is the same code the server runs:
+
+|                           | Development phase          | Final phase                    |
+|---------------------------|----------------------------|--------------------------------|
+| Data                      | public proxy, downloadable | held-out cohort, never released |
+| Dataset name / parameters | shown on the leaderboard   | disclosed after the phase      |
+| Docker image              | same                       | same                           |
+| Ingestion + scoring       | same                       | same                           |
+| Objective + metric        | same                       | same                           |
+| `meta` keys, batch shapes | same contract              | same contract                  |
+| Your submission           | unchanged                  | unchanged                      |
+
+So one rule keeps a submission valid on data you never see: **use only `meta`
+and the batches you are given**. A solver that reads a dataset name, a file
+path, a subject id, or a hard-coded number of channels may break on the
+held-out cohort.
+
+`benchopt test tracks/<track> --skip-install` is the rehearsal: it runs your
+solver against a differently shaped dataset, which is the closest local
+stand-in for data it has never seen.
+
 ## Test locally
 
 The starting kit is the benchmark itself. From the competition repo (no
