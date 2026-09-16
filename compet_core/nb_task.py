@@ -24,6 +24,8 @@ only from ``datasets/`` modules (never from solvers).
 """
 
 import logging
+import os
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -31,11 +33,21 @@ import torch
 
 from compet_core.data import to_numpy
 
-# Both narrate every extractor and cache lookup at INFO on stderr, which the
-# competition platform relays to participants as ERROR lines. Warnings and
-# failures still come through.
-for _noisy in ("neuralset", "exca"):
-    logging.getLogger(_noisy).setLevel(logging.WARNING)
+
+def _quiet_neuro_logs():
+    """Keep the neuro stack's narration out of the participant log.
+
+    neuralset and exca log every extractor and cache lookup at INFO on
+    stderr, which the competition platform relays as ERROR lines. Both
+    configure their logger when imported, so this runs after that import;
+    warnings and failures still come through, on stdout.
+    """
+    for name in ("neuralset", "exca"):
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.WARNING)
+        for handler in logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.setStream(sys.stdout)
 
 
 def _task_data_config(modality, task, dataset, data_dir, overrides):
@@ -118,14 +130,11 @@ def download_study(modality, task, data_dir, dataset=None):
     the staged data is mounted read-only, and even a fully-cached
     ``Study.download()`` ends with a ``chmod`` that would crash there.
     """
-    import os
-
     if not os.access(data_dir, os.W_OK):
-        print(f"[compet] {data_dir} is read-only — skipping download "
-              "(data assumed staged).")
         return
 
     import neuralset as ns
+    _quiet_neuro_logs()
 
     cfg = _task_data_config(modality, task, dataset, data_dir, None)
     study = dict(cfg["study"]["source"])
@@ -232,6 +241,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         shape info under ``target_shape`` / ``raw_target_shape``).
     """
     from neuralbench.data import Data
+    _quiet_neuro_logs()
 
     from compet_core.data import chs_info_from_names
 
