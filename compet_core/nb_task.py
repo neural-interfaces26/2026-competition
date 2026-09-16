@@ -23,12 +23,19 @@ Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
 """
 
+import logging
 from pathlib import Path
 
 import numpy as np
 import torch
 
 from compet_core.data import to_numpy
+
+# Both narrate every extractor and cache lookup at INFO on stderr, which the
+# competition platform relays to participants as ERROR lines. Warnings and
+# failures still come through.
+for _noisy in ("neuralset", "exca"):
+    logging.getLogger(_noisy).setLevel(logging.WARNING)
 
 
 def _task_data_config(modality, task, dataset, data_dir, overrides):
