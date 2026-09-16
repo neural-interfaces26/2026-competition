@@ -7,12 +7,12 @@
 # The same image serves the Codabench workers and the participants:
 #
 #     # download a public dataset into a host folder (organizers: the
-#     # folder later bind-mounted as /data for the scoring runs)
-#     docker run -v <host-data>:/data <image> \
+#     # folder later bind-mounted as /app/data for the scoring runs)
+#     docker run -v <host-data>:/app/data <image> \
 #         benchopt prepare "$COMPET_BENCHMARK_DIR" -d Sleep-EDF
 #
 #     # reproduce the platform evaluation on a submission folder
-#     docker run --gpus all -v <host-data>:/data \
+#     docker run --gpus all -v <host-data>:/app/data \
 #         -v <submission>:/app/ingested_program -v <results>:/app/output \
 #         <image> python3 /compet/ingestion_program/ingestion.py
 # Python 3.12 base (neuralset needs >= 3.12; pytorch/pytorch images ship
@@ -23,12 +23,15 @@ FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# torch from the official PyTorch wheel index with an explicit CUDA channel:
-# PyPI's default silently tracks the newest CUDA (cu13 today), which needs
-# very recent drivers; cu126 runs on any R525+ driver. Installed first so the
-# portable `torch` in requirements.txt is already satisfied.
+# The torch trio from the official PyTorch wheel index with an explicit CUDA
+# channel: PyPI's default silently tracks the newest CUDA (cu13 today), which
+# needs very recent drivers; cu126 runs on any R525+ driver. All three come
+# from the same index so their C++ ops match (a PyPI torchvision against a
+# channel torch fails at import with `torchvision::nms does not exist`).
+# Installed first so the portable pins in requirements.txt are satisfied.
 ARG TORCH_CHANNEL=cu126
-RUN pip install -U pip && pip install --no-cache-dir torch \
+RUN pip install -U pip && pip install --no-cache-dir \
+    torch torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/${TORCH_CHANNEL}
 
 # All Python dependencies a submission may import (this is the participants'
@@ -48,18 +51,23 @@ COPY codabench/scoring_program /compet/scoring_program
 # Codabench mounts the live phase's input_data over /app/input_data.
 COPY codabench/phases/dev/${TRACK} /app/input_data
 
-# All phase configs, addressable by name — used to stage /data on the
+# All phase configs, addressable by name — used to stage the data on the
 # workers from the same yaml that drives the run:
-#     docker run -v /data:/data <image> sh -c \
+#     docker run -v /codabench/data:/app/data <image> sh -c \
 #         'benchopt prepare "$COMPET_BENCHMARK_DIR" \
 #              --config /compet/phases/dev/$COMPET_TRACK/config.yaml'
 COPY codabench/phases /compet/phases
 
-# Data is bind-mounted at /data (host-downloaded via `benchopt prepare`).
+# Data is bind-mounted at /app/data — the path the Codabench compute worker
+# mounts (read-only) in every submission container.
 ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     COMPET_TRACK=${TRACK} \
-    BENCHOPT_DATA_HOME=/data
-VOLUME /data
+    BENCHOPT_DATA_HOME=/app/data
+VOLUME /app/data
 
-# Fail the build if the embedded benchmark does not load.
-RUN benchopt info "$COMPET_BENCHMARK_DIR"
+# Fail the build if the data stack is incoherent (at runtime a broken import
+# — e.g. a torch/torchvision mismatch — only shows up as a silently
+# "not installed" dataset), and record each component's availability in the
+# build log (info reports but never fails).
+RUN python -c "import neuralbench, braindecode" \
+    && benchopt info "$COMPET_BENCHMARK_DIR" -d all -s all

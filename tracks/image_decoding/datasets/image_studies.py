@@ -53,30 +53,41 @@ class Dataset(BaseDataset):
     parameters = {
         "study": ["gifford2022large"],
         "batch_size": [64],
+        # Dataloader workers; 0 extracts windows in-process, which is what
+        # shared CI/platform runners want. Raise it from the phase config
+        # (``Image[num_workers=4]``) on a worker with spare cores.
+        "num_workers": [0],
+        # "test" restricts the study to its test split (worker staging /
+        # evaluation-only runs; incompatible with the objective's
+        # training=True) — see compet_core.nb_task.
+        "subset": ["full"],
     }
 
     def prepare(self):
-        # Idempotent one-time download of the selected study (large).
+        # Download the study, then run the pipeline once: the extraction —
+        # including the one-time DINOv2 embedding pass — caches next to the
+        # data, so runs only touch warm caches. Both steps are idempotent.
         download_study(
             "eeg", "image", self._data_dir(),
             dataset=_OVERLAYS[self.study],
         )
+        self._load()
 
     def _data_dir(self):
         path = get_data_path("neural_compet")
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def get_data(self):
-        self.prepare()  # idempotent — so plain ``benchopt run`` also works
-        device = get_device()
-        loaders, meta = load_task(
+    def _load(self, device="cpu"):
+        return load_task(
             "eeg", "image",
             data_dir=self._data_dir(),
             dataset=_OVERLAYS[self.study],
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
+            num_workers=self.num_workers,
+            subset=self.subset,
             # Run the image-embedding extractor locally (no exca cluster) and
             # cache it next to the data.
             overrides={
@@ -84,8 +95,13 @@ class Dataset(BaseDataset):
                 "target.infra.folder": str(self._data_dir() / "cache"),
             },
         )
+
+    def get_data(self):
+        self.prepare()  # idempotent — so plain ``benchopt run`` also works
+        loaders, meta = self._load(device=get_device())
         return dict(
             train_loader=loaders["train"],
+            subset=self.subset,
             test_loader=loaders["test"],
             n_outputs=int(meta.pop("target_shape")[-1]),
             **{k: v for k, v in meta.items() if k != "raw_target_shape"},
