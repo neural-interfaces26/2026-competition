@@ -61,6 +61,9 @@ class Dataset(BaseDataset):
         "batch_size": [32],
     }
 
+    # Ignore loader config for prepare cache key.
+    prepare_cache_ignore = ("batch_size", "num_workers")
+
     def prepare(self):
         # Download the study, then run the pipeline once: the extraction
         # (filtering, segmenting, targets) caches next to the data, so runs

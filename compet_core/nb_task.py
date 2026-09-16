@@ -23,12 +23,29 @@ Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
 """
 
+import logging
+import os
+import sys
 from pathlib import Path
 
 import numpy as np
 import torch
 
 from compet_core.data import to_numpy
+
+
+def _quiet_neuro_logs():
+    """Hide neuro stack's logs out of the participant output.
+
+    Call after importing the stack: both libs set their logger level on
+    import, which would undo this.
+    """
+    for name in ("neuralset", "exca"):
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.WARNING)
+        for handler in logger.handlers:
+            if isinstance(handler, logging.StreamHandler):
+                handler.setStream(sys.stdout)
 
 
 def _task_data_config(modality, task, dataset, data_dir, overrides):
@@ -45,6 +62,11 @@ def _task_data_config(modality, task, dataset, data_dir, overrides):
         "study.source.infra.folder": str(data_dir / "cache"),
         "neuro.infra.cluster": None,
         "neuro.infra.folder": str(data_dir / "cache"),
+        # exca chmods its cache to 0o777 for cluster sharing, which warns on
+        # every entry when the data is mounted read-only. Reading needs no
+        # such right: the staged files are world-readable already.
+        "study.source.infra.permissions": None,
+        "neuro.infra.permissions": None,
     })
     cfg.update(overrides or {})
     return cfg
@@ -106,14 +128,11 @@ def download_study(modality, task, data_dir, dataset=None):
     the staged data is mounted read-only, and even a fully-cached
     ``Study.download()`` ends with a ``chmod`` that would crash there.
     """
-    import os
-
     if not os.access(data_dir, os.W_OK):
-        print(f"[compet] {data_dir} is read-only — skipping download "
-              "(data assumed staged).")
         return
 
     import neuralset as ns
+    _quiet_neuro_logs()
 
     cfg = _task_data_config(modality, task, dataset, data_dir, None)
     study = dict(cfg["study"]["source"])
@@ -220,6 +239,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         shape info under ``target_shape`` / ``raw_target_shape``).
     """
     from neuralbench.data import Data
+    _quiet_neuro_logs()
 
     from compet_core.data import chs_info_from_names
 

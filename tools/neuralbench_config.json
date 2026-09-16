@@ -1,0 +1,13 @@
+{
+  "USER": "compet",
+  "ENTITY_NAME": "compet",
+  "PROJECT_NAME": "neuralbench",
+  "CACHE_DIR": "/tmp/neuralbench/cache",
+  "SAVE_DIR": "/tmp/neuralbench/save",
+  "DATA_DIR": "/tmp/neuralbench/data",
+  "WANDB_HOST": "",
+  "SLURM_PARTITION": "",
+  "SLURM_CONSTRAINT": "",
+  "N_CPUS": 1,
+  "CLUSTER": "auto"
+}

@@ -63,6 +63,9 @@ class Dataset(BaseDataset):
         "subset": ["full"],
     }
 
+    # Ignore loader config for prepare cache key.
+    prepare_cache_ignore = ("batch_size", "num_workers")
+
     def prepare(self):
         # Download the study, then run the pipeline once: the extraction —
         # including the one-time DINOv2 embedding pass — caches next to the
@@ -93,6 +96,7 @@ class Dataset(BaseDataset):
             overrides={
                 "target.infra.cluster": None,
                 "target.infra.folder": str(self._data_dir() / "cache"),
+                "target.infra.permissions": None,
             },
         )
 

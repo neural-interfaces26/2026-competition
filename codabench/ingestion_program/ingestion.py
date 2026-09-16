@@ -17,8 +17,8 @@ evaluation happens here). The data location is the image's
 $BENCHOPT_DATA_HOME (/app/data, where the compute worker mounts the staged
 data read-only).
 Runs are inference-only unless the phase config's native ``objective:`` key
-selects ``<objective>[training=True]``. Any solver error aborts the run with
-its traceback ($BENCHOPT_DEBUG).
+selects ``<objective>[training=True]``.
+$BENCHOPT_DEBUG ensures any solver error aborts the run.
 """
 
 import os
@@ -83,7 +83,6 @@ def install_submission_solvers(submission_dir, workdir):
 
 
 def main(submission_dir, output_dir, benchmark_dir, input_dir):
-    print(f"[ingestion] benchmark: {benchmark_dir}")
     if not benchmark_dir.exists():
         raise SystemExit(
             f"[ingestion] no benchmark at {benchmark_dir}: run inside a "
@@ -117,10 +116,11 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
         "--output", "submission",
         *(["--config", str(run_config)] if run_config else []),
     ]
-    for name in install_submission_solvers(submission_dir, workdir):
+    names = install_submission_solvers(submission_dir, workdir)
+    for name in names:
         cmd += ["-s", name]
 
-    print(f"[ingestion] {' '.join(cmd)}", flush=True)
+    print(f"[ingestion] evaluating {', '.join(names)}", flush=True)
     start = time.time()
     subprocess.run(cmd, check=True)
 

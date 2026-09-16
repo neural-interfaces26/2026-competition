@@ -39,6 +39,8 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+COPY tools/neuralbench_config.json /compet/neuralbench_config.json
+
 # The embedded track: benchmark + sibling compet_core (found by the
 # benchmark's benchmark_utils parent walk) + the shared programs.
 ARG TRACK
@@ -62,7 +64,12 @@ COPY codabench/phases /compet/phases
 # mounts (read-only) in every submission container.
 ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     COMPET_TRACK=${TRACK} \
-    BENCHOPT_DATA_HOME=/app/data
+    BENCHOPT_DATA_HOME=/app/data \
+    NEURALBENCH_CONFIG=/compet/neuralbench_config.json
+
+# Hide upstream deprecations (MNE montages, ...) and noisy tqdm
+ENV PYTHONWARNINGS=ignore::FutureWarning \
+    TQDM_DISABLE=1
 VOLUME /app/data
 
 # Fail the build if the data stack is incoherent (at runtime a broken import
