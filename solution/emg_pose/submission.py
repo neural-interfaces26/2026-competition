@@ -1,26 +1,19 @@
 """Sample submission for the EMG-to-pose track.
 
-Demonstrates the contract: ship a **fully trained** model — the platform runs
-inference-only (``fit`` never runs there). This trivial example maps each EMG
-time-step to joint angles with a fixed linear read-out loaded from
-``weights.npz`` shipped alongside (standing in for your real artefacts).
+Demonstrates the full contract with the shared ``ConstantPose`` baseline:
+
+- submitted as-is, it **loads** its per-joint angles from ``weights.npz``
+  shipped alongside (the platform runs inference-only);
+- run with ``-o "EMG-pose[training=True]"``, ``fit`` recomputes them on the
+  train split and ``save_model`` writes them — the run then drops a
+  ready-to-upload ``outputs/submission_Sample-EMG.zip``.
 """
 
 import numpy as np
 
 import benchmark_utils  # noqa: F401 — locates compet_core
 from compet_core.base_solver import CompetSolver
-from compet_core.data import to_numpy
-
-
-class LinearPose:
-
-    def __init__(self, readout):
-        self.readout = readout                        # (J, C)
-
-    def predict(self, X):
-        X = to_numpy(X)                               # (B, C, T)
-        return np.einsum("jc,bct->bjt", self.readout, X)
+from compet_core.baselines import ConstantPose
 
 
 class Solver(CompetSolver):
@@ -28,9 +21,15 @@ class Solver(CompetSolver):
     name = "Sample-EMG"
 
     def load_model(self, meta):
-        weights = meta["weights_dir"] / "weights.npz"
-        if not weights.exists():                      # stand-in artefact
-            rng = np.random.default_rng(0)
-            np.savez(weights, readout=rng.standard_normal(
-                (meta["n_joints"], meta["n_chans"])) * 0.1)
-        return LinearPose(np.load(weights)["readout"])
+        model = ConstantPose(meta["n_joints"])
+        weights = meta["submission_dir"] / "weights.npz"
+        if weights.exists():                          # written by save_model
+            model.value = np.load(weights)["pose"]
+        return model
+
+    def fit(self, model, train_loader):
+        model.fit(train_loader)                       # mean train pose
+
+    def save_model(self, model, path):
+        # Same name ``load_model`` reads from ``meta["submission_dir"]``.
+        np.savez(path / "weights.npz", pose=model.value)

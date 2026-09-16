@@ -39,17 +39,32 @@ class Objective(BaseObjective):
     # Each solver runs once to completion (no convergence curve).
     sampling_strategy = "run_once"
 
+    # training=True lets the solvers' optional ``fit`` run before evaluation
+    # (how baselines and participants train); default runs are
+    # inference-only, like the platform. Select it with
+    #     benchopt run ... -o "<objective>[training=True]"
+    parameters = {"training": [False]}
+
+    # ``benchopt test`` exercises the full contract, training included.
+    test_config = {"training": True}
+
     def set_data(self, train_loader, test_loader, n_joints, **meta):
         self.train_loader = train_loader
         self.test_loader = test_loader
         self.n_joints = n_joints
         self.meta = meta  # sfreq, ch_names, n_chans, n_times, ...
 
+    def skip(self, train_loader=None, **data):
+        if self.training and train_loader is None:
+            return True, "training=True needs a dataset with a train split"
+        return False, None
+
     def get_objective(self):
         # Train loader goes to the solver; the test loader stays here so the
         # objective owns evaluation.
         return dict(
-            train_loader=self.train_loader,
+            # Inference-only unless training is selected: no loader, no fit.
+            train_loader=self.train_loader if self.training else None,
             n_joints=self.n_joints,
             **self.meta,
         )

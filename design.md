@@ -19,13 +19,24 @@ this monorepo.
 - **One benchmark per track, no `track` objective parameter.** Each
   competition holds a single task, so leaderboard keys are plain metric names
   and solvers need no gating.
+- **Training is opt-in through the objective's `training` parameter.** A
+  plain `benchopt run tracks/<t>` is inference-only — exactly what the
+  platform does — and the solvers' optional `fit(model, train_loader)` only
+  runs when `-o "<objective>[training=True]"` is selected (how baselines are
+  trained and how participants train through the starting kit; the flag also
+  lands in the results as `objective_training`). A training phase on the
+  platform is just a phase config whose native `objective:` key selects the
+  training variant — no env vars, no custom keys. The objectives'
+  `test_config = {"training": True}` makes `benchopt test` exercise the full
+  contract. NB: cluster validation scripts must add the `-o` flag to fit the
+  baselines.
 - **A submission is a trained model, evaluated inference-only.** The user
   decided (2026-09-04): no training and no fine-tuning on the platform. The
   contract (`compet_core/base_solver.py::CompetSolver`) is
   `load_model(meta) -> model with predict(X)`; the optional
-  `fit(model, train_loader)` only runs locally (ingestion sets
-  `COMPET_INFERENCE_ONLY=1`, checked in `CompetSolver.run`). Weights ship
-  next to `submission.py`; `meta["weights_dir"]` points there
+  `fit(model, train_loader)` only runs when the objective's `training`
+  parameter is selected (see the dedicated bullet below). Weights ship
+  next to `submission.py`; `meta["submission_dir"]` points there
   (`COMPET_SUBMISSION_DIR`, set by ingestion; defaults to the solver file's
   dir locally).
 - **Data layer = neuralbench task configs.** `compet_core/nb_task.py` builds

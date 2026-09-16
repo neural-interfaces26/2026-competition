@@ -10,7 +10,7 @@ Subclass `CompetSolver` (from the bundled `compet_core` package) and
 implement:
 
 - `load_model(self, meta)` — build your model and load your shipped weights
-  from `meta["weights_dir"]`, placing it on `meta["device"]`. Return an
+  from `meta["submission_dir"]`, placing it on `meta["device"]`. Return an
   object exposing `predict(X)`.
 - `predict(X)` receives torch batches `X: (B, C, T)` already on
   `meta["device"]`; the expected output shape is track-specific (see the
@@ -20,9 +20,11 @@ implement:
 `meta` also carries `sfreq, ch_names, chs_info, n_chans, n_times` and the
 track's output size (`n_classes` / `n_outputs` / `n_joints`).
 
-Optionally, implement `fit(self, model, train_loader)` — it only runs
-**locally** (never on the server) and lets you train your model with the
-exact competition data through the starting kit.
+Optionally, implement `fit(self, model, train_loader)` and select the
+objective's `training` variant to train your model with the exact
+competition data and evaluation through the starting kit. Without it a run
+is inference-only, mirroring the competition server (which never runs
+`fit`).
 
 ```python
 import torch
@@ -40,7 +42,7 @@ class Solver(CompetSolver):
         model = build_my_model(
             n_chans=meta["n_chans"], n_times=meta["n_times"],
         )
-        state = torch.load(meta["weights_dir"] / "weights.pt",
+        state = torch.load(meta["submission_dir"] / "weights.pt",
                            map_location=meta["device"])
         model.load_state_dict(state)
         return model.to(meta["device"]).eval()
@@ -71,11 +73,30 @@ benchopt run tracks/<track> -d Simulated -s my-solver
 ```
 
 Training on the real data locally: `benchopt prepare tracks/<track>`
-downloads it once, then your solver's `fit` runs with
-`benchopt run tracks/<track>`.
+downloads it once, then
+
+```bash
+benchopt run tracks/<track> -s my-solver -o "<objective>[training=True]"
+```
+
+trains your solver (`fit`) and evaluates it exactly like the platform does
+(`<objective>` is the track's objective name, e.g. `BCI-decoding` — this is
+also how the baselines shipped in `solvers/` are trained).
+
+## Develop with benchopt
+
+The starting kit is a set of plain [benchopt](https://benchopt.github.io)
+benchmarks — while iterating on your model you get hyperparameter grids in
+one flag (`-s "my-solver[lr=[1e-4,1e-3]]"`), cached reruns, interactive HTML
+reports (`benchopt plot`), reproducible experiment yamls (`--config`), and
+parallel/SLURM execution (`-j`, `--parallel-config`). If you code with an AI
+assistant, `benchopt sync-skills --global` teaches it the solver
+conventions. See the starting-kit README for the full tour.
 
 ## Submit
 
 Zip the submission folder (`submission.py` + weights) and upload it on the
-*My Submissions* tab. Baselines and reference submissions live in the
+*My Submissions* tab. If your solver implements `save_model(model, path)`
+(the mirror of `load_model`), a training run builds that zip for you —
+`outputs/submission_<name>.zip`, ready to upload. Baselines and reference submissions live in the
 `solution/` folder of the bundle.

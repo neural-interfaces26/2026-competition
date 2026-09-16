@@ -15,3 +15,4 @@ bundle_*.zip
 solution/**/*.npz
 worktrees/
 .venv-margaret/
+tracks/*/solvers/*.npz

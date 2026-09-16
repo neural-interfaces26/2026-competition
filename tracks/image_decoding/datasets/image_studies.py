@@ -104,8 +104,9 @@ class Dataset(BaseDataset):
         self.prepare()  # idempotent — so plain ``benchopt run`` also works
         loaders, meta = self._load(device=get_device())
         return dict(
-            train_loader=loaders["train"],
-            subset=self.subset,
+            # subset="test" stages the evaluation split only: no train
+            # split to hand over, which is how a run learns it cannot train.
+            train_loader=None if self.subset == "test" else loaders["train"],
             test_loader=loaders["test"],
             n_outputs=int(meta.pop("target_shape")[-1]),
             **{k: v for k, v in meta.items() if k != "raw_target_shape"},

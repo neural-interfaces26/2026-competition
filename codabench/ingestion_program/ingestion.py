@@ -16,7 +16,8 @@ scoring.py — the config is forwarded with the raw results parquet; all
 evaluation happens here). The data location is the image's
 $BENCHOPT_DATA_HOME (/app/data, where the compute worker mounts the staged
 data read-only).
-Submissions are evaluated inference-only ($COMPET_INFERENCE_ONLY).
+Runs are inference-only unless the phase config's native ``objective:`` key
+selects ``<objective>[training=True]``.
 $BENCHOPT_DEBUG ensures any solver error aborts the run.
 """
 
@@ -24,7 +25,6 @@ import os
 import sys
 from pathlib import Path
 
-os.environ["COMPET_INFERENCE_ONLY"] = "1"
 os.environ["BENCHOPT_DEBUG"] = "true"
 # scikit-learn array-API dispatch needs scipy's, read at scipy import time.
 os.environ.setdefault("SCIPY_ARRAY_API", "1")
