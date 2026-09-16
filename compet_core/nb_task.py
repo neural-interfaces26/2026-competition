@@ -45,6 +45,11 @@ def _task_data_config(modality, task, dataset, data_dir, overrides):
         "study.source.infra.folder": str(data_dir / "cache"),
         "neuro.infra.cluster": None,
         "neuro.infra.folder": str(data_dir / "cache"),
+        # exca chmods its cache to 0o777 for cluster sharing, which warns on
+        # every entry when the data is mounted read-only. Reading needs no
+        # such right: the staged files are world-readable already.
+        "study.source.infra.permissions": None,
+        "neuro.infra.permissions": None,
     })
     cfg.update(overrides or {})
     return cfg

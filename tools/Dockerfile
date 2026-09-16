@@ -39,6 +39,12 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Without a config file, neuralbench prints a paragraph about the setup prompt
+# it skipped on every import. The paths below are the ones it would have
+# defaulted to; the competition passes its own data paths explicitly, so these
+# scratch dirs stay empty.
+COPY tools/neuralbench_config.json /compet/neuralbench_config.json
+
 # The embedded track: benchmark + sibling compet_core (found by the
 # benchmark's benchmark_utils parent walk) + the shared programs.
 ARG TRACK
@@ -64,9 +70,13 @@ ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     COMPET_TRACK=${TRACK} \
     BENCHOPT_DATA_HOME=/app/data
 
-# Upstream deprecations (MNE montages, ...) are not actionable by submitters
-# and drown the logs — one line per extracted window, staging and runs alike.
-ENV PYTHONWARNINGS=ignore::FutureWarning
+# Keep the participant-facing trace to what a submitter can act on: upstream
+# deprecations (MNE montages, ...) fire once per extracted window, and the
+# extraction progress bars redraw hundreds of lines with no terminal to
+# rewrite. Both are equally noisy during staging.
+ENV PYTHONWARNINGS=ignore::FutureWarning \
+    TQDM_DISABLE=1 \
+    NEURALBENCH_CONFIG=/compet/neuralbench_config.json
 VOLUME /app/data
 
 # Fail the build if the data stack is incoherent (at runtime a broken import
