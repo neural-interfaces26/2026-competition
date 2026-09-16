@@ -35,12 +35,10 @@ from compet_core.data import to_numpy
 
 
 def _quiet_neuro_logs():
-    """Keep the neuro stack's narration out of the participant log.
+    """Hide neuro stack's logs out of the participant output.
 
-    neuralset and exca log every extractor and cache lookup at INFO on
-    stderr, which the competition platform relays as ERROR lines. Both
-    configure their logger when imported, so this runs after that import;
-    warnings and failures still come through, on stdout.
+    Call after importing the stack: both libs set their logger level on
+    import, which would undo this.
     """
     for name in ("neuralset", "exca"):
         logger = logging.getLogger(name)

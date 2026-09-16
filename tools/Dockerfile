@@ -39,10 +39,6 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Without a config file, neuralbench prints a paragraph about the setup prompt
-# it skipped on every import. The paths below are the ones it would have
-# defaulted to; the competition passes its own data paths explicitly, so these
-# scratch dirs stay empty.
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
 # The embedded track: benchmark + sibling compet_core (found by the
@@ -68,15 +64,12 @@ COPY codabench/phases /compet/phases
 # mounts (read-only) in every submission container.
 ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     COMPET_TRACK=${TRACK} \
-    BENCHOPT_DATA_HOME=/app/data
-
-# Keep the participant-facing trace to what a submitter can act on: upstream
-# deprecations (MNE montages, ...) fire once per extracted window, and the
-# extraction progress bars redraw hundreds of lines with no terminal to
-# rewrite. Both are equally noisy during staging.
-ENV PYTHONWARNINGS=ignore::FutureWarning \
-    TQDM_DISABLE=1 \
+    BENCHOPT_DATA_HOME=/app/data \
     NEURALBENCH_CONFIG=/compet/neuralbench_config.json
+
+# Hide upstream deprecations (MNE montages, ...) and noisy tqdm
+ENV PYTHONWARNINGS=ignore::FutureWarning \
+    TQDM_DISABLE=1
 VOLUME /app/data
 
 # Fail the build if the data stack is incoherent (at runtime a broken import
