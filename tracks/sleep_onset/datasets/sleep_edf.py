@@ -47,6 +47,9 @@ class Dataset(BaseDataset):
         "subset": ["full"],
     }
 
+    # Ignore loader config for prepare cache key.
+    prepare_cache_ignore = ("batch_size", "num_workers")
+
     def prepare(self):
         # Seed from S3 when possible, then download (validates the seeded
         # files, fetches anything missing) and run the pipeline once: the

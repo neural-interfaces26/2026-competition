@@ -63,6 +63,9 @@ class Dataset(BaseDataset):
         "subset": ["full"],
     }
 
+    # Ignore loader config for prepare cache key.
+    prepare_cache_ignore = ("batch_size", "num_workers")
+
     def prepare(self):
         # Download the study, then run the pipeline once: the extraction —
         # including the one-time DINOv2 embedding pass — caches next to the
