@@ -1,18 +1,33 @@
-# Terms and Conditions
+# Competition terms
 
-## Lorem Ipsum
+## Rule 1: Anyone can enter. Organisers cannot win prizes
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
-proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Industry, academia, students, independents — all eligible, and cross-institution teams are encouraged. Organisers and their direct team members may submit, but their entries appear as Organizers on the leaderboard and are ineligible for cash prizes.
 
-## Sed ut perspiciatis
+## Rule 2: One team may enter all four tracks
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae 
-ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit 
-aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam 
-est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore 
-et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, 
-nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae 
-consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?
+Each track accepts independent submissions per team and is scored on its own leaderboard, under the same harness and the same audit.
+
+## Rule 3: Five submissions a day in warm-up, one per day in the sealed final
+
+Warm-up (Sep 16 - Oct 15, 2026): 5 submissions per team per day. Sealed final (Oct 16 - Nov 16, 2026, AoE): one submission per day, so the prize roster reflects deliberate iteration rather than lottery search. The final NeurIPS ranking takes the sealed submissions. 
+
+## Rule 4: Pre-train on any public dataset. Declare all of it
+
+Training data is suggested to stay within the track, but pre-training on any publicly available, redistributable dataset is allowed. The sealed test split is never allowed; closed clinical datasets are not allowed. Declare every external corpus, and a compute estimate, in the method description that ships with your final submission -- the audit cross-checks it against a re-run of neuralbench eeg from your committed config.
+
+## Rule 5: Training compute is uncapped. Inference is 60 minutes on one GPU
+
+Train on whatever you have. The single constraint is inference: the scoring container must complete a full test pass in under 60 minutes on one H100 or H200 instance, so that audit cost stays bounded and per-team runtime stays comparable. AWS, the compute partner, provides complimentary instance hours to finalists.
+
+## Rule 6: Cheating attempts
+
+Any attempt to cheat, including but not limited to using closed clinical data, accessing the sealed test split, or modifying the scoring harness, will result in immediate disqualification from the competition. This decision will be made by the organisation committee and will be final.
+
+## Rule 7: The top three per track must replay within ±2σ
+
+After the sealed final (date announced after the summer), the top-3 of every track go through a reproducibility audit: we re-run your training pipeline from the committed config and re-score the resulting weights against the sealed split. Scores within ±2σ of your submitted number stay on the prize roster; scores outside the tolerance drop off the prize roster but remain on the public board for context. The organization committee will chair the audit.
+
+## Rule 8: Reproducible top teams will be annouced during NeurIPS workshop
+
+Top-ranked teams that pass the audit and submit a method description, training and inference code, and pre-training disclosures will be announced during the NeurIPS workshop. This opportunity is offered to teams with complete, reproducible artifacts.

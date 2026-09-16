@@ -1,0 +1,56 @@
+<p class="ni26-eyebrow">Neural Interfaces 2026 &middot; Track 01 &middot; Cross-stimulus shift</p>
+<h1>EEG-to-IMG</h1>
+<p class="ni26-lede">Decodes which image a subject is viewing from a single EEG
+epoch, evaluated as ranking against held-out candidates.</p>
+
+<figure class="ni26-figure">
+  <img src="https://neural-interfaces26.github.io/assets/img/figures/eeg-to-img.png"
+       srcset="https://neural-interfaces26.github.io/assets/img/figures/eeg-to-img.png 335w, https://neural-interfaces26.github.io/assets/img/figures/eeg-to-img@2x.png 670w"
+       sizes="(min-width: 768px) 640px, 100vw" width="335" height="218"
+       alt="THINGS-EEG and Alljoined data feeding an EEG decoder ranked against a held-out image gallery" />
+  <figcaption>THINGS-EEG and Alljoined data feeding an EEG decoder, ranked
+  against a held-out image gallery.</figcaption>
+</figure>
+
+<p>Targets are frozen DINOv2-giant embeddings, so the difficulty is in the EEG
+side, not in re-learning the image space. The controlled shift is
+<strong>cross-stimulus</strong>: test stimuli are unseen during training.</p>
+
+<dl class="ni26-facts">
+  <dt>Ranking metric</dt><dd>Top-5 retrieval accuracy (top-1 reported alongside)</dd>
+  <dt>Controlled shift</dt><dd>Cross-stimulus &mdash; unseen test stimuli</dd>
+  <dt>Signals &amp; context</dt><dd>Visual retrieval, DINOv2, RSVP, object viewing</dd>
+  <dt>Track sponsor</dt><dd>Alljoined</dd>
+</dl>
+
+<h2>The task</h2>
+
+<p>Your model receives torch batches of EEG windows <code>X: (B, C, T)</code>
+and must return predicted image <em>embeddings</em>,
+<code>predict(X) -&gt; (B, D)</code>, in the target embedding space. Each test
+window's prediction is ranked by cosine similarity against the candidate pool
+&mdash; the unique target embeddings of the test split &mdash; and scored by
+whether the true image falls in the top 5.</p>
+
+<p>The public proxy dataset is <strong>THINGS-EEG2</strong> (Gifford2022Large)
+through the neuralbench <code>eeg/image</code> task config: 1.2-s epochs around
+each image stimulus (&minus;0.2 &rarr; 1.0 s), targets computed once with the
+DINOv2-giant extractor and cached, predefined timeline-based split. A
+zero-dependency <code>Simulated</code> dataset ships for no-network smoke
+tests.</p>
+
+<h2>Leaderboard columns</h2>
+
+<div class="ni26-table-wrap">
+<table>
+  <thead><tr><th>Column</th><th>Key</th><th>Sorting</th></tr></thead>
+  <tbody>
+    <tr><td>Top-5 accuracy</td><td><code>top5_acc</code></td><td>higher is better &mdash; <strong>ranking metric</strong></td></tr>
+    <tr><td>Top-1 accuracy</td><td><code>top1_acc</code></td><td>higher is better</td></tr>
+    <tr><td>Duration (s)</td><td><code>duration</code></td><td>lower is better</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>See the <em>Participation</em> tab for the submission contract and the
+starting kit, and the <em>Timeline</em> tab for phase dates.</p>

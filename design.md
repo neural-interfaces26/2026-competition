@@ -99,9 +99,21 @@ this monorepo.
   `codabench/competition_<t>.yaml` (as `competition.yaml`) +
   `solution/<t>/` + `codabench/phases/dev/<t>/` as
   `dev_phase/input_data/`. `data/` dirs are always skipped.
-- The legacy direct-neuralset path (`neuralset_task.py`, `moabb_mi.py`) was
-  dropped once the neuralbench path was validated on real data (tangermann,
-  identical metrics on the 0.2.3 and 0.3.1 stacks).
+- **Competition page** (first tab, before Participation/Timeline): shipped as
+  `pages/competition.html` — Codabench accepts HTML pages, which markdown
+  cannot match for the figure/logo layout. Assembled at bundle time from
+  `codabench/pages/_competition_head.html` (styles, all scoped under `.ni26`
+  so nothing leaks into Codabench's own CSS) + `competition_<key>.html` (the
+  track's own section, mirroring the website's track card) +
+  `_competition_tail.html` (four-track overview + the 18 sponsor/institution
+  logos), so the shared parts live in one file. Figures and logos are hot-
+  linked to `https://neural-interfaces26.github.io/assets/img/...` rather than
+  vendored — Codabench serves page markdown/HTML from its own origin, so
+  bundle-relative image paths would not resolve.
+- The legacy direct-neuralset path (`compet_core/neuralset_task.py`,
+  `tracks/bci_decoding/datasets/moabb_mi.py`) is kept alongside the
+  neuralbench path until the latter is fully validated on real data; then it
+  can be dropped.
 
 ## Per-track notes
 
@@ -165,7 +177,27 @@ this monorepo.
   `datasets/*.py` sealed split); the sealed dataset files themselves remain
   to be written. Public proxy test splits for now.
 - `benchopt_release` CI job disabled until benchopt 1.9.2 hits PyPI.
-- `terms.md` is lorem ipsum; competition yaml dates are placeholders.
+- Competition yamls (2026-09-07): 2 phases — Warm-up 2026-09-01 →
+  10-15 23:59:59 (5 subs/day) and Sealed Final 10-16 → 11-16 (1 sub/day,
+  10 max, `hide_prediction_output` + `hide_score_output`), both with a
+  3600 s `execution_time_limit`; `docker_image: sylvchev/codabench-py314:v1`;
+  detailed results + forum disabled; `contact_email` set. The prose dates in
+  `pages/timeline.md`, `pages/terms.md` (Rule 3) and the competition page's
+  tail still say Sep 16 – Oct 15; the user decided (2026-09-07) to leave them
+  as they are, so the *announced* warm-up window is deliberately narrower than
+  the phase the platform opens. Only timeline.md's sealed-final rate was
+  corrected (2 → 1 sub/day) to match the yamls.
+- The sealed final phase reuses task 0 (the public proxy split); real
+  hidden-test isolation is still deferred.
+- Phase windows must not touch: warm-up first ended at `10-16 00:00:00`,
+  the same instant the sealed phase starts, and Codabench rejected the
+  bundle as a phase conflict. Hence the `23:59:59` end.
+- `tools/Dockerfile` (pytorch 2.8 base) is not the source of
+  `sylvchev/codabench-py314:v1` — reconcile or drop it.
+- `logo.png` is superseded by `logo.jpg` (what the bundles ship) but is still
+  tracked — delete it once nothing references it.
+- The old MOABB-MI dataset + `neuralset_task.py` → drop after nb_task real
+  validation.
 
 ## Pointers
 

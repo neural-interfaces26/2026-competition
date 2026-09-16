@@ -5,11 +5,26 @@ description: >
   Submissions ship a trained model (code + weights); the platform runs
   inference-only on the held-out split and ranks by balanced accuracy.
   Powered by benchopt + neuralbench.
-image: logo.png
+image: logo.jpg
 registration_auto_approve: False
+contact_email: neurips2026-eeg-emg-competition@googlegroups.com
+
+# The image submissions run in; it must carry the requirements.txt stack.
+# NB: tools/Dockerfile (pytorch 2.8 base) is not the source of this image.
+docker_image: tommoral/neural-compet-bci_decoding:v1
+
+# Only the leaderboard metrics are exposed: no detailed_results.html is
+# produced by the scoring program, and the forum is unused (support goes
+# through contact_email).
+enable_detailed_results: False
+show_detailed_results_in_submission_panel: False
+show_detailed_results_in_leaderboard: False
+forum_enabled: False
 
 terms: pages/terms.md
 pages:
+  - title: Competition
+    file: pages/competition.html
   - title: Participation
     file: pages/participate.md
   - title: Timeline
@@ -32,11 +47,32 @@ solutions:
       - 0
     path: solution/
 
+# Dates are UTC+0, in the documented YYYY-MM-DD HH:MM:SS format.
 phases:
-  - name: Development Phase
-    description: 'Development phase: build and test your model.'
-    start: 01-01-2026
-    end: 11-16-2026
+  - index: 0
+    name: Warm-up Phase
+    description: 'Warm-up phase: build and test your model against the
+      public split. Up to 5 submissions per day.'
+    start: 2026-09-01 00:00:00
+    end: 2026-10-15 23:59:59
+    execution_time_limit: 3600
+    max_submissions_per_day: 5
+    tasks:
+      - 0
+  - index: 1
+    name: Sealed Final Phase
+    description: 'Sealed final phase: one submission per day. The final
+      NeurIPS ranking is taken from this phase, and the top-3 of the track
+      go through the reproducibility audit.'
+    start: 2026-10-16 00:00:00
+    end: 2026-11-16 00:00:00
+    execution_time_limit: 3600
+    max_submissions_per_day: 1
+    max_submissions: 10
+    # Sealed: participants get their leaderboard score, but neither the
+    # prediction files nor the scoring-step output.
+    hide_prediction_output: True
+    hide_score_output: True
     tasks:
       - 0
 
