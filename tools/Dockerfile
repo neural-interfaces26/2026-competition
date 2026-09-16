@@ -63,6 +63,10 @@ COPY codabench/phases /compet/phases
 ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
     COMPET_TRACK=${TRACK} \
     BENCHOPT_DATA_HOME=/app/data
+
+# Upstream deprecations (MNE montages, ...) are not actionable by submitters
+# and drown the logs — one line per extracted window, staging and runs alike.
+ENV PYTHONWARNINGS=ignore::FutureWarning
 VOLUME /app/data
 
 # Fail the build if the data stack is incoherent (at runtime a broken import
