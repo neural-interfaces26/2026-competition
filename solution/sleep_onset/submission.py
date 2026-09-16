@@ -1,13 +1,13 @@
 """Sample submission for the sleep-onset track.
 
-Demonstrates the contract: ship a **fully trained** model — the platform runs
-inference-only (``fit`` never runs there). This trivial example predicts a
-constant latency loaded from ``weights.npz`` shipped alongside (standing in
-for your real training artefacts).
+Demonstrates the full contract with a trivial constant-latency regressor:
 
-``solution/bci_decoding/submission.py`` shows the optional
-``fit``/``save_model`` pair: local training plus a ready-to-upload
-artifact.
+- submitted as-is, it **loads** its latency from ``weights.npz`` shipped
+  alongside (the platform runs inference-only — a stand-in file is generated
+  when missing, so the sample always runs);
+- run with ``-o "Sleep-onset[training=True]"``, ``fit`` recomputes it on the
+  train split and ``save_model`` writes it — the run then drops a
+  ready-to-upload ``outputs/submission_Sample-Sleep.zip``.
 """
 
 import numpy as np
@@ -22,7 +22,14 @@ class Solver(CompetSolver):
     name = "Sample-Sleep"
 
     def load_model(self, meta):
-        weights = meta["weights_dir"] / "weights.npz"
+        weights = meta["submission_dir"] / "weights.npz"
         if not weights.exists():                      # stand-in artefact
             np.savez(weights, latency=np.float64(300.0))
         return MedianRegressor(value=float(np.load(weights)["latency"]))
+
+    def fit(self, model, train_loader):
+        model.fit(train_loader)                       # median train latency
+
+    def save_model(self, model, path):
+        # Same name ``load_model`` reads from ``meta["submission_dir"]``.
+        np.savez(path / "weights.npz", latency=np.float64(model.value))

@@ -10,7 +10,7 @@ Subclass `CompetSolver` (from the bundled `compet_core` package) and
 implement:
 
 - `load_model(self, meta)` — build your model and load your shipped weights
-  from `meta["weights_dir"]`, placing it on `meta["device"]`. Return an
+  from `meta["submission_dir"]`, placing it on `meta["device"]`. Return an
   object exposing `predict(X)`.
 - `predict(X)` receives torch batches `X: (B, C, T)` already on
   `meta["device"]`; the expected output shape is track-specific (see the
@@ -42,7 +42,7 @@ class Solver(CompetSolver):
         model = build_my_model(
             n_chans=meta["n_chans"], n_times=meta["n_times"],
         )
-        state = torch.load(meta["weights_dir"] / "weights.pt",
+        state = torch.load(meta["submission_dir"] / "weights.pt",
                            map_location=meta["device"])
         model.load_state_dict(state)
         return model.to(meta["device"]).eval()

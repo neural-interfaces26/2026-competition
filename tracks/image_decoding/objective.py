@@ -56,10 +56,9 @@ class Objective(BaseObjective):
         self.n_outputs = n_outputs  # embedding dimension D
         self.meta = meta  # sfreq, ch_names, chs_info, n_chans, n_times, ...
 
-    def skip(self, subset="full", **data):
-        # A test-only dataset carries no train split to train on.
-        if self.training and subset == "test":
-            return True, "training=True needs a dataset with subset='full'"
+    def skip(self, train_loader=None, **data):
+        if self.training and train_loader is None:
+            return True, "training=True needs a dataset with a train split"
         return False, None
 
     def get_objective(self):

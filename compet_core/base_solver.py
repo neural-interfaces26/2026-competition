@@ -6,7 +6,7 @@ participant only implements plain-PyTorch code — no benchopt, neuralset or
 neuralbench knowledge is required:
 
 - ``load_model(self, meta)`` -> model (required). Build the model (loading
-  any shipped weights from ``meta["weights_dir"]``) and place it on
+  any shipped weights from ``meta["submission_dir"]``) and place it on
   ``meta["device"]``. The model must expose ``predict(X)`` taking a torch
   batch ``(B, C, T)``; the output shape is track-specific (see each track's
   objective docstring).
@@ -26,7 +26,7 @@ neuralbench knowledge is required:
 
 ``meta`` is a plain dict: ``sfreq, ch_names, chs_info, n_chans, n_times,
 n_classes`` (classification) or ``n_outputs`` (regression), ``device,
-weights_dir``. Batches are torch tensors ``(X, y, info)`` already moved onto
+submission_dir``. Batches are torch tensors ``(X, y, info)`` already moved onto
 ``meta["device"]`` by the track's dataloaders.
 """
 
@@ -60,11 +60,11 @@ class CompetSolver(BaseSolver):
         # Weight files ship alongside ``submission.py``: the ingestion program
         # points COMPET_SUBMISSION_DIR at the submission folder; locally this
         # defaults to the directory holding the solver file itself.
-        weights_dir = os.environ.get("COMPET_SUBMISSION_DIR")
-        if weights_dir is None:
-            weights_dir = Path(inspect.getfile(type(self))).parent
+        submission_dir = os.environ.get("COMPET_SUBMISSION_DIR")
+        if submission_dir is None:
+            submission_dir = Path(inspect.getfile(type(self))).parent
         self.meta = {**meta, "device": self.device,
-                     "weights_dir": Path(weights_dir)}
+                     "submission_dir": Path(submission_dir)}
         self.model = self.load_model(self.meta)
 
     def run(self, _):

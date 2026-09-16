@@ -34,7 +34,7 @@ class Solver(CompetSolver):
     name = "Sample-BCI"
 
     def load_model(self, meta):
-        weights = meta["weights_dir"] / "weights.npz"
+        weights = meta["submission_dir"] / "weights.npz"
         if not weights.exists():                      # stand-in artefact
             rng = np.random.default_rng(0)
             np.savez(weights, templates=rng.standard_normal(
@@ -54,6 +54,6 @@ class Solver(CompetSolver):
     def save_model(self, model, path):
         # ``path`` is the root of the zip built at the end of a training run,
         # next to this file copied in as ``submission.py``. Uploading that zip
-        # makes ``path`` the submission folder — i.e. ``meta["weights_dir"]``
+        # makes ``path`` the submission folder — i.e. ``meta["submission_dir"]``
         # — so write the file name ``load_model`` reads back.
         np.savez(path / "weights.npz", templates=model.templates)

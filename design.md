@@ -36,7 +36,7 @@ this monorepo.
   `load_model(meta) -> model with predict(X)`; the optional
   `fit(model, train_loader)` only runs when the objective's `training`
   parameter is selected (see the dedicated bullet below). Weights ship
-  next to `submission.py`; `meta["weights_dir"]` points there
+  next to `submission.py`; `meta["submission_dir"]` points there
   (`COMPET_SUBMISSION_DIR`, set by ingestion; defaults to the solver file's
   dir locally).
 - **Data layer = neuralbench task configs.** `compet_core/nb_task.py` builds
