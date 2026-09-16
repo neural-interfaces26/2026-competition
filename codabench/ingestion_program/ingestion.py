@@ -16,8 +16,10 @@ scoring.py — the config is forwarded with the raw results parquet; all
 evaluation happens here). The data location is the image's
 $BENCHOPT_DATA_HOME (/app/data, where the compute worker mounts the staged
 data read-only).
-Submissions are evaluated inference-only ($COMPET_INFERENCE_ONLY) and any
-solver error aborts the run with its traceback ($BENCHOPT_DEBUG).
+Submissions are evaluated inference-only ($COMPET_INFERENCE_ONLY). benchopt
+prints a failing solver's traceback either way; $BENCHOPT_DEBUG is what makes
+it *abort* instead of scoring the cells that did succeed — without it, a run
+only exits non-zero when every cell failed.
 """
 
 import os
