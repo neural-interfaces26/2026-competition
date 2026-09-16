@@ -51,20 +51,55 @@ benchopt test tracks/bci_decoding --skip-install
 # install a track's requirements (add --gpu for a CUDA setup)
 benchopt install tracks/bci_decoding
 
-# real data (one-time download; large for some tracks)
-python tools/setup_data.py --track bci_decoding
+# real data (one-time download; large for some tracks). Downloads land in
+# benchopt's data folder — tracks/<t>/data by default, or $BENCHOPT_DATA_HOME.
+benchopt prepare tracks/bci_decoding -d "BCI[study=tangermann2012]"
 
-# end-to-end ingestion + scoring on Simulated (mirrors Codabench)
-python codabench/ingestion_program/ingestion.py \
-    --submission-dir solution/bci_decoding --output-dir ingestion_res \
-    --benchmark-dir tracks/bci_decoding --datasets Simulated
-python codabench/scoring_program/scoring.py \
-    --prediction-dir ingestion_res --output-dir scoring_res
+# test a submission: drop its files (code + weights) into the track's
+# solvers/ and run it like any benchopt solver
+cp solution/bci_decoding/* tracks/bci_decoding/solvers/
+benchopt run tracks/bci_decoding -d Simulated -s Sample-BCI
 ```
+
+The platform evaluation (`codabench/ingestion_program/ingestion.py` +
+`scoring_program/scoring.py`) is a thin wrapper around that same
+`benchopt run` — inference-only, driven by the phase's `config.yaml`
+(see [`design.md`](design.md)).
+
+## Run in Docker
+
+One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds one image per
+track — the same image serves participants and the Codabench workers. The
+track's benchmark is baked in at `$COMPET_BENCHMARK_DIR`
+(`/compet/benchmark`); data always lives *outside* the image, read from
+`$BENCHOPT_DATA_HOME` (`/app/data` — the path the compute worker mounts,
+read-only, in every submission container), so bind-mount any host folder
+there.
+
+```bash
+tools/build_images.sh [--push]   # tommoral/neural-compet-<track>:v1, all tracks
+IMG=tommoral/neural-compet-sleep_onset:v1
+
+# one-time download of a track's public dataset into a host folder
+docker run -v ~/neural-data:/app/data $IMG \
+    benchopt prepare /compet/benchmark -d Sleep-EDF
+
+# run your submission (code + weights) against the embedded benchmark
+docker run --gpus all -v ~/neural-data:/app/data -v $PWD/my_submission:/sub $IMG \
+    bash -c 'cp /sub/* /compet/benchmark/solvers/ &&
+             benchopt run /compet/benchmark -d Sleep-EDF -s my-solver'
+```
+
+The platform evaluation is that same run, inference-only, driven by
+`/compet/ingestion_program/ingestion.py` and the phase config baked in at
+`/app/input_data` (dev phase by default; Codabench mounts the live phase's
+over it) — mount your submission as `/app/ingested_program` and a results
+folder as `/app/output` to reproduce it to the letter.
 
 ## Build & CI
 
 - `python tools/create_bundle.py --all` produces one `bundle_<track>.zip` per
   track, ready to upload to Codabench.
+- `tools/build_images.sh --push` builds and pushes the 4 track Docker images.
 - CI runs `benchopt test` on the 4 tracks plus lint, and an end-to-end
   Docker test of the ingestion/scoring programs.

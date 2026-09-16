@@ -46,6 +46,14 @@ class Dataset(BaseDataset):
     parameters = {
         "study": ["stieger2021"],
         "batch_size": [64],
+        # Dataloader workers; 0 extracts windows in-process, which is what
+        # shared CI/platform runners want. Raise it from the phase config
+        # (``BCI[num_workers=4]``) on a worker with spare cores.
+        "num_workers": [0],
+        # "test" restricts the study to its test split (worker staging /
+        # evaluation-only runs; incompatible with the objective's
+        # training=True) — see compet_core.nb_task.
+        "subset": ["full"],
     }
 
     test_parameters = {
@@ -53,33 +61,44 @@ class Dataset(BaseDataset):
         "batch_size": [32],
     }
 
+    # Ignore loader config for prepare cache key.
+    prepare_cache_ignore = ("batch_size", "num_workers")
+
     def prepare(self):
-        # Idempotent one-time download of the selected study.
+        # Download the study, then run the pipeline once: the extraction
+        # (filtering, segmenting, targets) caches next to the data, so runs
+        # only touch warm caches. Both steps are idempotent.
         download_study(
             "eeg", "motor_imagery", self._data_dir(),
             dataset=_OVERLAYS[self.study],
         )
+        self._load()
 
     def _data_dir(self):
         path = get_data_path("neural_compet")
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def get_data(self):
-        self.prepare()  # idempotent — so plain ``benchopt run`` also works
-        device = get_device()
-        loaders, meta = load_task(
+    def _load(self, device="cpu"):
+        return load_task(
             "eeg", "motor_imagery",
             data_dir=self._data_dir(),
             dataset=_OVERLAYS[self.study],
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
+            num_workers=self.num_workers,
+            subset=self.subset,
             # One-hot ``(K,)`` -> integer class label.
             target_transform=lambda y: y.argmax(-1),
         )
+
+    def get_data(self):
+        self.prepare()  # idempotent — so plain ``benchopt run`` also works
+        loaders, meta = self._load(device=get_device())
         return dict(
             train_loader=loaders["train"],
+            subset=self.subset,
             test_loader=loaders["test"],
             n_classes=int(meta.pop("raw_target_shape")[-1]),
             **{k: v for k, v in meta.items() if k != "target_shape"},

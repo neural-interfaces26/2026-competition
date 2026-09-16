@@ -4,7 +4,7 @@ import pytest
 # CUDA torch build — installing it exceeds the CI runners' disk, and the
 # THINGS-EEG2 download + DINOv2 embedding pass are far too heavy for CI.
 # Use ``benchopt install`` locally / on a compute node instead.
-HEAVY_DATASETS = ("things-eeg2",)
+HEAVY_DATASETS = ("image",)
 
 
 def check_test_dataset_install(dataset_class):
@@ -16,7 +16,9 @@ def check_test_dataset_install(dataset_class):
 def check_test_dataset_get_data(dataset_class):
     """Hook to skip dataset test cases in benchopt tests."""
     if dataset_class.name.lower() in HEAVY_DATASETS:
-        pytest.skip("THINGS-EEG2 is too large for full download in CI")
+        pytest.skip(
+            f"{dataset_class.name} is too large for full download in CI"
+        )
 
 
 def check_test_solver_install(solver_class):

@@ -1,0 +1,16 @@
+# Phase config — sleep_onset, development phase.
+# A native `benchopt run --config` file; the extra `scoring` key is read
+# by the scoring program (stripped by ingestion before the run).
+dataset:
+  # Warm-up proxy (Kemp2000Analysis, Sleep-EDF Expanded), staged in /data by
+  # the worker provisioning from this very file. subset=test does not apply
+  # here: the split is computed at runtime (SklearnSplit), not predefined.
+  # Dataloader workers default to 0 (in-process); on a worker with spare
+  # cores, raise them here: `- Sleep-EDF[num_workers=4]`.
+  - Sleep-EDF
+seed: 42
+no_timeout: true
+scoring:
+  columns:
+    bmae: objective_bmae
+    mae: objective_mae

@@ -1,0 +1,13 @@
+# Phase config — emg_pose, development phase.
+# A native `benchopt run --config` file; the extra `scoring` key is read
+# by the scoring program (stripped by ingestion before the run).
+dataset:
+  - Simulated
+  # Official corpus: Salter2024Emg2pose (NM000281) — neuralbench >= 0.3 now
+  # ships the `emg/pose` task config and study class; the benchmark dataset
+  # wrapping it is not implemented yet (needs the stack bump to 0.3.x).
+seed: 42
+no_timeout: true
+scoring:
+  columns:
+    angular_mae: objective_angular_mae

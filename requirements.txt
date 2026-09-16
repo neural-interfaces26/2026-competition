@@ -3,14 +3,22 @@
 # inference-only on the submission, so it needs benchopt plus everything the
 # tracks import at run time (compet_core itself ships inside the bundle and
 # is put on sys.path by the ingestion program).
-benchopt
+# main tarball until 1.10 (`benchopt prepare` + up-to-date run CLI) hits
+# PyPI — a tarball, not git+https: the docker image has no git.
+benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
 pandas
 scikit-learn
+# unpinned since neuralbench 0.3.x (only needs torch>=2.5.1). Portable on
+# purpose (participants install whatever suits their machine); the docker
+# image pins the CUDA wheel channel instead (tools/Dockerfile TORCH_CHANNEL).
 torch
-# Data stack for the real tasks (Simulated needs none of these):
-neuralset
-neuralfetch
-neuralbench
+# Data stack for the real tasks (Simulated needs none of these). Pinned for
+# reproducibility; 0.3.x adds the emg/pose task, the image-dataset overlays
+# (xu2025alljoined, ...) and get_default_dataloaders.
+neuralset==0.3.1
+neuralfetch==0.3.1
+neuralbench==0.3.1
+exca==0.5.29
 moabb
 mne
 # Used by the EEGNet baselines / many torch submissions:

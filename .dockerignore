@@ -1,0 +1,9 @@
+# Keep the image build context lean: no caches, run artefacts, or data.
+.git
+.venv-margaret
+bundle_*.zip
+**/__pycache__
+**/__cache__
+**/outputs
+**/.pytest_cache
+tracks/*/data

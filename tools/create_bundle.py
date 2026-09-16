@@ -27,8 +27,8 @@ TRACKS = {
     "emg_pose": "emg",
 }
 
-# Skip benchopt run artefacts / caches when zipping directories.
-_SKIP_PARTS = ("outputs", "__cache__", "__pycache__", ".pytest_cache")
+# Skip benchopt run artefacts / caches / downloaded data when zipping.
+_SKIP_PARTS = ("outputs", "__cache__", "__pycache__", ".pytest_cache", "data")
 
 
 def _add_dir(bundle, src, arc_prefix, exclude=None):
@@ -95,7 +95,13 @@ def build_bundle(track):
         _add_dir(bundle, ROOT_DIR / "codabench" / "pages", "pages",
                  exclude=lambda f: f.name.startswith(("_", "competition_")))
         _add_dir(bundle, ROOT_DIR / "solution" / track, "solution")
-        _add_dir(bundle, ROOT_DIR / "dev_phase", "dev_phase")
+
+        # Dev-phase task data: the track's phase config (+ optional sealed
+        # datasets/*.py) as input_data, and the shared placeholder reference.
+        _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "dev" / track,
+                 "dev_phase/input_data")
+        _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "reference_data",
+                 "dev_phase/reference_data")
     print(f"-> {out.name}")
 
 
