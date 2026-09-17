@@ -37,7 +37,7 @@ if __name__ == "__main__":
 
     print("Running ingestion...")
     volumes = [
-        f"{REPO}/codabench/phases/dev/{args.track}:/app/input_data",
+        f"{REPO}/codabench/phases/warmup/{args.track}:/app/input_data",
         f"{REPO}/solution/{args.track}:/app/ingested_program",
         f"{REPO}/ingestion_res:/app/output",
     ]

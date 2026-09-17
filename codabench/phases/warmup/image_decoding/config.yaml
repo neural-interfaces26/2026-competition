@@ -1,4 +1,4 @@
-# Phase config — image_decoding, development phase.
+# Phase config — image_decoding, warm-up phase.
 # A native `benchopt run --config` file; the extra `scoring` key is read
 # by the scoring program (stripped by ingestion before the run).
 dataset:

@@ -5,7 +5,7 @@
 *.zip
 ingestion_res/*
 scoring_res/*
-dev_phase/*
+warmup_phase/*
 
 **/outputs/
 **/__cache__/

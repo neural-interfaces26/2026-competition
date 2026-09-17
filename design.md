@@ -82,7 +82,7 @@ this monorepo.
   Codabench dataset, never in the public repo) and the submission solver,
   then execs `benchopt run ... --no-cache` (`BENCHOPT_DEBUG=true` so a
   solver error exits nonzero with the traceback). Dev-phase configs live in
-  `codabench/phases/dev/<track>/`. Planned benchopt 1.10 features (file
+  `codabench/phases/warmup/<track>/`. Planned benchopt 1.10 features (file
   paths for `-s`/`-d`/`--output`, see
   `~/workspace/benchopt/note_feature_path_selectors.md`) will delete the
   copy steps.
@@ -108,8 +108,8 @@ this monorepo.
   benchmark under the canonical `benchmark/` name + `compet_core/` (both
   kept as no-docker fallback) + shared ingestion/scoring +
   `codabench/competition_<t>.yaml` (as `competition.yaml`) +
-  `solution/<t>/` + `codabench/phases/dev/<t>/` as
-  `dev_phase/input_data/`. `data/` dirs are always skipped.
+  `solution/<t>/` + `codabench/phases/warmup/<t>/` as
+  `warmup_phase/input_data/`. `data/` dirs are always skipped.
 - **Competition page** (first tab, before Participation/Timeline): shipped as
   `pages/competition.html` — Codabench accepts HTML pages, which markdown
   cannot match for the figure/logo layout. Assembled at bundle time from

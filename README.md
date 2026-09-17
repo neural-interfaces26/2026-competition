@@ -133,7 +133,7 @@ docker run --gpus all -v ~/neural-data:/app/data -v $PWD/my_submission:/sub $IMG
 
 The platform evaluation is that same run, inference-only, driven by
 `/compet/ingestion_program/ingestion.py` and the phase config baked in at
-`/app/input_data` (dev phase by default; Codabench mounts the live phase's
+`/app/input_data` (warm-up phase by default; Codabench mounts the live phase's
 over it) — mount your submission as `/app/ingested_program` and a results
 folder as `/app/output` to reproduce it to the letter.
 

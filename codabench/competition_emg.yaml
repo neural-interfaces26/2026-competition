@@ -36,8 +36,8 @@ tasks:
     description: >
       The ingestion program runs the bundled benchopt benchmark inference-only
       on your submission; scoring parses the produced results dataframe.
-    input_data: dev_phase/input_data/
-    reference_data: dev_phase/reference_data/
+    input_data: warmup_phase/input_data/
+    reference_data: warmup_phase/reference_data/
     ingestion_program: ingestion_program/
     scoring_program: scoring_program/
 
