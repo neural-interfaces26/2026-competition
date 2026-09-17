@@ -35,6 +35,25 @@ import torch
 from benchmark_utils.data import to_numpy
 
 
+class _LogOnce(logging.Filter):
+    """Keep the first record of each message, drop the repeats."""
+
+    def __init__(self):
+        super().__init__()
+        self._seen = set()
+
+    def filter(self, record):
+        key = (record.name, record.levelno, record.getMessage())
+        if key in self._seen:
+            return False
+        self._seen.add(key)
+        return True
+
+
+# Shared instance: ``addFilter`` is then idempotent across calls.
+_LOG_ONCE = _LogOnce()
+
+
 def _quiet_neuro_logs():
     """Hide neuro stack's logs out of the participant output.
 
@@ -47,6 +66,11 @@ def _quiet_neuro_logs():
         for handler in logger.handlers:
             if isinstance(handler, logging.StreamHandler):
                 handler.setStream(sys.stdout)
+
+    # The neuro extractor logs the same WARNING for every recording (the
+    # task config's lowpass sits above the Nyquist of its resampling, so it
+    # is dropped): worth reading once, not once per file.
+    logging.getLogger("neuralset.extractors.neuro").addFilter(_LOG_ONCE)
 
     # Reading a recording raises a RuntimeWarning per EDF filter quirk.
     # They are matched as coming from "mne" even though they are reported
