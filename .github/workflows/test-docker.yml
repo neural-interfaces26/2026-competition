@@ -21,8 +21,6 @@ jobs:
     build:
         runs-on: ubuntu-latest
         steps:
-            # The torch/CUDA layers fill a runner that still carries the
-            # preinstalled toolchains.
             - name: Delete huge unnecessary tools folder
               run: |
                 rm -rf /usr/share/dotnet || true
@@ -68,6 +66,15 @@ jobs:
                     - sleep_onset
                     - emg_pose
         steps:
+            # Both jobs need the room: building writes the torch/CUDA layers,
+            # and loading the exported image unpacks them again.
+            - name: Delete huge unnecessary tools folder
+              run: |
+                rm -rf /usr/share/dotnet || true
+                sudo rm -rf /usr/local/lib/android || true
+                rm -rf /opt/ghc || true
+                sudo rm -rf /usr/local/.ghcup || true
+
             - name: Checkout repository
               uses: actions/checkout@v3
 
