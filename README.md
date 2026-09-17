@@ -26,7 +26,7 @@ rationale.
 ## Structure
 
 ```
-compet_core/            shared components (data loading, submission contract,
+benchmark_utils/            shared components (data loading, submission contract,
                         baselines, metrics)
 tracks/
   image_decoding/       track 1 benchmark
@@ -109,21 +109,23 @@ The platform evaluation (`codabench/ingestion_program/ingestion.py` +
 
 ## Run in Docker
 
-One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds one image per
-track — the same image serves participants and the Codabench workers. The
-track's benchmark is baked in at `$COMPET_BENCHMARK_DIR`
-(`/compet/benchmark`); data always lives *outside* the image, read from
+One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds a single image
+for the four tracks and both phases — the same image serves participants and
+the Codabench workers. It carries the environment only: the benchmark and the
+phase config travel together in the phase bundle mounted on
+`/app/input_data`. Data always lives *outside* the image, read from
 `$BENCHOPT_DATA_HOME` (`/app/data` — the path the compute worker mounts,
 read-only, in every submission container), so bind-mount any host folder
 there.
 
 ```bash
-tools/build_images.sh [--push]   # tommoral/neural-compet-<track>:v1, all tracks
-IMG=tommoral/neural-compet-sleep_onset:v1
+tools/build_image.sh [--push]    # tommoral/neural-compet:v1
+IMG=tommoral/neural-compet:v1
+PHASE=codabench/phases/warmup/sleep_onset
 
 # one-time download of a track's public dataset into a host folder
-docker run -v ~/neural-data:/app/data $IMG \
-    benchopt prepare /compet/benchmark -d Sleep-EDF
+docker run -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data $IMG \
+    benchopt prepare /app/input_data/benchmark -d Sleep-EDF
 
 # run your submission (code + weights) against the embedded benchmark
 docker run --gpus all -v ~/neural-data:/app/data -v $PWD/my_submission:/sub $IMG \
@@ -141,6 +143,6 @@ folder as `/app/output` to reproduce it to the letter.
 
 - `python tools/create_bundle.py --all` produces one `bundle_<track>.zip` per
   track, ready to upload to Codabench.
-- `tools/build_images.sh --push` builds and pushes the 4 track Docker images.
+- `tools/build_image.sh --push` builds and pushes the Docker image.
 - CI runs `benchopt test` on the 4 tracks plus lint, and an end-to-end
   Docker test of the ingestion/scoring programs.

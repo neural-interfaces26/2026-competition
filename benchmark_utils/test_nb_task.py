@@ -1,4 +1,5 @@
-"""Unit tests for the pure parts of nb_task (run with ``pytest compet_core``).
+"""Unit tests for the pure parts of nb_task (run with ``pytest
+benchmark_utils``).
 
 The loading pipeline itself needs the neuralbench stack and real data — it is
 validated on the cluster; these tests cover the subset-filter composition,
@@ -7,7 +8,7 @@ which is plain dict/string logic.
 
 import pytest
 
-from compet_core.nb_task import build_test_only_filter
+from benchmark_utils.nb_task import build_test_only_filter
 
 
 def test_predefined_split_with_query_and_existing_filter():

@@ -1,7 +1,7 @@
 """Build one track's image and run ingestion + scoring in it (local test).
 
 Mirrors the platform layout: the benchmark is baked into the image at
-$COMPET_BENCHMARK_DIR, the phase config is mounted as /app/input_data and a
+the phase bundle (benchmark + config) is mounted as /app/input_data and a
 sample submission as /app/ingested_program.
 
 Usage
@@ -30,10 +30,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     client = docker.from_env()
-    image = f"tommoral/neural-compet-{args.track}:dev"
+    image = "tommoral/neural-compet:dev"
     print(f"Building {image}...")
     client.images.build(path=str(REPO), dockerfile="tools/Dockerfile",
-                        tag=image, buildargs={"TRACK": args.track})
+                        tag=image)
 
     print("Running ingestion...")
     volumes = [

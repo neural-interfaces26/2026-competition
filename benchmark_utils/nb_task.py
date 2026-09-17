@@ -14,7 +14,8 @@ Differences with running neuralbench itself:
   the exca infra are overridden — the ``~/.neuralbench`` config resolves in
   the background but none of its paths are used);
 - the returned loaders follow the competition contract (``(X, y, info)``
-  torch batches moved onto ``device``, see ``compet_core.data``), so nothing
+  torch batches moved onto ``device``, see ``benchmark_utils.data``), so
+  nothing
   downstream is tied to neuralset/neuralbench types;
 - ``subset="test"`` restricts the pipeline to the test split (see
   :func:`build_test_only_filter`) so workers can stage evaluation data only.
@@ -31,7 +32,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from compet_core.data import to_numpy
+from benchmark_utils.data import to_numpy
 
 
 def _quiet_neuro_logs():
@@ -215,7 +216,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         Optional dataset overlay from the task's ``datasets/`` folder (e.g.
         ``"tangermann2012"``); ``None`` uses the task's default study.
     device : str
-        Device the batches are moved onto (see ``compet_core.data``).
+        Device the batches are moved onto (see ``benchmark_utils.data``).
     batch_size, seed, num_workers : int
         Dataloader settings.
     overrides : dict or None
@@ -241,7 +242,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
     from neuralbench.data import Data
     _quiet_neuro_logs()
 
-    from compet_core.data import chs_info_from_names
+    from benchmark_utils.data import chs_info_from_names
 
     # Loader settings first, caller overrides last. ``num_workers=0`` keeps
     # extraction in-process: the task defaults inject N_CPUS, which

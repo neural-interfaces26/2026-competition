@@ -7,7 +7,7 @@ return the joint-angle sequences ``predict(X) -> (B, n_joints, T)`` in
 target's ``T``).
 
 Ranking metric: **mean angular MAE** (degrees), averaged over joints and
-time. Data flows as lazy dataloaders — see ``compet_core/data.py``; targets
+time. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``; targets
 ``y`` are float ``(B, n_joints, T)`` angle sequences.
 
 .. note:: The real dataset (Salter2024 emg2pose) has no neuralfetch study /
@@ -18,8 +18,7 @@ time. Data flows as lazy dataloaders — see ``compet_core/data.py``; targets
 import numpy as np
 from benchopt import BaseObjective
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import resample_labels, to_numpy
+from benchmark_utils.data import resample_labels, to_numpy
 
 
 class Objective(BaseObjective):
@@ -83,5 +82,5 @@ class Objective(BaseObjective):
     def get_one_result(self):
         # A trivial constant model, used by ``benchopt test`` to validate the
         # metric computation.
-        from compet_core.baselines import ConstantPose
+        from benchmark_utils.baselines import ConstantPose
         return dict(model=ConstantPose(self.n_joints))

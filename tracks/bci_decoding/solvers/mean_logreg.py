@@ -1,13 +1,13 @@
 """Reference baseline: mean-over-time features + logistic regression.
 
 Dependency-light floor for the leaderboard, and the minimal example of the
-submission contract: subclass :class:`~compet_core.base_solver.CompetSolver`,
+submission contract: subclass
+:class:`~benchmark_utils.base_solver.CompetSolver`,
 build the model in ``load_model``, train it in ``fit``.
 """
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.base_solver import CompetSolver
-from compet_core.baselines import MeanLogReg
+from benchmark_utils.base_solver import CompetSolver
+from benchmark_utils.baselines import MeanLogReg
 
 
 class Solver(CompetSolver):

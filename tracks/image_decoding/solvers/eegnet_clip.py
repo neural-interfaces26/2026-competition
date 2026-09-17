@@ -11,8 +11,7 @@ import torch
 from torch.nn import functional as F
 from braindecode.models import EEGNet
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.base_solver import CompetSolver
+from benchmark_utils.base_solver import CompetSolver
 
 
 def clip_loss(pred, target, temperature=0.07):

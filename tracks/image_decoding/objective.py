@@ -8,16 +8,15 @@ against the candidate pool (the unique target embeddings of the test split)
 by cosine similarity.
 
 Ranking metric: **top-5 accuracy** (top-1 reported alongside).
-Data flows as lazy dataloaders — see ``compet_core/data.py``; targets ``y``
+Data flows as lazy dataloaders — see ``benchmark_utils/data.py``; targets ``y``
 are the float embeddings ``(B, D)`` of the viewed images.
 """
 
 import numpy as np
 from benchopt import BaseObjective
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import to_numpy
-from compet_core.metrics import topk_accuracy
+from benchmark_utils.data import to_numpy
+from benchmark_utils.metrics import topk_accuracy
 
 
 def _normalize(v):
@@ -95,5 +94,5 @@ class Objective(BaseObjective):
     def get_one_result(self):
         # A trivial constant model, used by ``benchopt test`` to validate the
         # metric computation.
-        from compet_core.baselines import ConstantEmbedder
+        from benchmark_utils.baselines import ConstantEmbedder
         return dict(model=ConstantEmbedder(self.n_outputs))

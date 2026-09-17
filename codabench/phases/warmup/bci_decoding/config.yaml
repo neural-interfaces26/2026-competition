@@ -5,7 +5,7 @@ dataset:
   - Simulated
   # Public proxy — uncommenting it makes the worker stage it in /data.
   # subset=test restricts extraction to the evaluation split (the raw
-  # download still fetches the full study — see compet_core.nb_task).
+  # download still fetches the full study — see benchmark_utils.nb_task).
   # - BCI[study=dreyer2023,subset=test]
 seed: 42
 no_timeout: true

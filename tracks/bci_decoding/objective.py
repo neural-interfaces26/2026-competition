@@ -5,15 +5,14 @@ label per window. A submission's model receives torch batches ``(B, C, T)``
 and must return one predicted class per window (``predict(X) -> (B,)``).
 
 Ranking metric: **balanced accuracy** (plain accuracy reported alongside).
-Data flows as lazy dataloaders — see ``compet_core/data.py``.
+Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
 """
 
 import numpy as np
 from benchopt import BaseObjective
 from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import to_numpy
+from benchmark_utils.data import to_numpy
 
 
 class Objective(BaseObjective):
@@ -80,5 +79,5 @@ class Objective(BaseObjective):
     def get_one_result(self):
         # A trivial constant model, used by ``benchopt test`` to validate the
         # metric computation.
-        from compet_core.baselines import ConstantClassifier
+        from benchmark_utils.baselines import ConstantClassifier
         return dict(model=ConstantClassifier())
