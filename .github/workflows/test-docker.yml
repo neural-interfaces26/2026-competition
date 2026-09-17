@@ -1,4 +1,5 @@
-# Build the Docker image once (tools/Dockerfile), then evaluate it per track:
+# Build the Docker image once into the buildx cache (tools/Dockerfile), then
+# evaluate it per track — each job restores the image from that cache:
 # mount a phase bundle on /app/input_data — the track's benchmark plus a
 # zero-download Simulated run config — and run the ingestion + scoring
 # programs, exactly as the Codabench worker would. The image carries no
@@ -16,6 +17,7 @@ concurrency:
 
 env:
     DOCKER_IMAGE_NAME: neural-compet:ci
+    CACHE_SCOPE: docker-${{ hashFiles('tools/Dockerfile', 'requirements.txt') }}
 
 jobs:
     build:
@@ -34,25 +36,16 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
+            # Populate the cache; the image itself is never materialized
+            # here, the evaluate jobs restore it from the same scope.
             - name: Docker build
               uses: docker/build-push-action@v6
               with:
                 context: .
                 file: ./tools/Dockerfile
                 push: false
-                load: true
-                tags: ${{ env.DOCKER_IMAGE_NAME }}
-                cache-from: type=gha,scope=docker-${{ hashFiles('tools/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
-                cache-to: type=gha,mode=max,scope=docker-${{ hashFiles('tools/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
-
-            - name: Export the image
-              run: docker save ${{ env.DOCKER_IMAGE_NAME }} | gzip > image.tgz
-
-            - uses: actions/upload-artifact@v4
-              with:
-                name: docker-image
-                path: image.tgz
-                retention-days: 1
+                cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+                cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
 
     evaluate:
         needs: build
@@ -78,12 +71,20 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v3
 
-            - uses: actions/download-artifact@v4
-              with:
-                name: docker-image
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
 
-            - name: Load the image
-              run: docker load < image.tgz
+            # A full cache hit: the build job already populated this scope,
+            # so this only restores the layers into the local docker.
+            - name: Load the image from the build cache
+              uses: docker/build-push-action@v6
+              with:
+                context: .
+                file: ./tools/Dockerfile
+                push: false
+                load: true
+                tags: ${{ env.DOCKER_IMAGE_NAME }}
+                cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
 
             - name: Evaluate the sample submission in the image
               run: |
