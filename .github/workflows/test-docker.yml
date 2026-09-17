@@ -17,7 +17,10 @@ concurrency:
 
 env:
     DOCKER_IMAGE_NAME: neural-compet:ci
-    CACHE_SCOPE: docker-${{ hashFiles('tools/Dockerfile', 'requirements.txt') }}
+    # One scope, shared by the build and the evaluate jobs — they must agree
+    # or the evaluate jobs miss and rebuild the image four times. A constant
+    # is enough: buildx keys the layers by content.
+    CACHE_SCOPE: docker
 
 jobs:
     build:
