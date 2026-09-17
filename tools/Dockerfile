@@ -49,15 +49,15 @@ COPY tracks/${TRACK} /compet/benchmark
 COPY codabench/ingestion_program /compet/ingestion_program
 COPY codabench/scoring_program /compet/scoring_program
 
-# Default phase config so ingestion works out of the box (dev phase);
+# Default phase config so ingestion works out of the box (warm-up phase);
 # Codabench mounts the live phase's input_data over /app/input_data.
-COPY codabench/phases/dev/${TRACK} /app/input_data
+COPY codabench/phases/warmup/${TRACK} /app/input_data
 
 # All phase configs, addressable by name — used to stage the data on the
 # workers from the same yaml that drives the run:
 #     docker run -v /codabench/data:/app/data <image> sh -c \
 #         'benchopt prepare "$COMPET_BENCHMARK_DIR" \
-#              --config /compet/phases/dev/$COMPET_TRACK/config.yaml'
+#              --config /compet/phases/warmup/$COMPET_TRACK/config.yaml'
 COPY codabench/phases /compet/phases
 
 # Data is bind-mounted at /app/data — the path the Codabench compute worker

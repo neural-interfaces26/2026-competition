@@ -96,12 +96,12 @@ def build_bundle(track):
                  exclude=lambda f: f.name.startswith(("_", "competition_")))
         _add_dir(bundle, ROOT_DIR / "solution" / track, "solution")
 
-        # Dev-phase task data: the track's phase config (+ optional sealed
+        # Warm-up task data: the track's phase config (+ optional sealed
         # datasets/*.py) as input_data, and the shared placeholder reference.
-        _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "dev" / track,
-                 "dev_phase/input_data")
+        _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "warmup" / track,
+                 "warmup_phase/input_data")
         _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "reference_data",
-                 "dev_phase/reference_data")
+                 "warmup_phase/reference_data")
     print(f"-> {out.name}")
 
 
