@@ -1,10 +1,11 @@
 """Sleep-onset task on Sleep-EDF (Kemp2000Analysis), the public proxy.
 
 Wraps the official neuralbench ``eeg/sleep_onset`` task config — see
-``compet_core.nb_task``: non-overlapping 5-s windows over the pre-N2 part of
-each night, target = seconds to the first stable N2 epoch (capped at 600 s,
-``SleepOnsetTargetExtractor``), subject-level train/val/test split, and a
-``RegressionBinSampler`` balancing the train batches across latency bins.
+``benchmark_utils.nb_task``: non-overlapping 5-s windows over the pre-N2
+part of each night, target = seconds to the first stable N2 epoch (capped
+at 600 s, ``SleepOnsetTargetExtractor``), subject-level train/val/test
+split, and a ``RegressionBinSampler`` balancing the train batches across
+latency bins.
 
 Requires a one-time full-study download (~78 subjects — large; prefer running
 ``benchopt prepare`` on a compute node). The zero-dependency ``Simulated``
@@ -21,9 +22,8 @@ from benchopt.config import get_data_path
 # benchopt reports the dataset as not-installed when it is missing.
 import neuralbench  # noqa: F401
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import get_device
-from compet_core.nb_task import download_study, load_task
+from benchmark_utils.data import get_device
+from benchmark_utils.nb_task import download_study, load_task
 
 
 class Dataset(BaseDataset):
@@ -43,7 +43,7 @@ class Dataset(BaseDataset):
         "num_workers": [0],
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
-        # training=True) — see compet_core.nb_task.
+        # training=True) — see benchmark_utils.nb_task.
         "subset": ["full"],
     }
 

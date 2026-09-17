@@ -1,9 +1,9 @@
 """Build a Codabench bundle for one track.
 
-Each of the 4 tracks becomes its own Codabench competition; the bundle ships
-the track's benchopt benchmark (as ``benchmark/``), the shared ``compet_core``
-package, the shared ingestion/scoring programs, its competition yaml (as
-``competition.yaml``) and the sample submission.
+Each of the 4 tracks becomes its own Codabench competition. The bundle ships
+its competition yaml (as ``competition.yaml``), the pages, the sample
+submission, and the warm-up phase directory as ``input_data`` — config plus
+the benchmark it runs, ``benchmark_utils`` included.
 
 Usage
 -----
@@ -12,6 +12,7 @@ Usage
 """
 
 import argparse
+import os
 import zipfile
 from pathlib import Path
 
@@ -31,12 +32,24 @@ TRACKS = {
 _SKIP_PARTS = ("outputs", "__cache__", "__pycache__", ".pytest_cache", "data")
 
 
+def _walk(src):
+    """Every file under *src*, following symlinks.
+
+    A track links its ``benchmark_utils`` to the shared one, and ``rglob``
+    does not descend into a symlinked directory — it would silently bundle a
+    benchmark with no shared code.
+    """
+    for parent, _dirs, files in os.walk(src, followlinks=True):
+        for name in files:
+            yield Path(parent) / name
+
+
 def _add_dir(bundle, src, arc_prefix, exclude=None):
     assert src.exists(), (
         f"{src} does not exist while it should. Make sure you followed the "
         "README instructions before creating the bundle."
     )
-    for f in sorted(src.rglob("*")):
+    for f in sorted(_walk(src)):
         if not f.is_file():
             continue
         if f.name.startswith(".") or f.name.endswith(".pyc"):
@@ -82,11 +95,8 @@ def build_bundle(track):
         print(f"pages/competition.html  <-  pages/competition_{key}.html")
         bundle.writestr("pages/competition.html", _competition_page(key))
 
-        # The track's benchmark, under the canonical ``benchmark/`` name.
-        _add_dir(bundle, ROOT_DIR / "tracks" / track, "benchmark")
-
-        # Shared components: package + programs + pages + sample submission.
-        _add_dir(bundle, ROOT_DIR / "compet_core", "compet_core")
+        # Shared components: programs + pages + sample submission. The
+        # benchmark travels with the phase, below, not at the bundle root.
         _add_dir(bundle, ROOT_DIR / "codabench" / "ingestion_program",
                  "ingestion_program")
         _add_dir(bundle, ROOT_DIR / "codabench" / "scoring_program",
@@ -96,8 +106,10 @@ def build_bundle(track):
                  exclude=lambda f: f.name.startswith(("_", "competition_")))
         _add_dir(bundle, ROOT_DIR / "solution" / track, "solution")
 
-        # Warm-up task data: the track's phase config (+ optional sealed
-        # datasets/*.py) as input_data, and the shared placeholder reference.
+        # Warm-up task data: the phase directory as it stands — config,
+        # optional sealed datasets/*.py, and the benchmark it runs (a link to
+        # tracks/<track>), which the image no longer carries. Plus the shared
+        # placeholder reference.
         _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "warmup" / track,
                  "warmup_phase/input_data")
         _add_dir(bundle, ROOT_DIR / "codabench" / "phases" / "reference_data",

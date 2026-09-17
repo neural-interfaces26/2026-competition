@@ -1,7 +1,7 @@
 """BCI-decoding studies through the official neuralbench task pipeline.
 
 Wraps the neuralbench ``eeg/motor_imagery`` task config (study, subject-level
-split, 4-s stimulus windows, one-hot labels) — see ``compet_core.nb_task``.
+split, 4-s stimulus windows, one-hot labels) — see ``benchmark_utils.nb_task``.
 The ``study`` parameter picks the dataset overlay:
 
 - ``stieger2021``    : Stieger2021Continuous — the competition's public proxy
@@ -22,9 +22,8 @@ from benchopt.config import get_data_path
 import moabb  # noqa: F401
 import neuralbench  # noqa: F401
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import get_device
-from compet_core.nb_task import download_study, load_task
+from benchmark_utils.data import get_device
+from benchmark_utils.nb_task import download_study, load_task
 
 # Overlay yaml in the task's ``datasets/`` folder (None = the task default).
 _OVERLAYS = {
@@ -52,7 +51,7 @@ class Dataset(BaseDataset):
         "num_workers": [0],
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
-        # training=True) — see compet_core.nb_task.
+        # training=True) — see benchmark_utils.nb_task.
         "subset": ["full"],
     }
 

@@ -6,7 +6,7 @@ server evaluates it **inference-only**: your model must arrive fully trained.
 
 ## The contract
 
-Subclass `CompetSolver` (from the bundled `compet_core` package) and
+Subclass `CompetSolver` (from the bundled `benchmark_utils` package) and
 implement:
 
 - `load_model(self, meta)` — build your model and load your shipped weights
@@ -29,8 +29,7 @@ is inference-only, mirroring the competition server (which never runs
 ```python
 import torch
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.base_solver import CompetSolver
+from benchmark_utils.base_solver import CompetSolver
 
 
 class Solver(CompetSolver):
@@ -79,7 +78,7 @@ stand-in for data it has never seen.
 
 The starting kit is the benchmark itself. From the competition repo (no
 install of the repo needed — `benchmark_utils` locates the shared
-`compet_core` package):
+`benchmark_utils` package):
 
 ```bash
 benchopt install tracks/<track>            # CPU env (add --gpu for CUDA)

@@ -11,7 +11,7 @@ contact_email: neurips2026-eeg-emg-competition@googlegroups.com
 
 # The image submissions run in; it must carry the requirements.txt stack.
 # NB: tools/Dockerfile (pytorch 2.8 base) is not the source of this image.
-docker_image: tommoral/neural-compet-sleep_onset:v1
+docker_image: tommoral/neural-compet:v1
 
 # Only the leaderboard metrics are exposed: no detailed_results.html is
 # produced by the scoring program, and the forum is unused (support goes

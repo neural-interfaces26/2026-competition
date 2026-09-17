@@ -1,18 +1,21 @@
-# Shared image recipe for the 4 track competitions. The only per-track
-# difference is which benchmark is embedded, selected at build time:
+# One image for the 4 track competitions and both phases: it carries the
+# environment and the two programs (for local runs). The benchmark and its
+# shared benchmark_utils travel in the phase bundle mounted on
+# /app/input_data, which is what lets one image serve every track.
 #
-#     docker build -f tools/Dockerfile --build-arg TRACK=sleep_onset \
-#         -t <registry>/neural-compet-sleep_onset:v1 .
+#     docker build -f tools/Dockerfile -t <registry>/neural-compet:v1 .
 #
 # The same image serves the Codabench workers and the participants:
 #
-#     # download a public dataset into a host folder (organizers: the
-#     # folder later bind-mounted as /app/data for the scoring runs)
-#     docker run -v <host-data>:/app/data <image> \
-#         benchopt prepare "$COMPET_BENCHMARK_DIR" -d Sleep-EDF
+#     # stage a phase's data into a host folder (organizers: the folder
+#     # later bind-mounted as /app/data for the scoring runs)
+#     docker run -v <host-data>:/app/data -v <phase-bundle>:/app/input_data \
+#         <image> benchopt prepare /app/input_data/benchmark \
+#             --config /app/input_data/config.yaml
 #
 #     # reproduce the platform evaluation on a submission folder
 #     docker run --gpus all -v <host-data>:/app/data \
+#         -v <phase-bundle>:/app/input_data \
 #         -v <submission>:/app/ingested_program -v <results>:/app/output \
 #         <image> python3 /compet/ingestion_program/ingestion.py
 # Python 3.12 base (neuralset needs >= 3.12; pytorch/pytorch images ship
@@ -41,30 +44,14 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
-# The embedded track: benchmark + sibling compet_core (found by the
-# benchmark's benchmark_utils parent walk) + the shared programs.
-ARG TRACK
-COPY compet_core /compet/compet_core
-COPY tracks/${TRACK} /compet/benchmark
+# The programs, for running the platform's evaluation locally.
 COPY codabench/ingestion_program /compet/ingestion_program
 COPY codabench/scoring_program /compet/scoring_program
 
-# Default phase config so ingestion works out of the box (warm-up phase);
-# Codabench mounts the live phase's input_data over /app/input_data.
-COPY codabench/phases/warmup/${TRACK} /app/input_data
-
-# All phase configs, addressable by name — used to stage the data on the
-# workers from the same yaml that drives the run:
-#     docker run -v /codabench/data:/app/data <image> sh -c \
-#         'benchopt prepare "$COMPET_BENCHMARK_DIR" \
-#              --config /compet/phases/warmup/$COMPET_TRACK/config.yaml'
-COPY codabench/phases /compet/phases
-
 # Data is bind-mounted at /app/data — the path the Codabench compute worker
-# mounts (read-only) in every submission container.
-ENV COMPET_BENCHMARK_DIR=/compet/benchmark \
-    COMPET_TRACK=${TRACK} \
-    BENCHOPT_DATA_HOME=/app/data \
+# mounts (read-only) in every submission container. The phase bundle lands
+# on /app/input_data, benchmark included.
+ENV BENCHOPT_DATA_HOME=/app/data \
     NEURALBENCH_CONFIG=/compet/neuralbench_config.json
 
 # Hide upstream deprecations (MNE montages, ...) and noisy tqdm
@@ -72,9 +59,5 @@ ENV PYTHONWARNINGS=ignore::FutureWarning \
     TQDM_DISABLE=1
 VOLUME /app/data
 
-# Fail the build if the data stack is incoherent (at runtime a broken import
-# — e.g. a torch/torchvision mismatch — only shows up as a silently
-# "not installed" dataset), and record each component's availability in the
-# build log (info reports but never fails).
-RUN python -c "import neuralbench, braindecode" \
-    && benchopt info "$COMPET_BENCHMARK_DIR" -d all -s all
+# Fail the build if the data stack is incoherent.
+RUN python -c "import neuralbench, braindecode, benchopt"

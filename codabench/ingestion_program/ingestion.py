@@ -2,9 +2,9 @@
 
 A thin wrapper around ``benchopt run``. A submission ships a trained model:
 ``submission.py`` (a ``CompetSolver``) + weight files. This program copies
-the track's benchmark ($COMPET_BENCHMARK_DIR in the image, ``benchmark/`` in
-the bundle) to a writable workdir, drops in the submission solver(s) and the
-phase's sealed dataset files, then execs::
+the benchmark the phase ships (``<input_data>/benchmark``) to a writable
+workdir, drops in the submission solver(s) and the phase's sealed dataset
+files, then execs::
 
     benchopt run <workdir> --config <input_data>/config.yaml -s <solver> \
         -r 1 --no-cache --no-plot --output submission
@@ -39,21 +39,16 @@ import time  # noqa: E402
 
 import yaml  # noqa: E402
 
-BUNDLE_ROOT = Path(__file__).resolve().parent.parent
 # benchopt artefacts + downloaded data, never copied to the workdir.
 IGNORE = shutil.ignore_patterns(
-    "outputs", "__cache__", "__pycache__", ".pytest_cache", "data")
+    "outputs", "__cache__", "__pycache__", ".pytest_cache", "data"
+)
 
 
 def setup_workdir(benchmark_dir, input_dir):
-    """Writable benchmark copy, compet_core sibling, phase dataset files."""
-    workroot = Path(tempfile.mkdtemp(prefix="compet_run_"))
-    workdir = workroot / "benchmark"
+    """Writable benchmark copy + the phase's dataset files."""
+    workdir = Path(tempfile.mkdtemp(prefix="compet_run_")) / "benchmark"
     shutil.copytree(benchmark_dir, workdir, ignore=IGNORE)
-    core = next(p for p in benchmark_dir.parents
-                if (p / "compet_core" / "__init__.py").exists())
-    shutil.copytree(core / "compet_core", workroot / "compet_core",
-                    ignore=IGNORE)
     for path in sorted((input_dir / "datasets").glob("*.py")):
         shutil.copyfile(path, workdir / "datasets" / path.name)
     return workdir
@@ -83,12 +78,14 @@ def install_submission_solvers(submission_dir, workdir):
 
 
 def main(submission_dir, output_dir, benchmark_dir, input_dir):
+    # unresolved paths: ``benchmark_dir`` has been through resolve(), which
+    # flattens a dangling link into a plain missing path.
     if not benchmark_dir.exists():
         raise SystemExit(
-            f"[ingestion] no benchmark at {benchmark_dir}: run inside a "
-            "track image (which sets $COMPET_BENCHMARK_DIR) or pass "
-            "--benchmark-dir. On Codabench, set the competition's docker "
-            "image to the track image."
+            f"[ingestion] no benchmark at {benchmark_dir}: the phase bundle "
+            "ships it alongside config.yaml (on Codabench, upload the "
+            "phase's input_data dataset). A bundle copied without "
+            "dereferencing its links lands here too."
         )
 
     # Point the solvers at the submission folder (shipped weights).
@@ -138,16 +135,15 @@ if __name__ == "__main__":
     parser.add_argument("--submission-dir", default="/app/ingested_program")
     parser.add_argument("--output-dir", default="/app/output")
     parser.add_argument("--input-data", default="/app/input_data",
-                        help="Phase dir: config.yaml (+ datasets/*.py)")
+                        help="Phase dir: benchmark/, config.yaml, datasets/")
     parser.add_argument("--benchmark-dir",
-                        default=os.environ.get("COMPET_BENCHMARK_DIR",
-                                               BUNDLE_ROOT / "benchmark"),
-                        help="The track's benchopt benchmark")
+                        help="benchopt benchmark (default: the phase's)")
     args = parser.parse_args()
 
+    input_data = Path(args.input_data)
     main(
         Path(args.submission_dir),
         Path(args.output_dir),
-        Path(args.benchmark_dir).resolve(),
-        Path(args.input_data),
+        Path(args.benchmark_dir or input_data / "benchmark").resolve(),
+        input_data,
     )

@@ -9,15 +9,14 @@ Ranking metric: **binned MAE** (bMAE) — the MAE is computed inside
 time-to-onset bins ``[0, 40, 90, 300, 600]`` s and averaged with equal
 weight across bins, so early-onset windows (rare, clinically interesting)
 count as much as the common late ones. Plain MAE is reported alongside.
-Data flows as lazy dataloaders — see ``compet_core/data.py``.
+Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
 """
 
 import numpy as np
 from benchopt import BaseObjective
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import to_numpy
-from compet_core.metrics import binned_mae
+from benchmark_utils.data import to_numpy
+from benchmark_utils.metrics import binned_mae
 
 BIN_EDGES = (0.0, 40.0, 90.0, 300.0, 600.0)
 
@@ -84,5 +83,5 @@ class Objective(BaseObjective):
     def get_one_result(self):
         # A trivial constant model, used by ``benchopt test`` to validate the
         # metric computation.
-        from compet_core.baselines import MedianRegressor
+        from benchmark_utils.baselines import MedianRegressor
         return dict(model=MedianRegressor(value=300.0))

@@ -1,15 +1,17 @@
-"""Build one track's image and run ingestion + scoring in it (local test).
+"""Build the image and run ingestion + scoring in it (local test).
 
-Mirrors the platform layout: the benchmark is baked into the image at
-$COMPET_BENCHMARK_DIR, the phase config is mounted as /app/input_data and a
-sample submission as /app/ingested_program.
+Mirrors the platform layout: the phase bundle (benchmark + config) is
+mounted as /app/input_data and a submission as /app/ingested_program.
 
 Usage
 -----
     python tools/run_docker.py --track bci_decoding [--data <host-data-dir>]
+    python tools/run_docker.py --track bci_decoding --submission my.zip
 """
 
 import argparse
+import shutil
+import tempfile
 from pathlib import Path
 
 try:
@@ -27,18 +29,31 @@ if __name__ == "__main__":
     parser.add_argument("--track", required=True)
     parser.add_argument("--data", default=None,
                         help="Host data dir to mount as /data")
+    parser.add_argument("--submission", default=None,
+                        help="Zip to evaluate (default: the track's sample "
+                             "in solution/)")
     args = parser.parse_args()
 
     client = docker.from_env()
-    image = f"tommoral/neural-compet-{args.track}:dev"
+    image = "tommoral/neural-compet:dev"
     print(f"Building {image}...")
     client.images.build(path=str(REPO), dockerfile="tools/Dockerfile",
-                        tag=image, buildargs={"TRACK": args.track})
+                        tag=image)
 
     print("Running ingestion...")
+    work = Path(tempfile.mkdtemp(prefix="run_docker_"))
+    # Materialize symlink in temp dir to run in the container.
+    phase = work / "input_data"
+    shutil.copytree(REPO / "codabench" / "phases" / "warmup" / args.track,
+                    phase)
+    if args.submission:
+        submission = work / "submission"
+        shutil.unpack_archive(args.submission, submission)
+    else:
+        submission = REPO / "solution" / args.track
     volumes = [
-        f"{REPO}/codabench/phases/warmup/{args.track}:/app/input_data",
-        f"{REPO}/solution/{args.track}:/app/ingested_program",
+        f"{phase}:/app/input_data",
+        f"{submission}:/app/ingested_program",
         f"{REPO}/ingestion_res:/app/output",
     ]
     if args.data:

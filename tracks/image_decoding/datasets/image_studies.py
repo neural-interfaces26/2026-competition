@@ -1,6 +1,7 @@
 """Image-decoding studies through the official neuralbench task pipeline.
 
-Wraps the neuralbench ``eeg/image`` task config — see ``compet_core.nb_task``:
+Wraps the neuralbench ``eeg/image`` task config — see
+``benchmark_utils.nb_task``:
 1.2-s epochs around each ``Image`` stimulus (−0.2 → 1.0 s), targets =
 DINOv2-giant embeddings of the viewed images (``HuggingFaceImage``
 extractor, computed once and cached), predefined timeline-based split.
@@ -28,9 +29,8 @@ from benchopt.config import get_data_path
 import neuralbench  # noqa: F401
 import transformers  # noqa: F401
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.data import get_device
-from compet_core.nb_task import download_study, load_task
+from benchmark_utils.data import get_device
+from benchmark_utils.nb_task import download_study, load_task
 
 # Overlay yaml in the task's ``datasets/`` folder (None = the task default).
 _OVERLAYS = {
@@ -59,7 +59,7 @@ class Dataset(BaseDataset):
         "num_workers": [0],
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
-        # training=True) — see compet_core.nb_task.
+        # training=True) — see benchmark_utils.nb_task.
         "subset": ["full"],
     }
 

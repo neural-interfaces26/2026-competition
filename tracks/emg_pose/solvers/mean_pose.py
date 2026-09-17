@@ -4,9 +4,8 @@ Dependency-light floor for the leaderboard, and the minimal example of the
 submission contract on this track.
 """
 
-import benchmark_utils  # noqa: F401 — locates compet_core
-from compet_core.base_solver import CompetSolver
-from compet_core.baselines import ConstantPose
+from benchmark_utils.base_solver import CompetSolver
+from benchmark_utils.baselines import ConstantPose
 
 
 class Solver(CompetSolver):

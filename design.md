@@ -9,7 +9,7 @@ and the rough edges.
 The code for the NeurIPS 2026 neural-interfaces competition
 (https://neural-interfaces26.github.io): **4 Codabench competitions**, one per
 track, each powered by a **standalone benchopt benchmark** under `tracks/`,
-with shared components in the installable `compet_core` package (repo root).
+with shared components in the installable `benchmark_utils` package (repo root).
 Formerly a 2-task proof-of-concept with a foundation-model (linear-probe)
 track — that track was **dropped** (2026-09) and the repo restructured into
 this monorepo.
@@ -32,14 +32,14 @@ this monorepo.
   baselines.
 - **A submission is a trained model, evaluated inference-only.** The user
   decided (2026-09-04): no training and no fine-tuning on the platform. The
-  contract (`compet_core/base_solver.py::CompetSolver`) is
+  contract (`benchmark_utils/base_solver.py::CompetSolver`) is
   `load_model(meta) -> model with predict(X)`; the optional
   `fit(model, train_loader)` only runs when the objective's `training`
   parameter is selected (see the dedicated bullet below). Weights ship
   next to `submission.py`; `meta["submission_dir"]` points there
   (`COMPET_SUBMISSION_DIR`, set by ingestion; defaults to the solver file's
   dir locally).
-- **Data layer = neuralbench task configs.** `compet_core/nb_task.py` builds
+- **Data layer = neuralbench task configs.** `benchmark_utils/nb_task.py` builds
   `neuralbench.data.Data` from the configs shipped in the wheel
   (`neuralbench/tasks/<modality>/<task>/config.yaml` + per-dataset overlays),
   bypassing `~/.neuralbench/config.json` and exca cluster infra (explicit
@@ -61,11 +61,11 @@ this monorepo.
   cpu/gpu dict is documented in the `using-benchopt` skill — see
   `~/workspace/benchopt/note_skill_update_test_config.md` for the planned
   upstream skill addition.
-- **`compet_core` needs no install.** Each track ships a
+- **`benchmark_utils` needs no install.** Each track ships a
   `benchmark_utils/__init__.py` that walks up from the benchmark dir to the
-  first parent holding `compet_core/` (repo root in a checkout, bundle root
+  first parent holding `benchmark_utils/` (repo root in a checkout, bundle root
   on Codabench) and puts it on `sys.path`; every benchmark module does
-  `import benchmark_utils` before `from compet_core import ...`. This is what
+  `import benchmark_utils` before `from benchmark_utils import ...`. This is what
   lets CI work on the **private** repo (a `pip::git+...` requirement cannot
   be installed there — that was the first CI failure). The root
   `pyproject.toml` remains for optional `pip install -e .` convenience.
@@ -76,7 +76,7 @@ this monorepo.
   rejects unknown config options): `data_home` (-> `$BENCHOPT_DATA_HOME`)
   and `scoring.columns` (leaderboard key -> dataframe column, forwarded to
   and parsed by scoring — missing/NaN columns fail loudly). Ingestion copies
-  the benchmark to a writable workdir (with `compet_core` as sibling for the
+  the benchmark to a writable workdir (with `benchmark_utils` as sibling for the
   `benchmark_utils` walk), drops in `input_data/datasets/*.py`
   (sealed-phase splits — the hidden-test mechanism: upload as a private
   Codabench dataset, never in the public repo) and the submission solver,
@@ -86,9 +86,11 @@ this monorepo.
   paths for `-s`/`-d`/`--output`, see
   `~/workspace/benchopt/note_feature_path_selectors.md`) will delete the
   copy steps.
-- **One Docker recipe, 4 images.** `tools/Dockerfile` takes
-  `--build-arg TRACK=<t>` and bakes `tracks/<t>` at `/compet/benchmark`
-  (`$COMPET_BENCHMARK_DIR`) + `compet_core` + the programs; deps from
+- **One Docker recipe, one image.** `tools/Dockerfile` carries the
+  environment and the programs only — the benchmark travels in the phase
+  bundle on `/app/input_data`, which is what lets a single image serve the 4
+  tracks and both phases (and lets a sealed phase ship a different
+  benchmark without a rebuild); deps from
   `requirements.txt` are the submissions' dependency contract (no install at
   submission time; benchopt from the main tarball until 1.10 is on PyPI).
   Base = `python:3.12-slim` + pip `torch==2.6.0` (cu124 wheels bundle the
@@ -96,8 +98,8 @@ this monorepo.
   images ship 3.11 — unpinned, pip silently resolved the ancient py311
   neuralset 0.0.2, hence the pins in requirements.txt. Data is
   downloaded on the docker host with the same image
-  (`docker run -v <host>:/data <img> benchopt prepare $COMPET_BENCHMARK_DIR
-  -d <ds>`; `ENV BENCHOPT_DATA_HOME=/data`) and bind-mounted as `/data` for
+  (`docker run -v <host>:/data -v <phase>:/app/input_data <img> benchopt
+  prepare /app/input_data/benchmark -d <ds>`; `ENV BENCHOPT_DATA_HOME=/data`) and bind-mounted as `/data` for
   scoring runs. **Resolved**: the compute worker mounts
   `${HOST_DIRECTORY}/data` (host, = `/codabench/data`) at `/app/data`
   (read-only) in every submission container — the image sets
@@ -105,7 +107,7 @@ this monorepo.
   (phase configs stay pure *run* configs). Read-only is a feature: runs hit
   warm caches or fail loudly, never download. `tools/run_docker.py --track <t>` is the local test.
 - **Bundles**: `tools/create_bundle.py --track <t>` ships the track's
-  benchmark under the canonical `benchmark/` name + `compet_core/` (both
+  benchmark under the canonical `benchmark/` name + `benchmark_utils/` (both
   kept as no-docker fallback) + shared ingestion/scoring +
   `codabench/competition_<t>.yaml` (as `competition.yaml`) +
   `solution/<t>/` + `codabench/phases/warmup/<t>/` as
@@ -121,7 +123,7 @@ this monorepo.
   linked to `https://neural-interfaces26.github.io/assets/img/...` rather than
   vendored — Codabench serves page markdown/HTML from its own origin, so
   bundle-relative image paths would not resolve.
-- The legacy direct-neuralset path (`compet_core/neuralset_task.py`,
+- The legacy direct-neuralset path (`benchmark_utils/neuralset_task.py`,
   `tracks/bci_decoding/datasets/moabb_mi.py`) is kept alongside the
   neuralbench path until the latter is fully validated on real data; then it
   can be dropped.
@@ -135,7 +137,7 @@ this monorepo.
 - **sleep_onset** — `eeg/sleep_onset` config (Kemp2000Analysis): 5-s windows,
   scalar target = seconds to first stable N2, cap 600 s; ranking metric bMAE
   (bins [0, 40, 90, 300, 600], reimplemented numpy-side in
-  `compet_core/metrics.py`, mirrors `neuralbench.metrics.BinnedMAE`).
+  `benchmark_utils/metrics.py`, mirrors `neuralbench.metrics.BinnedMAE`).
 - **image_decoding** — `datasets/image_studies.py` wraps the `eeg/image`
   config; `study` parameter ∈ {gifford2022large (task default),
   grootswagers2022human, xu2024alljoined, **xu2025alljoined — the chosen

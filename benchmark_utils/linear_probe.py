@@ -32,7 +32,7 @@ from sklearn.linear_model import LogisticRegression  # noqa: E402
 from sklearn.pipeline import make_pipeline  # noqa: E402
 from sklearn.preprocessing import StandardScaler  # noqa: E402
 
-from compet_core.data import to_numpy  # noqa: E402
+from benchmark_utils.data import to_numpy  # noqa: E402
 
 
 class Encoder(ABC):

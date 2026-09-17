@@ -14,7 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
-from compet_core.data import to_numpy
+from benchmark_utils.data import to_numpy
 
 
 class MeanLogReg:
