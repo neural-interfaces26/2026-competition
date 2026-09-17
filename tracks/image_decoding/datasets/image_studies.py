@@ -16,8 +16,11 @@ The ``study`` parameter picks the dataset overlay:
                              neuralbench >= 0.3.
 
 Requires a one-time download of the study **and** a one-time embedding pass
-over the stimulus images (GPU strongly recommended — run ``benchopt
-prepare`` on a compute node). The zero-dependency ``Simulated`` dataset
+over the stimulus images — run ``benchopt prepare`` on a GPU node, the
+extractor silently falls back to CPU otherwise. It reads DINOv2-giant with
+``output_hidden_states``, so its 41 states at 518 px hold ~345 MB per image
+in the batch: the upstream ``batch_size=32`` already peaks around 16 GB of
+VRAM and does not want raising. The zero-dependency ``Simulated`` dataset
 covers no-network smoke testing.
 """
 
