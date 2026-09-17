@@ -68,13 +68,6 @@ jobs:
                     - sleep_onset
                     - emg_pose
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                rm -rf /usr/share/dotnet || true
-                sudo rm -rf /usr/local/lib/android || true
-                rm -rf /opt/ghc || true
-                sudo rm -rf /usr/local/.ghcup || true
-
             - name: Checkout repository
               uses: actions/checkout@v3
 
