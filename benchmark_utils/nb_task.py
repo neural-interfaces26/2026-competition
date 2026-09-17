@@ -62,6 +62,11 @@ def _task_data_config(modality, task, dataset, data_dir, overrides):
         "study.source.infra.folder": str(data_dir / "cache"),
         "neuro.infra.cluster": None,
         "neuro.infra.folder": str(data_dir / "cache"),
+        # exca chmods every cache entry it reads to 0o777 for cluster
+        # sharing, which warns on each one when the data is mounted
+        # read-only; None disables the chmod. Only exca infras take it —
+        # the study source is a neuralset model that rejects the key.
+        "neuro.infra.permissions": None,
     })
     cfg.update(overrides or {})
     return cfg
