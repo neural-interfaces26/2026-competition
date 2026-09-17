@@ -42,6 +42,12 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# The aws CLI is what the Sleep-EDF dataset's prepare() shells out to for
+# PhysioNet's S3 mirror (minutes, where the origin's throttled HTTP takes
+# hours). Organizer-side tooling, so it stays out of requirements.txt — that
+# file is the submissions' dependency contract.
+RUN pip install --no-cache-dir awscli
+
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
 # The programs, for running the platform's evaluation locally in one command.
