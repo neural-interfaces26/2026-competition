@@ -1,6 +1,8 @@
 # One image for the 4 track competitions and both phases: it carries the
-# environment and the shared code, while the benchmark and the phase config
-# travel together in the phase bundle mounted on /app/input_data.
+# environment, nothing else. The benchmark and its shared benchmark_utils
+# travel in the phase bundle (mounted on /app/input_data), and Codabench
+# delivers the ingestion/scoring programs with each run — so there is no
+# second copy of any of it to keep in sync.
 #
 #     docker build -f tools/Dockerfile -t <registry>/neural-compet:v1 .
 #
@@ -14,7 +16,7 @@
 #
 #     # reproduce the platform evaluation on a submission folder
 #     docker run --gpus all -v <host-data>:/app/data \
-#         -v <phase-bundle>:/app/input_data \
+#         -v <phase-bundle>:/app/input_data -v <repo>/codabench:/compet \
 #         -v <submission>:/app/ingested_program -v <results>:/app/output \
 #         <image> python3 /compet/ingestion_program/ingestion.py
 # Python 3.12 base (neuralset needs >= 3.12; pytorch/pytorch images ship
@@ -42,12 +44,6 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
-
-# Shared code only: the benchmark itself travels in the phase bundle, which
-# is what makes one image serve the four tracks and both phases.
-COPY benchmark_utils /compet/benchmark_utils
-COPY codabench/ingestion_program /compet/ingestion_program
-COPY codabench/scoring_program /compet/scoring_program
 
 # Data is bind-mounted at /app/data — the path the Codabench compute worker
 # mounts (read-only) in every submission container. The phase bundle lands

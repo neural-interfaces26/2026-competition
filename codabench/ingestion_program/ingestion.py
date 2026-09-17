@@ -39,7 +39,6 @@ import time  # noqa: E402
 
 import yaml  # noqa: E402
 
-BUNDLE_ROOT = Path(__file__).resolve().parent.parent
 # benchopt artefacts + downloaded data, never copied to the workdir.
 IGNORE = shutil.ignore_patterns(
     "outputs", "__cache__", "__pycache__", ".pytest_cache", "data")

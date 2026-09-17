@@ -1,10 +1,9 @@
 """Build a Codabench bundle for one track.
 
-Each of the 4 tracks becomes its own Codabench competition; the bundle ships
-the track's benchopt benchmark (as ``benchmark/``), the shared
-``benchmark_utils``
-package, the shared ingestion/scoring programs, its competition yaml (as
-``competition.yaml``) and the sample submission.
+Each of the 4 tracks becomes its own Codabench competition. The bundle ships
+its competition yaml (as ``competition.yaml``), the pages, the sample
+submission, and the warm-up phase directory as ``input_data`` — config plus
+the benchmark it runs, ``benchmark_utils`` included.
 
 Usage
 -----

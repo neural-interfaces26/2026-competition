@@ -1,11 +1,11 @@
 """Sleep-onset task on Sleep-EDF (Kemp2000Analysis), the public proxy.
 
 Wraps the official neuralbench ``eeg/sleep_onset`` task config — see
-``benchmark_utils.nb_task``: non-overlapping 5-s windows over the pre-N2 part
-of
-each night, target = seconds to the first stable N2 epoch (capped at 600 s,
-``SleepOnsetTargetExtractor``), subject-level train/val/test split, and a
-``RegressionBinSampler`` balancing the train batches across latency bins.
+``benchmark_utils.nb_task``: non-overlapping 5-s windows over the pre-N2
+part of each night, target = seconds to the first stable N2 epoch (capped
+at 600 s, ``SleepOnsetTargetExtractor``), subject-level train/val/test
+split, and a ``RegressionBinSampler`` balancing the train batches across
+latency bins.
 
 Requires a one-time full-study download (~78 subjects — large; prefer running
 ``benchopt prepare`` on a compute node). The zero-dependency ``Simulated``

@@ -1,8 +1,9 @@
-"""Build one track's image and run ingestion + scoring in it (local test).
+"""Build the image and run ingestion + scoring in it (local test).
 
-Mirrors the platform layout: the benchmark is baked into the image at
-the phase bundle (benchmark + config) is mounted as /app/input_data and a
-sample submission as /app/ingested_program.
+Mirrors the platform layout: the phase bundle (benchmark + config) is
+mounted as /app/input_data and a sample submission as /app/ingested_program.
+The programs are mounted from the checkout, because the platform delivers
+them per run rather than from the image.
 
 Usage
 -----
@@ -36,8 +37,12 @@ if __name__ == "__main__":
                         tag=image)
 
     print("Running ingestion...")
+    # The image carries neither: the phase bundle brings the benchmark, and
+    # Codabench delivers the programs with each run. Locally they come
+    # straight from the checkout, so a local run is never out of date.
     volumes = [
         f"{REPO}/codabench/phases/warmup/{args.track}:/app/input_data",
+        f"{REPO}/codabench:/compet",
         f"{REPO}/solution/{args.track}:/app/ingested_program",
         f"{REPO}/ingestion_res:/app/output",
     ]
@@ -55,6 +60,7 @@ if __name__ == "__main__":
         image=image, remove=True, name="scoring", user="root",
         command="python3 /compet/scoring_program/scoring.py",
         volumes=[
+            f"{REPO}/codabench:/compet",
             f"{REPO}/ingestion_res:/app/input/res",
             f"{REPO}/scoring_res:/app/output",
         ],

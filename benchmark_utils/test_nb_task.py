@@ -1,5 +1,6 @@
-"""Unit tests for the pure parts of nb_task (run with ``pytest
-benchmark_utils``).
+"""Unit tests for the pure parts of nb_task.
+
+Run with ``pytest benchmark_utils``.
 
 The loading pipeline itself needs the neuralbench stack and real data — it is
 validated on the cluster; these tests cover the subset-filter composition,

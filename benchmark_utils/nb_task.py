@@ -15,8 +15,7 @@ Differences with running neuralbench itself:
   the background but none of its paths are used);
 - the returned loaders follow the competition contract (``(X, y, info)``
   torch batches moved onto ``device``, see ``benchmark_utils.data``), so
-  nothing
-  downstream is tied to neuralset/neuralbench types;
+  nothing downstream is tied to neuralset/neuralbench types;
 - ``subset="test"`` restricts the pipeline to the test split (see
   :func:`build_test_only_filter`) so workers can stage evaluation data only.
 

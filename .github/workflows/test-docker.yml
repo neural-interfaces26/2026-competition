@@ -1,9 +1,8 @@
-# Build the Docker image (tools/Dockerfile) and evaluate it end-to-end per
-# track: mount a phase bundle on /app/input_data — the track's benchmark plus
-# a zero-download Simulated run config — and run the baked-in ingestion +
-# scoring programs, exactly as the Codabench worker would. One image serves
-# every track, so the matrix jobs share the whole build through the buildx
-# GHA cache.
+# Build the Docker image once (tools/Dockerfile), then evaluate it per track:
+# mount a phase bundle on /app/input_data — the track's benchmark plus a
+# zero-download Simulated run config — and run the ingestion + scoring
+# programs, exactly as the Codabench worker would. The image carries neither
+# the benchmark nor the programs, so one build serves every track.
 name: Test Docker Image
 
 on:
@@ -15,30 +14,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+    DOCKER_IMAGE_NAME: neural-compet:ci
+
 jobs:
-    test-docker:
+    build:
         runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                track:
-                    - image_decoding
-                    - bci_decoding
-                    - sleep_onset
-                    - emg_pose
-        env:
-            DOCKER_IMAGE_NAME: neural-compet:ci
-
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                echo "Disk usage BEFORE cleanup:"; df -h
-                rm -rf /usr/share/dotnet || true
-                sudo rm -rf /usr/local/lib/android || true
-                rm -rf /opt/ghc || true
-                sudo rm -rf /usr/local/.ghcup || true
-                echo "Disk usage AFTER cleanup:"; df -h
-
             - name: Checkout repository
               uses: actions/checkout@v3
 
@@ -53,27 +35,66 @@ jobs:
                 push: false
                 load: true
                 tags: ${{ env.DOCKER_IMAGE_NAME }}
-                # One shared cache scope: every matrix job builds the very
-                # same image and only the run step differs.
                 cache-from: type=gha,scope=docker-${{ hashFiles('tools/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
                 cache-to: type=gha,mode=max,scope=docker-${{ hashFiles('tools/Dockerfile') }}-${{ hashFiles('requirements.txt') }}
+
+            - name: Export the image
+              run: docker save ${{ env.DOCKER_IMAGE_NAME }} | gzip > image.tgz
+
+            - uses: actions/upload-artifact@v4
+              with:
+                name: docker-image
+                path: image.tgz
+                retention-days: 1
+
+    evaluate:
+        needs: build
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                track:
+                    - image_decoding
+                    - bci_decoding
+                    - sleep_onset
+                    - emg_pose
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: |
+                rm -rf /usr/share/dotnet || true
+                sudo rm -rf /usr/local/lib/android || true
+                rm -rf /opt/ghc || true
+                sudo rm -rf /usr/local/.ghcup || true
+
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - uses: actions/download-artifact@v4
+              with:
+                name: docker-image
+
+            - name: Load the image
+              run: docker load < image.tgz
 
             - name: Evaluate the sample submission in the image
               run: |
                 # A phase bundle, as the platform mounts it: the track's
-                # benchmark plus a Simulated-only run config (the real phase
-                # configs pull real datasets, which have no place in CI).
+                # benchmark (-L: its benchmark_utils is a link) plus a
+                # Simulated-only run config — the real phase configs pull real
+                # datasets, which have no place in CI.
                 mkdir -p ci_input_data
-                cp -rL "tracks/${{ matrix.track }}" ci_input_data/benchmark   # -L: benchmark_utils is a link
+                cp -rL "tracks/${{ matrix.track }}" ci_input_data/benchmark
                 printf 'dataset:\n  - Simulated\nseed: 42\nno_timeout: true\n' \
                     > ci_input_data/config.yaml
                 docker run --rm -u root \
                     -v "./ci_input_data":/app/input_data \
+                    -v "./codabench":/compet \
                     -v "./solution/${{ matrix.track }}":/app/ingested_program \
                     -v "./ingestion_res":/app/output \
                     ${{ env.DOCKER_IMAGE_NAME }} \
                     python3 /compet/ingestion_program/ingestion.py
                 docker run --rm -u root \
+                    -v "./codabench":/compet \
                     -v "./ingestion_res":/app/input/res \
                     -v "./scoring_res":/app/output \
                     ${{ env.DOCKER_IMAGE_NAME }} \

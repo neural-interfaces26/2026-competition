@@ -113,10 +113,9 @@ One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds a single image
 for the four tracks and both phases — the same image serves participants and
 the Codabench workers. It carries the environment only: the benchmark and the
 phase config travel together in the phase bundle mounted on
-`/app/input_data`. Data always lives *outside* the image, read from
-`$BENCHOPT_DATA_HOME` (`/app/data` — the path the compute worker mounts,
-read-only, in every submission container), so bind-mount any host folder
-there.
+`/app/input_data`, and the ingestion/scoring programs come from this
+checkout. Data lives *outside* the image too, read from
+`$BENCHOPT_DATA_HOME` (`/app/data`), so bind-mount any host folder there.
 
 ```bash
 tools/build_image.sh [--push]    # tommoral/neural-compet:v1
@@ -127,17 +126,24 @@ PHASE=codabench/phases/warmup/sleep_onset
 docker run -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data $IMG \
     benchopt prepare /app/input_data/benchmark -d Sleep-EDF
 
-# run your submission (code + weights) against the embedded benchmark
-docker run --gpus all -v ~/neural-data:/app/data -v $PWD/my_submission:/sub $IMG \
-    bash -c 'cp /sub/* /compet/benchmark/solvers/ &&
-             benchopt run /compet/benchmark -d Sleep-EDF -s my-solver'
+# run your submission (code + weights) against the phase's benchmark
+docker run --gpus all -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data \
+    -v $PWD/my_submission:/sub $IMG \
+    bash -c 'cp /sub/* /app/input_data/benchmark/solvers/ &&
+             benchopt run /app/input_data/benchmark -d Sleep-EDF -s my-solver'
 ```
 
 The platform evaluation is that same run, inference-only, driven by
-`/compet/ingestion_program/ingestion.py` and the phase config baked in at
-`/app/input_data` (warm-up phase by default; Codabench mounts the live phase's
-over it) — mount your submission as `/app/ingested_program` and a results
-folder as `/app/output` to reproduce it to the letter.
+`ingestion.py`: mount the programs as `/compet`, your submission as
+`/app/ingested_program` and a results folder as `/app/output` to reproduce it
+to the letter.
+
+```bash
+docker run --gpus all -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data \
+    -v $PWD/codabench:/compet -v $PWD/my_submission:/app/ingested_program \
+    -v $PWD/results:/app/output $IMG \
+    python3 /compet/ingestion_program/ingestion.py
+```
 
 ## Build & CI
 
