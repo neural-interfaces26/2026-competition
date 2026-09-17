@@ -1,12 +1,12 @@
 """Build the image and run ingestion + scoring in it (local test).
 
 Mirrors the platform layout: the phase bundle (benchmark + config) is
-mounted as /app/input_data and a sample submission as /app/ingested_program.
-The programs come from the image (Codabench delivers its own copies).
+mounted as /app/input_data and a submission as /app/ingested_program.
 
 Usage
 -----
     python tools/run_docker.py --track bci_decoding [--data <host-data-dir>]
+    python tools/run_docker.py --track bci_decoding --submission my.zip
 """
 
 import argparse
@@ -29,6 +29,9 @@ if __name__ == "__main__":
     parser.add_argument("--track", required=True)
     parser.add_argument("--data", default=None,
                         help="Host data dir to mount as /data")
+    parser.add_argument("--submission", default=None,
+                        help="Zip to evaluate (default: the track's sample "
+                             "in solution/)")
     args = parser.parse_args()
 
     client = docker.from_env()
@@ -38,16 +41,19 @@ if __name__ == "__main__":
                         tag=image)
 
     print("Running ingestion...")
-    # The phase dir links to the benchmark, which links to the shared
-    # benchmark_utils; a bind mount would carry the links into the container,
-    # where they point nowhere. Materialize the bundle first (copytree
-    # dereferences), exactly as create_bundle and the staging script do.
-    phase = Path(tempfile.mkdtemp(prefix="phase_")) / "input_data"
+    work = Path(tempfile.mkdtemp(prefix="run_docker_"))
+    # Materialize symlink in temp dir to run in the container.
+    phase = work / "input_data"
     shutil.copytree(REPO / "codabench" / "phases" / "warmup" / args.track,
                     phase)
+    if args.submission:
+        submission = work / "submission"
+        shutil.unpack_archive(args.submission, submission)
+    else:
+        submission = REPO / "solution" / args.track
     volumes = [
         f"{phase}:/app/input_data",
-        f"{REPO}/solution/{args.track}:/app/ingested_program",
+        f"{submission}:/app/ingested_program",
         f"{REPO}/ingestion_res:/app/output",
     ]
     if args.data:

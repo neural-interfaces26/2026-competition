@@ -23,3 +23,5 @@ moabb
 mne
 # Used by the EEGNet baselines / many torch submissions:
 braindecode
+# Sleep-EDF's prepare() shells out to it for PhysioNet's S3 mirror.
+awscli

@@ -41,15 +41,12 @@ import yaml  # noqa: E402
 
 # benchopt artefacts + downloaded data, never copied to the workdir.
 IGNORE = shutil.ignore_patterns(
-    "outputs", "__cache__", "__pycache__", ".pytest_cache", "data")
+    "outputs", "__cache__", "__pycache__", ".pytest_cache", "data"
+)
 
 
 def setup_workdir(benchmark_dir, input_dir):
-    """Writable benchmark copy + the phase's dataset files.
-
-    The benchmark carries its own ``benchmark_utils``, so there is nothing
-    else to assemble here.
-    """
+    """Writable benchmark copy + the phase's dataset files."""
     workdir = Path(tempfile.mkdtemp(prefix="compet_run_")) / "benchmark"
     shutil.copytree(benchmark_dir, workdir, ignore=IGNORE)
     for path in sorted((input_dir / "datasets").glob("*.py")):
@@ -83,22 +80,12 @@ def install_submission_solvers(submission_dir, workdir):
 def main(submission_dir, output_dir, benchmark_dir, input_dir):
     # unresolved paths: ``benchmark_dir`` has been through resolve(), which
     # flattens a dangling link into a plain missing path.
-    dangling = [p for p in (input_dir / "benchmark",
-                            benchmark_dir / "benchmark_utils")
-                if p.is_symlink() and not p.exists()]
-    if dangling:
-        raise SystemExit(
-            f"[ingestion] dangling link: {dangling[0]}. The phase bundle was "
-            "mounted with its symlinks intact — in the repo the benchmark and "
-            "its benchmark_utils are links, so a bundle has to be "
-            "materialized (cp -rL, tar -czh) before it is mounted."
-        )
     if not benchmark_dir.exists():
         raise SystemExit(
             f"[ingestion] no benchmark at {benchmark_dir}: the phase bundle "
-            "ships the track's benchmark alongside its config.yaml (on "
-            "Codabench, upload the phase's input_data dataset), or pass "
-            "--benchmark-dir."
+            "ships it alongside config.yaml (on Codabench, upload the "
+            "phase's input_data dataset). A bundle copied without "
+            "dereferencing its links lands here too."
         )
 
     # Point the solvers at the submission folder (shipped weights).

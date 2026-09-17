@@ -26,7 +26,7 @@ rationale.
 ## Structure
 
 ```
-benchmark_utils/            shared components (data loading, submission contract,
+benchmark_utils/        shared components (data loading, submission contract,
                         baselines, metrics)
 tracks/
   image_decoding/       track 1 benchmark
@@ -109,43 +109,25 @@ The platform evaluation (`codabench/ingestion_program/ingestion.py` +
 
 ## Run in Docker
 
-One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds a single image
-for the four tracks and both phases — the same image serves participants and
-the Codabench workers. It carries the environment only: the benchmark and the
+One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds a single image for
+the four tracks and both phases — the same image serves participants and the
+Codabench workers. It carries the environment only: the benchmark and the
 phase config travel together in the phase bundle mounted on
-`/app/input_data`. Data lives *outside* the image too, read from
-`$BENCHOPT_DATA_HOME` (`/app/data`), so bind-mount any host folder there.
+`/app/input_data`, and data lives outside the image, read from
+`$BENCHOPT_DATA_HOME` (`/app/data`).
+
+`tools/run_docker.py` is the platform evaluation, to the letter: it builds
+the image, assembles the phase bundle and runs the ingestion and scoring
+programs on a submission.
 
 ```bash
-tools/build_image.sh [--push]    # tommoral/neural-compet:v1
-IMG=tommoral/neural-compet:v1
-
-# Materialize the phase bundle before mounting it: in this repo the benchmark
-# and its benchmark_utils are symlinks (one copy for four tracks), and a bind
-# mount would carry them into the container, where they point nowhere.
-cp -rL codabench/phases/warmup/sleep_onset /tmp/phase
-PHASE=/tmp/phase
-
-# one-time download of a track's public dataset into a host folder
-docker run -v ~/neural-data:/app/data -v $PHASE:/app/input_data $IMG \
-    benchopt prepare /app/input_data/benchmark -d Sleep-EDF
-
-# run your submission (code + weights) against the phase's benchmark
-docker run --gpus all -v ~/neural-data:/app/data -v $PHASE:/app/input_data \
-    -v $PWD/my_submission:/sub $IMG \
-    bash -c 'cp /sub/* /app/input_data/benchmark/solvers/ &&
-             benchopt run /app/input_data/benchmark -d Sleep-EDF -s my-solver'
+python tools/run_docker.py --track sleep_onset              # the sample
+python tools/run_docker.py --track sleep_onset \
+    --submission my_submission.zip --data ~/neural-data
 ```
 
-The platform evaluation is that same run, inference-only: mount your
-submission as `/app/ingested_program` and a results folder as `/app/output`
-to reproduce it to the letter.
-
-```bash
-docker run --gpus all -v ~/neural-data:/app/data -v $PHASE:/app/input_data \
-    -v $PWD/my_submission:/app/ingested_program -v $PWD/results:/app/output \
-    $IMG python3 /compet/ingestion_program/ingestion.py
-```
+The first run on a real dataset is slow — it downloads and prepares the data
+into `--data` — and every later run reuses it.
 
 ## Build & CI
 

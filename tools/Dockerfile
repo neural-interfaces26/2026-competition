@@ -42,18 +42,9 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# The aws CLI is what the Sleep-EDF dataset's prepare() shells out to for
-# PhysioNet's S3 mirror (minutes, where the origin's throttled HTTP takes
-# hours). Organizer-side tooling, so it stays out of requirements.txt — that
-# file is the submissions' dependency contract.
-RUN pip install --no-cache-dir awscli
-
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
-# The programs, for running the platform's evaluation locally in one command.
-# Codabench does not use these: it delivers the uploaded ingestion/scoring
-# datasets with each run. The benchmark is absent on purpose — it travels in
-# the phase bundle, which is what lets one image serve every track and phase.
+# The programs, for running the platform's evaluation locally.
 COPY codabench/ingestion_program /compet/ingestion_program
 COPY codabench/scoring_program /compet/scoring_program
 
@@ -68,7 +59,5 @@ ENV PYTHONWARNINGS=ignore::FutureWarning \
     TQDM_DISABLE=1
 VOLUME /app/data
 
-# Fail the build if the data stack is incoherent: at runtime a broken import
-# (e.g. a torch/torchvision mismatch) only shows up as a silently
-# "not installed" dataset.
+# Fail the build if the data stack is incoherent.
 RUN python -c "import neuralbench, braindecode, benchopt"
