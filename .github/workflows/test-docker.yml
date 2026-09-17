@@ -48,7 +48,7 @@ jobs:
               run: |
                 for track in image_decoding bci_decoding sleep_onset emg_pose; do
                     echo "::group::$track"
-                    rm -rf ci_input_data ingestion_res scoring_res
+                    sudo rm -rf ci_input_data ingestion_res scoring_res
                     # A phase bundle, as the platform mounts it: the track's
                     # benchmark (-L: its benchmark_utils is a link) plus a
                     # Simulated-only run config — the real phase configs pull
