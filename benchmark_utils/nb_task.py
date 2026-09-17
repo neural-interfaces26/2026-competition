@@ -26,6 +26,7 @@ only from ``datasets/`` modules (never from solvers).
 import logging
 import os
 import sys
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -46,6 +47,14 @@ def _quiet_neuro_logs():
         for handler in logger.handlers:
             if isinstance(handler, logging.StreamHandler):
                 handler.setStream(sys.stdout)
+
+    # Reading a recording raises a RuntimeWarning per EDF filter quirk,
+    # blamed on the neuralfetch study that opened the file. Filtered here
+    # rather than through PYTHONWARNINGS, whose module field is an exact
+    # match (one study module at a time) while this one is a regex.
+    warnings.filterwarnings(
+        "ignore", category=RuntimeWarning, module=r"neuralfetch\."
+    )
 
 
 def _task_data_config(modality, task, dataset, data_dir, overrides):

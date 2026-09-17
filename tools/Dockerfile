@@ -55,9 +55,10 @@ ENV BENCHOPT_DATA_HOME=/app/data \
     NEURALBENCH_CONFIG=/compet/neuralbench_config.json
 
 # Keep the participant trace to what their submission does: upstream
-# deprecations, the EDF/montage RuntimeWarnings every recording raises, MNE's
-# per-file reading log and tqdm bars all say nothing about a submission.
-ENV PYTHONWARNINGS=ignore::FutureWarning,ignore::RuntimeWarning \
+# deprecations, MNE's per-file reading log and tqdm bars say nothing about a
+# submission. The data stack's own RuntimeWarnings are filtered in
+# benchmark_utils.nb_task, which can target them by module.
+ENV PYTHONWARNINGS=ignore::FutureWarning \
     MNE_LOGGING_LEVEL=ERROR \
     TQDM_DISABLE=1
 VOLUME /app/data
