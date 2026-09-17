@@ -1,8 +1,8 @@
 # Build the Docker image once (tools/Dockerfile), then evaluate it per track:
 # mount a phase bundle on /app/input_data — the track's benchmark plus a
 # zero-download Simulated run config — and run the ingestion + scoring
-# programs, exactly as the Codabench worker would. The image carries neither
-# the benchmark nor the programs, so one build serves every track.
+# programs, exactly as the Codabench worker would. The image carries no
+# benchmark, so one build serves every track.
 name: Test Docker Image
 
 on:
@@ -88,13 +88,11 @@ jobs:
                     > ci_input_data/config.yaml
                 docker run --rm -u root \
                     -v "./ci_input_data":/app/input_data \
-                    -v "./codabench":/compet \
                     -v "./solution/${{ matrix.track }}":/app/ingested_program \
                     -v "./ingestion_res":/app/output \
                     ${{ env.DOCKER_IMAGE_NAME }} \
                     python3 /compet/ingestion_program/ingestion.py
                 docker run --rm -u root \
-                    -v "./codabench":/compet \
                     -v "./ingestion_res":/app/input/res \
                     -v "./scoring_res":/app/output \
                     ${{ env.DOCKER_IMAGE_NAME }} \

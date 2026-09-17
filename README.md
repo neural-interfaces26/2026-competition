@@ -113,8 +113,7 @@ One recipe ([`tools/Dockerfile`](tools/Dockerfile)) builds a single image
 for the four tracks and both phases — the same image serves participants and
 the Codabench workers. It carries the environment only: the benchmark and the
 phase config travel together in the phase bundle mounted on
-`/app/input_data`, and the ingestion/scoring programs come from this
-checkout. Data lives *outside* the image too, read from
+`/app/input_data`. Data lives *outside* the image too, read from
 `$BENCHOPT_DATA_HOME` (`/app/data`), so bind-mount any host folder there.
 
 ```bash
@@ -133,16 +132,14 @@ docker run --gpus all -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data 
              benchopt run /app/input_data/benchmark -d Sleep-EDF -s my-solver'
 ```
 
-The platform evaluation is that same run, inference-only, driven by
-`ingestion.py`: mount the programs as `/compet`, your submission as
-`/app/ingested_program` and a results folder as `/app/output` to reproduce it
-to the letter.
+The platform evaluation is that same run, inference-only: mount your
+submission as `/app/ingested_program` and a results folder as `/app/output`
+to reproduce it to the letter.
 
 ```bash
 docker run --gpus all -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data \
-    -v $PWD/codabench:/compet -v $PWD/my_submission:/app/ingested_program \
-    -v $PWD/results:/app/output $IMG \
-    python3 /compet/ingestion_program/ingestion.py
+    -v $PWD/my_submission:/app/ingested_program -v $PWD/results:/app/output \
+    $IMG python3 /compet/ingestion_program/ingestion.py
 ```
 
 ## Build & CI
