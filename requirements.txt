@@ -1,8 +1,8 @@
 # Dependencies to run the ingestion + scoring programs (Codabench worker /
 # Docker image). The ingestion program runs the bundled benchopt benchmark
 # inference-only on the submission, so it needs benchopt plus everything the
-# tracks import at run time (compet_core itself ships inside the bundle and
-# is put on sys.path by the ingestion program).
+# tracks import at run time (the benchmark and its benchmark_utils ship in
+# the phase bundle, not in the image).
 # main tarball until 1.10 (`benchopt prepare` + up-to-date run CLI) hits
 # PyPI — a tarball, not git+https: the docker image has no git.
 benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
