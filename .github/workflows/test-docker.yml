@@ -35,19 +35,14 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v3
 
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
-
+            # Plain docker build, no buildx and no layer cache: the two pip
+            # installs take under 3 min, while exporting them to the GitHub
+            # cache took 18 and restoring them 5.6 — and building through
+            # buildx costs another 5.6 min exporting the image into dockerd.
             - name: Docker build
-              uses: docker/build-push-action@v6
-              with:
-                context: .
-                file: ./tools/Dockerfile
-                push: false
-                load: true
-                tags: ${{ env.DOCKER_IMAGE_NAME }}
-                cache-from: type=gha,scope=docker-${{ hashFiles('tools/Dockerfile', 'requirements.txt') }}
-                cache-to: type=gha,mode=max,scope=docker-${{ hashFiles('tools/Dockerfile', 'requirements.txt') }}
+              run: |
+                docker build -f tools/Dockerfile \
+                    -t ${{ env.DOCKER_IMAGE_NAME }} .
 
             - name: Evaluate every track's sample submission
               run: |
