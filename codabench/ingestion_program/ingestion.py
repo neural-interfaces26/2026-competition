@@ -81,6 +81,18 @@ def install_submission_solvers(submission_dir, workdir):
 
 
 def main(submission_dir, output_dir, benchmark_dir, input_dir):
+    # unresolved paths: ``benchmark_dir`` has been through resolve(), which
+    # flattens a dangling link into a plain missing path.
+    dangling = [p for p in (input_dir / "benchmark",
+                            benchmark_dir / "benchmark_utils")
+                if p.is_symlink() and not p.exists()]
+    if dangling:
+        raise SystemExit(
+            f"[ingestion] dangling link: {dangling[0]}. The phase bundle was "
+            "mounted with its symlinks intact — in the repo the benchmark and "
+            "its benchmark_utils are links, so a bundle has to be "
+            "materialized (cp -rL, tar -czh) before it is mounted."
+        )
     if not benchmark_dir.exists():
         raise SystemExit(
             f"[ingestion] no benchmark at {benchmark_dir}: the phase bundle "

@@ -119,14 +119,19 @@ phase config travel together in the phase bundle mounted on
 ```bash
 tools/build_image.sh [--push]    # tommoral/neural-compet:v1
 IMG=tommoral/neural-compet:v1
-PHASE=codabench/phases/warmup/sleep_onset
+
+# Materialize the phase bundle before mounting it: in this repo the benchmark
+# and its benchmark_utils are symlinks (one copy for four tracks), and a bind
+# mount would carry them into the container, where they point nowhere.
+cp -rL codabench/phases/warmup/sleep_onset /tmp/phase
+PHASE=/tmp/phase
 
 # one-time download of a track's public dataset into a host folder
-docker run -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data $IMG \
+docker run -v ~/neural-data:/app/data -v $PHASE:/app/input_data $IMG \
     benchopt prepare /app/input_data/benchmark -d Sleep-EDF
 
 # run your submission (code + weights) against the phase's benchmark
-docker run --gpus all -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data \
+docker run --gpus all -v ~/neural-data:/app/data -v $PHASE:/app/input_data \
     -v $PWD/my_submission:/sub $IMG \
     bash -c 'cp /sub/* /app/input_data/benchmark/solvers/ &&
              benchopt run /app/input_data/benchmark -d Sleep-EDF -s my-solver'
@@ -137,7 +142,7 @@ submission as `/app/ingested_program` and a results folder as `/app/output`
 to reproduce it to the letter.
 
 ```bash
-docker run --gpus all -v ~/neural-data:/app/data -v $PWD/$PHASE:/app/input_data \
+docker run --gpus all -v ~/neural-data:/app/data -v $PHASE:/app/input_data \
     -v $PWD/my_submission:/app/ingested_program -v $PWD/results:/app/output \
     $IMG python3 /compet/ingestion_program/ingestion.py
 ```

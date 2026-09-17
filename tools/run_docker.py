@@ -10,6 +10,8 @@ Usage
 """
 
 import argparse
+import shutil
+import tempfile
 from pathlib import Path
 
 try:
@@ -36,10 +38,15 @@ if __name__ == "__main__":
                         tag=image)
 
     print("Running ingestion...")
-    # The benchmark comes with the phase bundle; the programs are in the
-    # image.
+    # The phase dir links to the benchmark, which links to the shared
+    # benchmark_utils; a bind mount would carry the links into the container,
+    # where they point nowhere. Materialize the bundle first (copytree
+    # dereferences), exactly as create_bundle and the staging script do.
+    phase = Path(tempfile.mkdtemp(prefix="phase_")) / "input_data"
+    shutil.copytree(REPO / "codabench" / "phases" / "warmup" / args.track,
+                    phase)
     volumes = [
-        f"{REPO}/codabench/phases/warmup/{args.track}:/app/input_data",
+        f"{phase}:/app/input_data",
         f"{REPO}/solution/{args.track}:/app/ingested_program",
         f"{REPO}/ingestion_res:/app/output",
     ]
