@@ -48,13 +48,11 @@ def _quiet_neuro_logs():
             if isinstance(handler, logging.StreamHandler):
                 handler.setStream(sys.stdout)
 
-    # Reading a recording raises a RuntimeWarning per EDF filter quirk,
-    # blamed on the neuralfetch study that opened the file. Filtered here
-    # rather than through PYTHONWARNINGS, whose module field is an exact
-    # match (one study module at a time) while this one is a regex.
-    warnings.filterwarnings(
-        "ignore", category=RuntimeWarning, module=r"neuralfetch\."
-    )
+    # Reading a recording raises a RuntimeWarning per EDF filter quirk.
+    # They are matched as coming from "mne" even though they are reported
+    # at the neuralfetch study that opened the file: mne.utils.warn calls
+    # warn_explicit with its own module and the caller's filename.
+    warnings.filterwarnings("ignore", category=RuntimeWarning, module="mne")
 
 
 def _task_data_config(modality, task, dataset, data_dir, overrides):
