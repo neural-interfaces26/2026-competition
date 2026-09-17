@@ -20,8 +20,7 @@ test locally with the *same* code the competition runs. A submission is a
 **trained model** — plain PyTorch, shipped as code + weights — evaluated
 inference-only on the platform. See
 [`codabench/pages/participate.md`](codabench/pages/participate.md) for the
-submission how-to, and [`design.md`](design.md) for the architecture and its
-rationale.
+submission how-to.
 
 ## Structure
 
@@ -104,8 +103,7 @@ gives you the things you end up wanting when iterating on a model:
 
 The platform evaluation (`codabench/ingestion_program/ingestion.py` +
 `scoring_program/scoring.py`) is a thin wrapper around that same
-`benchopt run` — inference-only, driven by the phase's `config.yaml`
-(see [`design.md`](design.md)).
+`benchopt run` — inference-only, driven by the phase's `config.yaml`.
 
 ## Run in Docker
 

@@ -28,7 +28,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Docker ingestion test")
     parser.add_argument("--track", required=True)
     parser.add_argument("--data", default=None,
-                        help="Host data dir to mount as /data")
+                        help="Host data dir to mount as /app/data")
     parser.add_argument("--submission", default=None,
                         help="Zip to evaluate (default: the track's sample "
                              "in solution/)")
@@ -57,7 +57,8 @@ if __name__ == "__main__":
         f"{REPO}/ingestion_res:/app/output",
     ]
     if args.data:
-        volumes.append(f"{args.data}:/data")
+        # $BENCHOPT_DATA_HOME in the image, read-only as the worker mounts it.
+        volumes.append(f"{args.data}:/app/data:ro")
     logs = client.containers.run(
         image=image, remove=True, name="ingestion", user="root",
         command="python3 /compet/ingestion_program/ingestion.py",
