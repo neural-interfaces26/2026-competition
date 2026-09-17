@@ -1,9 +1,11 @@
-# Build the Docker image once into the buildx cache (tools/Dockerfile), then
-# evaluate it per track — each job restores the image from that cache:
-# mount a phase bundle on /app/input_data — the track's benchmark plus a
+# Build the Docker image (tools/Dockerfile) and evaluate every track through
+# it: mount a phase bundle on /app/input_data — the track's benchmark plus a
 # zero-download Simulated run config — and run the ingestion + scoring
-# programs, exactly as the Codabench worker would. The image carries no
-# benchmark, so one build serves every track.
+# programs, exactly as the Codabench worker would.
+#
+# One job, not one per track: the image carries no benchmark, so the tracks
+# differ only by what is mounted, and an evaluation takes seconds. Split
+# across jobs, each one paid minutes to materialize the same image.
 name: Test Docker Image
 
 on:
@@ -15,17 +17,14 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-    DOCKER_IMAGE_NAME: neural-compet:ci
-    # One scope, shared by the build and the evaluate jobs — they must agree
-    # or the evaluate jobs miss and rebuild the image four times. A constant
-    # is enough: buildx keys the layers by content.
-    CACHE_SCOPE: docker
-
 jobs:
-    build:
+    test-docker:
         runs-on: ubuntu-latest
+        env:
+            DOCKER_IMAGE_NAME: neural-compet:ci
         steps:
+            # The torch/CUDA layers do not fit beside the preinstalled
+            # toolchains.
             - name: Delete huge unnecessary tools folder
               run: |
                 rm -rf /usr/share/dotnet || true
@@ -39,47 +38,7 @@ jobs:
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v3
 
-            # Populate the cache; the image itself is never materialized
-            # here, the evaluate jobs restore it from the same scope.
             - name: Docker build
-              uses: docker/build-push-action@v6
-              with:
-                context: .
-                file: ./tools/Dockerfile
-                push: false
-                cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
-                cache-to: type=gha,mode=max,scope=${{ env.CACHE_SCOPE }}
-
-    evaluate:
-        needs: build
-        runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                track:
-                    - image_decoding
-                    - bci_decoding
-                    - sleep_onset
-                    - emg_pose
-        steps:
-            # Both jobs need the room: building writes the torch/CUDA layers,
-            # and loading the exported image unpacks them again.
-            - name: Delete huge unnecessary tools folder
-              run: |
-                rm -rf /usr/share/dotnet || true
-                sudo rm -rf /usr/local/lib/android || true
-                rm -rf /opt/ghc || true
-                sudo rm -rf /usr/local/.ghcup || true
-
-            - name: Checkout repository
-              uses: actions/checkout@v3
-
-            - name: Set up Docker Buildx
-              uses: docker/setup-buildx-action@v3
-
-            # A full cache hit: the build job already populated this scope,
-            # so this only restores the layers into the local docker.
-            - name: Load the image from the build cache
               uses: docker/build-push-action@v6
               with:
                 context: .
@@ -87,27 +46,33 @@ jobs:
                 push: false
                 load: true
                 tags: ${{ env.DOCKER_IMAGE_NAME }}
-                cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+                cache-from: type=gha,scope=docker-${{ hashFiles('tools/Dockerfile', 'requirements.txt') }}
+                cache-to: type=gha,mode=max,scope=docker-${{ hashFiles('tools/Dockerfile', 'requirements.txt') }}
 
-            - name: Evaluate the sample submission in the image
+            - name: Evaluate every track's sample submission
               run: |
-                # A phase bundle, as the platform mounts it: the track's
-                # benchmark (-L: its benchmark_utils is a link) plus a
-                # Simulated-only run config — the real phase configs pull real
-                # datasets, which have no place in CI.
-                mkdir -p ci_input_data
-                cp -rL "tracks/${{ matrix.track }}" ci_input_data/benchmark
-                printf 'dataset:\n  - Simulated\nseed: 42\nno_timeout: true\n' \
-                    > ci_input_data/config.yaml
-                docker run --rm -u root \
-                    -v "./ci_input_data":/app/input_data \
-                    -v "./solution/${{ matrix.track }}":/app/ingested_program \
-                    -v "./ingestion_res":/app/output \
-                    ${{ env.DOCKER_IMAGE_NAME }} \
-                    python3 /compet/ingestion_program/ingestion.py
-                docker run --rm -u root \
-                    -v "./ingestion_res":/app/input/res \
-                    -v "./scoring_res":/app/output \
-                    ${{ env.DOCKER_IMAGE_NAME }} \
-                    python3 /compet/scoring_program/scoring.py
-                echo "leaderboard scores:"; cat scoring_res/scores.json
+                for track in image_decoding bci_decoding sleep_onset emg_pose; do
+                    echo "::group::$track"
+                    rm -rf ci_input_data ingestion_res scoring_res
+                    # A phase bundle, as the platform mounts it: the track's
+                    # benchmark (-L: its benchmark_utils is a link) plus a
+                    # Simulated-only run config — the real phase configs pull
+                    # real datasets, which have no place in CI.
+                    mkdir -p ci_input_data
+                    cp -rL "tracks/$track" ci_input_data/benchmark
+                    printf 'dataset:\n  - Simulated\nseed: 42\nno_timeout: true\n' \
+                        > ci_input_data/config.yaml
+                    docker run --rm -u root \
+                        -v "./ci_input_data":/app/input_data \
+                        -v "./solution/$track":/app/ingested_program \
+                        -v "./ingestion_res":/app/output \
+                        ${{ env.DOCKER_IMAGE_NAME }} \
+                        python3 /compet/ingestion_program/ingestion.py
+                    docker run --rm -u root \
+                        -v "./ingestion_res":/app/input/res \
+                        -v "./scoring_res":/app/output \
+                        ${{ env.DOCKER_IMAGE_NAME }} \
+                        python3 /compet/scoring_program/scoring.py
+                    echo "$track scores:"; cat scoring_res/scores.json
+                    echo "::endgroup::"
+                done
