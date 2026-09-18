@@ -2,9 +2,9 @@
 
 Demonstrates the full contract with a trivial constant-latency regressor:
 
-- submitted as-is, it **loads** its latency from ``weights.npz`` shipped
-  alongside (the platform runs inference-only — a stand-in file is generated
-  when missing, so the sample always runs);
+- submitted as-is, it **loads** its latency from ``weights.npz`` when one is
+  shipped alongside, and otherwise uses an in-memory stand-in value so the
+  sample also works from Codabench's read-only submission directory;
 - run with ``-o "Sleep-onset[training=True]"``, ``fit`` recomputes it on the
   train split and ``save_model`` writes it — the run then drops a
   ready-to-upload ``outputs/submission_Sample-Sleep.zip``.
@@ -22,9 +22,9 @@ class Solver(CompetSolver):
 
     def load_model(self, meta):
         weights = meta["submission_dir"] / "weights.npz"
-        if not weights.exists():                      # stand-in artefact
-            np.savez(weights, latency=np.float64(300.0))
-        return MedianRegressor(value=float(np.load(weights)["latency"]))
+        value = (float(np.load(weights)["latency"])
+                 if weights.exists() else 300.0)
+        return MedianRegressor(value=value)
 
     def fit(self, model, train_loader):
         model.fit(train_loader)                       # median train latency
