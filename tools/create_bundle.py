@@ -19,8 +19,8 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 # track dir (tracks/<name>) -> short key, shared by the track's competition
-# yaml (codabench/competition_<key>.yaml) and its competition page
-# (codabench/pages/competition_<key>.html).
+# yaml (codabench/competition_<key>.yaml) and its description page
+# (codabench/pages/competition_<key>.md).
 TRACKS = {
     "image_decoding": "image",
     "bci_decoding": "bci",
@@ -63,24 +63,6 @@ def _add_dir(bundle, src, arc_prefix, exclude=None):
         bundle.write(f, arcname)
 
 
-def _competition_page(key):
-    """Assemble ``pages/competition.html`` for one track.
-
-    Shared head (scoped styles) + the track-specific body + shared tail (the
-    four-track overview and the sponsor / institution logo wall), so the parts
-    common to the 4 competitions live in a single file.
-    """
-    pages = ROOT_DIR / "codabench" / "pages"
-    parts = ["_competition_head.html", f"competition_{key}.html",
-             "_competition_tail.html"]
-    out = []
-    for name in parts:
-        f = pages / name
-        assert f.exists(), f"{f} does not exist while it should."
-        out.append(f.read_text(encoding="utf-8"))
-    return "".join(out)
-
-
 def build_bundle(track):
     key = TRACKS[track]
     yaml_name = f"competition_{key}.yaml"
@@ -91,19 +73,16 @@ def build_bundle(track):
         bundle.write(ROOT_DIR / "codabench" / yaml_name, "competition.yaml")
         bundle.write(ROOT_DIR / "logo.jpg", "logo.jpg")
 
-        # The track's competition page, assembled from the shared fragments.
-        print(f"pages/competition.html  <-  pages/competition_{key}.html")
-        bundle.writestr("pages/competition.html", _competition_page(key))
-
         # Shared components: programs + pages + sample submission. The
         # benchmark travels with the phase, below, not at the bundle root.
         _add_dir(bundle, ROOT_DIR / "codabench" / "ingestion_program",
                  "ingestion_program")
         _add_dir(bundle, ROOT_DIR / "codabench" / "scoring_program",
                  "scoring_program")
-        # The competition-page fragments are assembled above, not copied.
+        # Only this track's description: the other three are other bundles'.
         _add_dir(bundle, ROOT_DIR / "codabench" / "pages", "pages",
-                 exclude=lambda f: f.name.startswith(("_", "competition_")))
+                 exclude=lambda f: (f.name.startswith("competition_")
+                                    and f.name != f"competition_{key}.md"))
         _add_dir(bundle, ROOT_DIR / "solution" / track, "solution")
 
         # Warm-up task data: the phase directory as it stands — config,
