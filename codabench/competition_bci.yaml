@@ -23,8 +23,8 @@ forum_enabled: False
 
 terms: pages/terms.md
 pages:
-  - title: Competition
-    file: pages/competition.html
+  - title: Track description
+    file: pages/competition_bci.md
   - title: Participation
     file: pages/participate.md
   - title: Timeline
