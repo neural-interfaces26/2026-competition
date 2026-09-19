@@ -1,12 +1,10 @@
-"""Sample submission for the EMG-to-pose track.
+"""Smoke-test submission for the EMG-to-pose track.
 
-Demonstrates the full contract with the shared ``ConstantPose`` baseline:
-
-- submitted as-is, it **loads** its per-joint angles from ``weights.npz``
-  shipped alongside (the platform runs inference-only);
-- run with ``-o "EMG-pose[training=True]"``, ``fit`` recomputes them on the
-  train split and ``save_model`` writes them — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-EMG.zip``.
+This deliberately simple constant-pose predictor validates ingestion, data
+loading, inference, scoring, and leaderboard publication. It loads locally
+trained joint angles from ``weights.npz`` when provided and otherwise uses
+the baseline's in-memory zero pose. The optional ``fit`` and ``save_model``
+hooks support local training and export.
 """
 
 import numpy as np

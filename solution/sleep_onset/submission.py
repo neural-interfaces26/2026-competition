@@ -1,13 +1,11 @@
-"""Sample submission for the sleep-onset track.
+"""Smoke-test submission for the sleep-onset track.
 
-Demonstrates the full contract with a trivial constant-latency regressor:
-
-- submitted as-is, it **loads** its latency from ``weights.npz`` when one is
-  shipped alongside, and otherwise uses an in-memory stand-in value so the
-  sample also works from Codabench's read-only submission directory;
-- run with ``-o "Sleep-onset[training=True]"``, ``fit`` recomputes it on the
-  train split and ``save_model`` writes it — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-Sleep.zip``.
+This deliberately simple constant predictor validates ingestion, real-data
+loading, inference, scoring, and leaderboard publication. It loads a locally
+trained latency from ``weights.npz`` when provided and otherwise uses an
+in-memory fallback. The optional ``fit`` and ``save_model`` hooks support
+local training and export. A full PyTorch code-and-weights example lives in
+``examples/sleep_onset/minimal_cnn``.
 """
 
 import numpy as np
