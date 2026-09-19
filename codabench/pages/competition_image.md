@@ -1,11 +1,9 @@
----
-
 # Register in three steps
 
 **Every participant must complete these steps, including each member of a team.**
 
 1. Create a **[Codabench account](https://www.codabench.org/accounts/signup)** and sign in.
-2. Open **[My Submissions](https://www.codabench.org/competitions/17982/#/participate-tab)**, accept the terms and conditions, then click **Register**. Your request will initially appear as **pending**.
+2. Open **[My Submissions](https://www.codabench.org/competitions/17974/#/participate-tab)**, accept the terms and conditions, then click **Register**. Your request will initially appear as **pending**.
 3. Complete and submit the **[registration form](https://forms.gle/p3t2V25nuQtVXyj9A)**. **If you are entering multiple tracks**, submit the form only once and select, in the form, every track for which you have registered.
 
 You may access the form using a different email account, but make sure the email address you enter in the form matches the one associated with your Codabench account, as it is used to approve your registration automatically.
@@ -16,9 +14,9 @@ Return to **My Submissions** to confirm your registration. Refresh the page if n
 
 **If you are participating individually, you can disregard this section.**
 
-0. Each team member must complete the three steps above individually (you won't have to indicate your team in the form). 
-1. Internally, choose a Team Leader. 
-2. The team leader must create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)** for the team, save it, and edit it to **add the other team members to it**. 
+0. Each team member must complete the three steps above individually (you won't have to indicate your team in the form).
+1. Internally, choose a Team Leader.
+2. The team leader must create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)** for the team, save it, and edit it to **add the other team members to it**.
 
 Remark 1: Each participant may belong to only one team (Codabench Organization) and cannot join or submit on behalf of multiple teams.
 
@@ -28,9 +26,15 @@ Remark 3: If the team wins, the team leader is responsible for submitting the co
 
 ---
 
+# Before preparing a submission
+
+Before building or uploading a model, **read the Submission Guidelines in the Participation tab** (in the menu on the left). It is the authoritative source for the ZIP structure, `submission.py` contract, trained weights, and validation workflow.
+
+---
+
 # EEG/EMG Foundation Challenge 2026 · Track 01 - EEG-to-Image
 
-*Identify the natural image viewed by a participant from a single EEG response.*
+_Identify the natural image viewed by a participant from a single EEG response._
 
 Track 01 asks models to predict a **1536-dimensional visual embedding** from a **single EEG epoch** recorded during natural-image viewing. It evaluates whether neural representations learned from training images transfer to entirely new images rather than memorizing a fixed stimulus catalogue.
 
@@ -44,13 +48,13 @@ Track 01 asks models to predict a **1536-dimensional visual embedding** from a *
 
 ## Track at a glance
 
-| | |
-|---|---|
-| **Input** | A single multichannel EEG epoch |
-| **Output** | A 1536-dimensional DINOv2-giant image embedding |
-| **Evaluation** | Images and participants absent from training |
+|                    |                                                             |
+| ------------------ | ----------------------------------------------------------- |
+| **Input**          | A single multichannel EEG epoch                             |
+| **Output**         | A 1536-dimensional DINOv2-giant image embedding             |
+| **Evaluation**     | Images and participants absent from training                |
 | **Ranking metric** | Top-5 retrieval accuracy against the complete candidate set |
-| **Direction** | Higher is better |
+| **Direction**      | Higher is better                                            |
 
 ---
 
@@ -127,7 +131,7 @@ The evaluation covers:
 
 This controlled cross-stimulus split tests whether a model retrieves visual content beyond the concepts and image identities represented in its training data.
 
-> **Data use:** Each public dataset retains its original license. Conditions for the hidden competition cohort are defined in the *Terms* tab.
+> **Data use:** Each public dataset retains its original license. Conditions for the hidden competition cohort are defined in the _Terms_ tab.
 
 ---
 
@@ -152,8 +156,6 @@ The local baseline score is a **preparation reference**, not an official hidden-
 **[Follow the Track 01 preparation guide on NeuralBench →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html)**
 
 **[Read the NeuralBench image-decoding task reference →](https://facebookresearch.github.io/neuroai/neuralbench/tasks/eeg/image.html)**
-
-*The Participation tab contains the submission contract, local smoke-test workflow, packaging instructions, and upload procedure.*
 
 ---
 

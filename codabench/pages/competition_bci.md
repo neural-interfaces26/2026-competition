@@ -1,5 +1,3 @@
----
-
 # Register in three steps
 
 **Every participant must complete these steps, including each member of a team.**
@@ -10,15 +8,15 @@
 
 You may access the form using a different email account, but make sure the email address you enter in the form matches the one associated with your Codabench account, as it is used to approve your registration automatically.
 
-Return to **My Submissions** to confirm your registration. Refresh the page if needed..
+Return to **My Submissions** to confirm your registration. Refresh the page if needed.
 
 # What if you are part of a team?
 
 **If you are participating individually, you can disregard this section.**
 
-0. Each team member must complete the three steps above individually (you won't have to indicate your team in the form). 
-1. Internally, choose a Team Leader. 
-2. The team leader must create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)** for the team, save it, and edit it to **add the other team members to it**. 
+0. Each team member must complete the three steps above individually (you won't have to indicate your team in the form).
+1. Internally, choose a Team Leader.
+2. The team leader must create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)** for the team, save it, and edit it to **add the other team members to it**.
 
 Remark 1: Each participant may belong to only one team (Codabench Organization) and cannot join or submit on behalf of multiple teams.
 
@@ -28,10 +26,15 @@ Remark 3: If the team wins, the team leader is responsible for submitting the co
 
 ---
 
+# Before preparing a submission
+
+Before building or uploading a model, **read the Submission Guidelines in the Participation tab** (in the menu on the left). It is the authoritative source for the ZIP structure, `submission.py` contract, trained weights, and validation workflow.
+
+---
 
 # EEG/EMG Foundation Challenge 2026 · Track 02 - BCI Decoding
 
-*Decode a user’s intended mental command reliably across recording sessions.*
+_Decode a user’s intended mental command reliably across recording sessions._
 
 Track 02 asks models to classify **three cued mental commands** from short EEG windows: kinesthetic motor imagery, mental calculation, and word association. It evaluates whether subject-specific decoding learned from earlier sessions remains accurate during later sessions without additional per-session calibration.
 
@@ -45,13 +48,13 @@ Track 02 asks models to classify **three cued mental commands** from short EEG w
 
 ## Track at a glance
 
-| | |
-|---|---|
-| **Input** | Short windows sampled at 500 Hz from 43 EEG, 2 EMG, and 2 EOG channels |
-| **Output** | One of three cued mental commands |
-| **Evaluation** | Later sessions from users represented during calibration |
-| **Ranking metric** | Balanced accuracy across subject, session, and context cells |
-| **Direction** | Higher is better |
+|                    |                                                                        |
+| ------------------ | ---------------------------------------------------------------------- |
+| **Input**          | Short windows sampled at 500 Hz from 43 EEG, 2 EMG, and 2 EOG channels |
+| **Output**         | One of three cued mental commands                                      |
+| **Evaluation**     | Later sessions from users represented during calibration               |
+| **Ranking metric** | Balanced accuracy across subject, session, and context cells           |
+| **Direction**      | Higher is better                                                       |
 
 ---
 
@@ -140,7 +143,7 @@ No single public dataset reproduces the complete three-command, six-session comp
 
 These public datasets are preparation resources. The official Graz and BrainHero dataset is the only source that combines all three commands with the exact longitudinal evaluation split.
 
-> **Data use:** Each public dataset retains its original license. Conditions for the Graz and BrainHero competition dataset are defined in the *Terms* tab.
+> **Data use:** Each public dataset retains its original license. Conditions for the Graz and BrainHero competition dataset are defined in the _Terms_ tab.
 
 ---
 
@@ -164,8 +167,6 @@ The public-data baseline is a **preparation reference**, not an official hidden-
 
 **[Read the NeuralBench motor-imagery task reference →](https://facebookresearch.github.io/neuroai/neuralbench/tasks/eeg/motor_imagery.html)**
 
-*The Participation tab contains the submission contract, local smoke-test workflow, packaging instructions, and upload procedure.*
-
 ---
 
 ## Track 02 awards
@@ -173,12 +174,12 @@ The public-data baseline is a **preparation reference**, not an official hidden-
 ### $6,000 cash prize pool
 
 | Final position | Cash prize |
-|---|---:|
-| **1st place** | **$2,000** |
-| **2nd place** | **$2,000** |
-| **3rd place** | **$2,000** |
+| -------------- | ---------: |
+| **1st place**  | **$2,000** |
+| **2nd place**  | **$2,000** |
+| **3rd place**  | **$2,000** |
 
-Awards are subject to participant eligibility and the reproducibility audit described in the *Terms* tab.
+Awards are subject to participant eligibility and the reproducibility audit described in the _Terms_ tab.
 
 **[Review the Track 02 awards and conditions on the main competition website →](https://neural-interfaces26.github.io/prizes.html#award-track-2)**
 

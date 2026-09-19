@@ -1,11 +1,9 @@
----
-
 # Register in three steps
 
 **Every participant must complete these steps, including each member of a team.**
 
 1. Create a **[Codabench account](https://www.codabench.org/accounts/signup)** and sign in.
-2. Open **[My Submissions](https://www.codabench.org/competitions/17982/#/participate-tab)**, accept the terms and conditions, then click **Register**. Your request will initially appear as **pending**.
+2. Open **[My Submissions](https://www.codabench.org/competitions/17983/#/participate-tab)**, accept the terms and conditions, then click **Register**. Your request will initially appear as **pending**.
 3. Complete and submit the **[registration form](https://forms.gle/p3t2V25nuQtVXyj9A)**. **If you are entering multiple tracks**, submit the form only once and select, in the form, every track for which you have registered.
 
 You may access the form using a different email account, but make sure the email address you enter in the form matches the one associated with your Codabench account, as it is used to approve your registration automatically.
@@ -16,9 +14,9 @@ Return to **My Submissions** to confirm your registration. Refresh the page if n
 
 **If you are participating individually, you can disregard this section.**
 
-0. Each team member must complete the three steps above individually (you won't have to indicate your team in the form). 
-1. Internally, choose a Team Leader. 
-2. The team leader must create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)** for the team, save it, and edit it to **add the other team members to it**. 
+0. Each team member must complete the three steps above individually (you won't have to indicate your team in the form).
+1. Internally, choose a Team Leader.
+2. The team leader must create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)** for the team, save it, and edit it to **add the other team members to it**.
 
 Remark 1: Each participant may belong to only one team (Codabench Organization) and cannot join or submit on behalf of multiple teams.
 
@@ -28,9 +26,15 @@ Remark 3: If the team wins, the team leader is responsible for submitting the co
 
 ---
 
+# Before preparing a submission
+
+Before building or uploading a model, **read the Submission Guidelines in the Participation tab** (in the menu on the left). It is the authoritative source for the ZIP structure, `submission.py` contract, trained weights, and validation workflow.
+
+---
+
 # EEG/EMG Foundation Challenge 2026 · Track 03 - Sleep onset
 
-*Estimate how long remains before stable sleep begins from continuous wearable EEG recorded at home.*
+_Estimate how long remains before stable sleep begins from continuous wearable EEG recorded at home._
 
 Track 03 asks models to predict, at each point in a **continuous four-channel EEG recording**, the number of seconds remaining until the first stable N2 epoch. It evaluates whether sleep-onset patterns learned from existing recordings generalize to participants who were never seen during training.
 
@@ -44,13 +48,13 @@ Track 03 asks models to predict, at each point in a **continuous four-channel EE
 
 ## Track at a glance
 
-| | |
-|---|---|
-| **Input** | Continuous four-channel home EEG |
-| **Output** | Seconds remaining until the first stable N2 epoch |
-| **Evaluation** | Participants absent from training |
-| **Ranking metric** | Binned mean absolute error in seconds |
-| **Direction** | Lower is better |
+|                    |                                                   |
+| ------------------ | ------------------------------------------------- |
+| **Input**          | Continuous four-channel home EEG                  |
+| **Output**         | Seconds remaining until the first stable N2 epoch |
+| **Evaluation**     | Participants absent from training                 |
+| **Ranking metric** | Binned mean absolute error in seconds             |
+| **Direction**      | Lower is better                                   |
 
 ---
 
@@ -146,7 +150,7 @@ The evaluation set contains:
 
 This participant-level separation tests whether the model captures physiological patterns that generalize across individuals while remaining robust to night-to-night variability and the artifacts encountered in everyday recordings.
 
-> **Data use:** Original dataset licenses and access conditions remain in force. Conditions applying to the Muse competition data are defined in the *Terms* tab.
+> **Data use:** Original dataset licenses and access conditions remain in force. Conditions applying to the Muse competition data are defined in the _Terms_ tab.
 
 ---
 
@@ -176,23 +180,21 @@ When the competition opens, the same NeuralBench task will provide access to the
 
 **[Read the NeuralBench sleep-onset task reference →](https://facebookresearch.github.io/neuroai/neuralbench/tasks/eeg/sleep_onset.html)**
 
-*The Participation tab contains the submission contract, local smoke-test workflow, packaging instructions, and upload procedure.*
-
 ---
 
 ## Track 03 awards
 
 ### Up to $6,000 in cash awards
 
-| Final position | Award |
-|---|---:|
-| **1st place** | **$2,000 or a remote Muse internship** |
-| **2nd place** | **$2,000** |
-| **3rd place** | **$2,000** |
+| Final position |                                  Award |
+| -------------- | -------------------------------------: |
+| **1st place**  | **$2,000 or a remote Muse internship** |
+| **2nd place**  |                             **$2,000** |
+| **3rd place**  |                             **$2,000** |
 
 The winning team may choose between the **$2,000 first-place cash prize** and a **remote internship with Muse**. Final internship arrangements will be announced separately.
 
-Awards are subject to participant eligibility and the reproducibility audit described in the *Terms* tab.
+Awards are subject to participant eligibility and the reproducibility audit described in the _Terms_ tab.
 
 **[Review the Track 03 awards and conditions on the main competition website →](https://neural-interfaces26.github.io/prizes.html#award-track-3)**
 

@@ -1,40 +1,68 @@
-# How to participate
+# How to submit your model
 
-Your submission is a folder holding a `submission.py` plus any weight files
-your model needs, zipped and uploaded on the *My Submissions* tab. The
-server evaluates it **inference-only**: your model must arrive fully
-trained. Nothing is installed at submission time — the evaluation image
-already carries torch, scikit-learn, benchopt and the data stack.
+## Submission rules
 
-## The contract
+Upload a **fully trained model as a ZIP** through the **My Submissions** tab.
+Codabench will mount the extracted files as read-only, run the model in inference
+mode, compute the track metric, and publishe the score. It does not train
+your model.
 
-`submission.py` defines `class Solver(CompetSolver)`, a
-[benchopt](https://benchopt.github.io) solver. You implement plain PyTorch:
-no benchopt, neuralset or neuralbench knowledge is needed inside your model.
+Your typical `my_submission.zip` contains:
 
-- **`load_model(self, meta)` → model** (required). Build your model, load the
-  weights you shipped from `meta["submission_dir"]`, place it on
-  `meta["device"]`, and return an object exposing `predict(X)`.
-- **`predict(X)`** receives a torch batch `X: (B, C, T)` already on
-  `meta["device"]` and returns the track's output (table below).
-- **`fit(self, model, train_loader)`** (optional) trains your model. It never
-  runs on the server — the platform's phase configs are inference-only — but
-  it is how you train locally against the exact competition data and
-  evaluation.
-- **`save_model(self, model, path)`** (optional) writes the trained weights
-  into the directory `path`. When you implement it, a local training run ends
-  by zipping your solver (as `submission.py`) together with those files into
-  `outputs/submission_<name>.zip`, ready to upload.
+```text
+my_submission.zip
+├── submission.py   # required: all Python inference code
+├── weights.pt      # trained parameters, with any name or format
+└── config.json     # optional non-Python artifact
+```
 
-`meta` is a plain dict: `sfreq`, `ch_names`, `chs_info`, `n_chans`,
-`n_times`, `device`, `submission_dir`, and the track's output size.
+- Put every file at the **root of the ZIP**.
+- `submission.py` must contain `class Solver(CompetSolver)`, the model
+  architecture, model-specific preprocessing, and all Python inference code.
+  Additional Python modules are not supported. See below for more details.
+- Include every weight and optional non-Python artifact the model needs. Read
+  them from `meta["submission_dir"]` in `submission.py`.
 
-| Track | Objective | `predict(X)` returns | Output size | Ranking metric |
-|---|---|---|---|---|
-| 1 — EEG-to-Image | `Image-decoding` | image embeddings `(B, D)` | `meta["n_outputs"]` = D | top-5 retrieval accuracy |
-| 2 — BCI Decoding | `BCI-decoding` | class index per window `(B,)` | `meta["n_classes"]` | balanced accuracy |
-| 3 — Sleep Onset | `Sleep-onset` | seconds to onset `(B,)`, float | `meta["n_outputs"]` = 1 | binned MAE |
-| 4 — EMG-to-Pose | `EMG-pose` | joint angles `(B, n_joints, T)`, degrees | `meta["n_joints"]` | mean angular MAE |
+Nothing will be installed during evaluation. The worker already provides PyTorch,
+scikit-learn, Benchopt, and the competition data stack. During `load_model`
+and `predict`, do not train, download data, or write into the submission
+directory.
+
+---
+
+## Submit in four steps
+
+1. **Train and validate locally** (with the NeuralBench starting kit or your
+   own pipeline). Save the trained weights.
+2. **Create `submission.py`** following the contract below.
+3. **Create the ZIP.** For the example above, run:
+
+   ```bash
+   zip -j my_submission.zip submission.py weights.pt config.json
+   ```
+
+   Omit `config.json` if your model does not need it.
+
+4. **Upload and verify.** In **My Submissions**, select the active phase,
+   upload the ZIP, and wait for **Finished**. If it fails, start with the first
+   error in the ingestion log.
+
+---
+
+## The `submission.py` contract
+
+You write ordinary PyTorch code. Benchopt provides the evaluation wrapper, but
+you do not need to understand its internals. Codabench expects two components:
+
+1. A named `class Solver(CompetSolver)` implementing `load_model(meta)`.
+2. A model returned by `load_model` and exposing `predict(X)`.
+
+### Contract 1: Load the trained model
+
+In `class Solver(CompetSolver)`, **`load_model(self, meta) -> model` is
+required**. It reconstructs the trained architecture, loads the shipped
+weights, moves the model to the evaluation device, and returns it in
+evaluation mode:
 
 ```python
 import torch
@@ -44,83 +72,218 @@ from benchmark_utils.base_solver import CompetSolver
 
 class Solver(CompetSolver):
     name = "MyModel"
-    # torch and scikit-learn come with the evaluation environment;
-    # declare only your own extras.
-    requirements = ["pip::my-model-pkg"]
+
+    # Declare only packages already available in the evaluation image.
+    requirements = []
 
     def load_model(self, meta):
-        model = build_my_model(
-            n_chans=meta["n_chans"], n_times=meta["n_times"],
+        # MyModel must be defined in this submission.py file.
+        model = MyModel(
+            n_chans=meta["n_chans"],
+            n_times=meta["n_times"],
         )
-        state = torch.load(meta["submission_dir"] / "weights.pt",
-                           map_location=meta["device"])
-        model.load_state_dict(state)
+        weights = meta["submission_dir"] / "weights.pt"
+        state_dict = torch.load(
+            weights,
+            map_location=meta["device"],
+            weights_only=True,
+        )
+        model.load_state_dict(state_dict)
         return model.to(meta["device"]).eval()
+
+    # Optional local-training hooks. Codabench never calls them.
+    # See "Optional: train through Benchopt" below.
+    def fit(self, model, train_loader):
+        ...
+
+    def save_model(self, model, path):
+        ...
 ```
 
-`predict` can simply be a method of the model you return.
+Remark: `meta` is a plain Python dictionary created and passed to `load_model`
+automatically. You do not create or upload it. It provides:
 
-## What you can see, what stays hidden
+- `submission_dir`: read-only path to the files extracted from your ZIP
+- `device`: CPU or GPU used for the model and input batches
+- `n_chans`, `n_times`, `sfreq`, `ch_names`, `chs_info`: input description
+- `n_outputs`, `n_classes`, or `n_joints`: track-specific output size
 
-Only the **data** is hidden. Everything that loads it, evaluates it and talks
-to your model is public, and is the same code in both phases:
+A fixed-size architecture normally uses `meta["n_chans"]` and
+`meta["n_times"]`. A shape-agnostic model may infer these dimensions from `X`.
 
-|                           | Warm-up phase              | Sealed final phase              |
-|---------------------------|----------------------------|---------------------------------|
-| Data                      | public proxy, downloadable | held-out cohort, never released |
-| Dataset name / parameters | shown on the leaderboard   | disclosed after the phase       |
-| Docker image              | same                       | same                            |
-| Ingestion + scoring       | same                       | same                            |
-| Objective + metric        | same                       | same                            |
-| `meta` keys, batch shapes | same contract              | same contract                   |
-| Your submission           | unchanged                  | unchanged                       |
+### Contract 2: Generate predictions
 
-So one rule keeps a submission valid on data you never see: **use only
-`meta` and the batches you are given**. A solver that reads a dataset name, a
-file path, a subject id, or a hard-coded channel count may break on the
-held-out cohort.
+After `Solver.load_model(meta)` returns your model, Codabench calls that
+required model's `predict(X)` method for every evaluation batch.
 
-## Test locally
+`X` is a PyTorch tensor already on `meta["device"]`, with shape `(B, C, T)`:
 
-The starting kit is the benchmark itself, one per track. From a checkout:
+- `B`: batch size
+- `C`: signal channels
+- `T`: time samples
 
-```bash
-benchopt install tracks/<track>            # CPU env (add --gpu for CUDA)
-benchopt run tracks/<track> -d Simulated   # zero-download smoke test
+`predict(X)` must return the output required by the track:
+
+| Track             | `predict(X)` must return                   | Output-size key           | Ranking metric           |
+| ----------------- | ------------------------------------------ | ------------------------- | ------------------------ |
+| 01 - EEG-to-Image | image embeddings `(B, D)`                  | `meta["n_outputs"]` = `D` | top-5 retrieval accuracy |
+| 02 - BCI Decoding | one class index per window `(B,)`          | `meta["n_classes"]`       | balanced accuracy        |
+| 03 - Sleep Onset  | seconds to sleep onset `(B,)` as floats    | `meta["n_outputs"]` = `1` | binned MAE               |
+| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in degrees | `meta["n_joints"]`        | mean angular MAE         |
+
+A PyTorch model can implement `predict` directly:
+
+```python
+class MyModel(torch.nn.Module):
+    @torch.inference_mode()
+    def predict(self, X):
+        self.eval()
+        return self(X)
 ```
 
-`Simulated` needs no download and no data stack, so it is the fastest way to
-check that your solver loads and predicts the right shape. To try a
-submission, drop your files into the track's `solvers/` folder and run it
-like any benchopt solver — the platform evaluation is the same
-`benchopt run`, inference-only:
+---
+
+## Get some practice 1: Validate a complete Codabench submission
+
+**Goal: upload a minimal working model before adapting the same structure to
+your trained model.**
+
+The repository's [worked examples](https://github.com/tomMoral/2026-neurips_compet-eeg/tree/main/examples)
+provide a small code-and-weights submission for each track. Choose the folder
+for your track and follow its README to create the ZIP.
+
+Upload the example only to its matching competition. A successful run
+validates the ZIP structure, weight loading, inference, scoring, and
+leaderboard publication. These examples are technical checks, not reference
+baselines.
+
+---
+
+## Get some practice 2: Reproduce and submit a NeuralBench baseline
+
+**Goal: apply the workflow from Practice 1 to a trained reference model.**
+Use your track's NeuralBench starting kit to reproduce its public baseline,
+then submit that model to Codabench during the warm-up phase.
+
+The guides provide the track tasks, public data pipelines, preprocessing, and
+reference baselines:
+
+| Track             | NeuralBench preparation guide                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 01 - EEG-to-Image | [Open the Track 01 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html) |
+| 02 - BCI Decoding | [Open the Track 02 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html)   |
+| 03 - Sleep Onset  | [Open the Track 03 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)  |
+| 04 - EMG-to-Pose  | [Open the Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)  |
+
+NeuralBench produces the trained model. Codabench can evaluate it only when
+its architecture and inference preprocessing are exposed through the
+`Solver` contract above and its weights are included in the ZIP.
+
+1. Follow the track guide and reproduce the baseline on permitted data.
+2. Package its `submission.py` and trained weights.
+3. Upload the ZIP through **My Submissions** and confirm that it finishes and
+   receives a score.
+
+If the NeuralBench solver already implements `fit` and `save_model`, the
+training run performs step 2 and creates:
+
+```text
+tracks/<track>/outputs/submission_<model-name>.zip
+```
+
+With another training pipeline, save the parameters yourself and load them
+from `meta["submission_dir"]` in `load_model`.
+
+---
+
+## Behind the scenes: How Codabench and Benchopt evaluate your submission
+
+[Benchopt](https://benchopt.github.io) runs each public track benchmark and
+computes its metrics. Codabench manages uploads, workers, and leaderboards.
+
+Only the sealed evaluation data and labels are hidden. The evaluation code
+and model contract remain public:
+
+|                                 | Warm-up phase                    | Sealed final phase                       |
+| ------------------------------- | -------------------------------- | ---------------------------------------- |
+| Evaluation data                 | development or public proxy data | held-out cohort, never released          |
+| Benchmark code and worker image | public and fixed                 | same                                     |
+| Objective and metric            | public                           | same                                     |
+| `meta` keys and tensor contract | documented contract              | same contract, runtime values may differ |
+| Submission ZIP                  | your trained model               | unchanged                                |
+
+For portability, **use only `meta` and the provided batches**. Do not rely on
+undocumented dataset names, paths, subject identifiers, or fixed dimensions.
+
+---
+
+## Optional: test your submission locally
+
+Local testing is optional, but catches missing files, imports, and incorrect
+output shapes.
+
+From a checkout of the competition repository:
 
 ```bash
+benchopt install tracks/<track>  # add --gpu if your setup requires CUDA
 cp my_submission/* tracks/<track>/solvers/
-benchopt run tracks/<track> -d Simulated -s my-solver
+benchopt run tracks/<track> -d Simulated -s MyModel
+benchopt test tracks/<track> --skip-install
 ```
 
-`benchopt test tracks/<track> --skip-install` is the rehearsal for the
-sealed phase: it runs your solver against a differently shaped dataset,
-the closest local stand-in for data it has never seen.
+Replace `MyModel` with `Solver.name`. `Simulated` requires no download.
+`benchopt test` also exercises small configurations with different dimensions
+where applicable. Neither command produces an official score.
 
-To train on the real data, `benchopt prepare tracks/<track>` downloads it
-once (large for some tracks), then
+### Optional: train through Benchopt
+
+During local training, optional `fit(model, train_loader)` trains the model and
+`save_model(model, path)` writes its artifacts. `CompetSolver` then packages
+them with `submission.py` into an upload-ready ZIP.
+
+Use these track and objective names:
+
+| Track | `<track>`        | `<objective>`    |
+| ----- | ---------------- | ---------------- |
+| 01    | `image_decoding` | `Image-decoding` |
+| 02    | `bci_decoding`   | `BCI-decoding`   |
+| 03    | `sleep_onset`    | `Sleep-onset`    |
+| 04    | `emg_pose`       | `EMG-pose`       |
+
+To train and export through Benchopt, run:
 
 ```bash
-benchopt run tracks/<track> -s my-solver -o "<objective>[training=True]"
+benchopt prepare tracks/<track>
+benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
 ```
 
-trains your solver through `fit` and evaluates it exactly as the platform
-does — `<objective>` being the track's objective name from the table above.
-This is also how the baselines shipped in `solvers/` are trained.
+If you train outside NeuralBench, omit these optional methods.
 
-## Develop with benchopt
+---
 
-The starting kit is a set of plain benchopt benchmarks, so while iterating you
-get hyperparameter grids in one flag (`-s "my-solver[lr=[1e-4,1e-3]]"`),
-cached reruns, interactive HTML reports (`benchopt plot`), reproducible
-experiment yamls (`--config`) and parallel/SLURM execution (`-j`,
-`--parallel-config`). If you code with an AI assistant, `benchopt
-sync-skills --global` teaches it the solver conventions. The starting-kit
-README has the full tour.
+## Common submission errors
+
+- `submission.py` or the weights are inside an extra directory in the ZIP
+- `class Solver` is missing, renamed, or cannot be imported
+- the filename loaded in `load_model` does not match the uploaded weight file
+- the model imports a package that is not available in the worker image
+- the model or input is placed on the wrong device
+- `predict(X)` returns the wrong shape, type, or unit for the track
+- the submission tries to train, download data, or write into its read-only
+  directory during server evaluation
+
+If ingestion fails, start with the **first error in the log**. Later messages
+such as a missing `results.parquet` usually mean that inference already
+failed and no results file could be created.
+
+---
+
+## Optional: develop further with Benchopt
+
+Starting kits are standard [Benchopt](https://benchopt.github.io)
+benchmarks. Benchopt supports parameter sweeps, cached reruns, interactive
+reports with `benchopt plot`, reproducible YAML configurations, and local or
+SLURM execution. These features are optional. See the
+[starting-kit README](https://github.com/tomMoral/2026-neurips_compet-eeg#develop--train-your-model-with-benchopt)
+for the full workflow. For AI tools, `benchopt sync-skills --global` installs
+Benchopt solver conventions.
