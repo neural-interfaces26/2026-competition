@@ -9,10 +9,12 @@ Submission contract
 * ``predict(X)`` receives ``X: (B, C, T)`` and returns ``(B,)`` seconds.
 * Server evaluation is inference-only. Training never runs on Codabench.
 
-Upload ``submission.py`` and ``weights.pt`` together at the ZIP root. The
-included checkpoint is intentionally untrained and only validates the full
-code-and-weights submission path. Replace it with your trained state dict.
+Upload ``submission.py``, ``weights.pt``, and ``config.json`` together at the
+ZIP root. The included checkpoint is intentionally untrained and only
+validates the full submission path. Replace it with your trained state dict.
 """
+
+import json
 
 import torch
 from torch import nn
@@ -20,14 +22,12 @@ from torch import nn
 from benchmark_utils.base_solver import CompetSolver
 
 
-MAX_LATENCY_S = 600.0
-
-
 class MinimalSleepCNN(nn.Module):
     """Small channel-agnostic CNN returning one latency per EEG window."""
 
-    def __init__(self, hidden_channels=8):
+    def __init__(self, hidden_channels=8, max_latency_s=600.0):
         super().__init__()
+        self.max_latency_s = max_latency_s
         # The same temporal filters process every channel. The checkpoint is
         # therefore independent of the number of channels and window length.
         self.temporal = nn.Sequential(
@@ -58,7 +58,7 @@ class MinimalSleepCNN(nn.Module):
         features = self.temporal(X).squeeze(-1)
         features = features.reshape(batch_size, n_chans, -1).mean(dim=1)
         latency = self.regressor(features).squeeze(-1)
-        return latency.clamp(0.0, MAX_LATENCY_S)
+        return latency.clamp(0.0, self.max_latency_s)
 
     @torch.inference_mode()
     def predict(self, X):
@@ -77,11 +77,17 @@ class Solver(CompetSolver):
 
     def load_model(self, meta):
         device = meta["device"]
+        config_path = meta["submission_dir"] / "config.json"
         weights = meta["submission_dir"] / "weights.pt"
-        if not weights.is_file():
+        if not config_path.is_file() or not weights.is_file():
             raise FileNotFoundError(
-                "weights.pt must be included beside submission.py"
+                "config.json and weights.pt must be included beside "
+                "submission.py"
             )
+
+        # Any additional shipped file can be read from submission_dir.
+        with config_path.open(encoding="utf-8") as file:
+            config = json.load(file)
 
         # MinimalSleepCNN is shape-agnostic, so it does not need n_chans or
         # n_times here. A fixed-size architecture would instead use, for
@@ -90,7 +96,9 @@ class Solver(CompetSolver):
         # model = MyModel(
         #     n_chans=meta["n_chans"], n_times=meta["n_times"]
         # )
-        model = MinimalSleepCNN().to(device)
+        model = MinimalSleepCNN(
+            max_latency_s=config["max_latency_s"]
+        ).to(device)
         state_dict = torch.load(
             weights, map_location=device, weights_only=True
         )
