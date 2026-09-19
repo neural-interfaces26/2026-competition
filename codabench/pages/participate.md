@@ -51,13 +51,13 @@ directory.
 
 ## The `submission.py` contract
 
-You write ordinary PyTorch code. Benchopt provides the evaluation wrapper, but
-you do not need to understand its internals. Codabench expects two components:
+In `submission.py`, you write ordinary PyTorch code. Benchopt provides the evaluation wrapper, but
+you do not need to understand its internals. In `submission.py`, Codabench expects two components:
 
 1. A named `class Solver(CompetSolver)` implementing `load_model(meta)`.
 2. A model returned by `load_model` and exposing `predict(X)`.
 
-### Contract 1: Load the trained model
+### Contract 1: `class Solver(CompetSolver)` loads the trained model
 
 In `class Solver(CompetSolver)`, **`load_model(self, meta) -> model` is
 required**. It reconstructs the trained architecture, loads the shipped
@@ -111,7 +111,7 @@ automatically. You do not create or upload it. It provides:
 A fixed-size architecture normally uses `meta["n_chans"]` and
 `meta["n_times"]`. A shape-agnostic model may infer these dimensions from `X`.
 
-### Contract 2: Generate predictions
+### Contract 2: The build model generates predictions
 
 After `Solver.load_model(meta)` returns your model, Codabench calls that
 required model's `predict(X)` method for every evaluation batch.
