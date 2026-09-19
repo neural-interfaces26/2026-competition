@@ -25,6 +25,8 @@ terms: pages/terms.md
 pages:
   - title: Track description
     file: pages/competition_image.md
+  - title: Registration
+    file: pages/registration.md
   - title: Participation
     file: pages/participate.md
   - title: Timeline
