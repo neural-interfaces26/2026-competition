@@ -53,8 +53,8 @@ phases:
     name: Warm-up Phase
     description: 'Warm-up phase: build and test your model against the
       public split. Up to 5 submissions per day.'
-    start: 2026-09-01 00:00:00
-    end: 2026-10-15 23:59:59
+    start: 2026-09-21 00:00:00
+    end: 2026-10-25 23:59:59
     execution_time_limit: 3600
     max_submissions_per_day: 5
     tasks:
@@ -64,8 +64,8 @@ phases:
     description: 'Sealed final phase: one submission per day. The final
       NeurIPS ranking is taken from this phase, and the top-3 of the track
       go through the reproducibility audit.'
-    start: 2026-10-16 00:00:00
-    end: 2026-11-16 00:00:00
+    start: 2026-10-28 00:00:00
+    end: 2026-11-21 23:59:59
     execution_time_limit: 3600
     max_submissions_per_day: 1
     max_submissions: 10
