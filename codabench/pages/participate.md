@@ -30,19 +30,13 @@ and the `neuralset` / `neuralfetch` / `neuralbench` data stack. During
 `load_model` and `predict`, do not train, do not download competition data,
 and do not write into the submission directory.
 
-**Pretrained EEG foundation models.** `braindecode` ships several (BENDR,
-BIOT, CBraMod, SignalJEPA, ...) and its `Model.from_pretrained(...)` pulls
-the published weights from the HuggingFace Hub, which is the way to use a
-checkpoint too large to ship in your ZIP. Prefer shipping the weights when
-you can: a Hub download runs on every submission and counts against the
-one-hour evaluation limit.
-
 ---
 
 ## Submit in four steps
 
-1. **Train and validate locally** (with the benchopt starting kit or your
-   own pipeline). Save the trained weights.
+1. **Train and validate locally** with an optional NeuralBench start kit,
+   directly through Benchopt, or with your own pipeline. Save the trained
+   weights.
 2. **Create `submission.py`** following the contract below.
 3. **Create the ZIP.** For the example above, run:
 
@@ -101,7 +95,7 @@ class Solver(CompetSolver):
         return model.to(meta["device"]).eval()
 
     # Optional local-training hooks. Codabench never calls them.
-    # See "Optional: train through Benchopt" below.
+    # See "Optional practice 3: train and package with Benchopt" below.
     def fit(self, model, train_loader):
         ...
 
@@ -152,37 +146,36 @@ class MyModel(torch.nn.Module):
 
 ---
 
-## Get some practice 1: Upload a complete example
+## Get some practice
 
-**Goal: validate the complete Codabench workflow before packaging your own
-model.**
-
-Each track's `solvers/` directory contains working `CompetSolver`
-implementations on real data, from simple references (`MeanLogReg`, `Median`,
-`MeanEmbedding`, and `MeanPose`) to EEGNet variants. They are the closest
-reference implementations for your own `submission.py`:
+Each track's `solvers/` directory provides a gradual progression from a dummy
+upload to a trained start-kit submission:
 [Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
 [Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
 [Track 03](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers), and
 [Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
+These directories also contain working `CompetSolver` references on real data,
+from simple baselines (`MeanLogReg`, `Median`, `MeanEmbedding`, and `MeanPose`)
+to EEGNet variants.
 
-Track 03 also provides two ready-made archives. Start with the
-[`01_dummy_submission`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers/01_dummy_submission)
-to test ZIP ingestion, inference, scoring, and leaderboard publication. Then
-inspect and submit the trained
-[`02_eegnet_startkit_submission`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers/02_eegnet_startkit_submission),
-which shows how a NeuralBench model and its weights are wrapped for Codabench.
-Upload examples only to their matching track.
+### Practice 1: Test Codabench with a dummy submission
 
----
+Download the ready-to-upload ZIP from your track's `01_dummy_submission/`
+folder and upload it through **My Submissions**. Its predictions are
+deliberately meaningless. A successful run confirms ZIP ingestion, weight
+loading, inference, scoring, and leaderboard publication before you package
+your own model.
 
-## Get some practice 2: Train and package a model
+### Practice 2: Inspect and reproduce a trained start-kit submission
 
-**Goal: reproduce a public baseline, then package your own trained model using
-the same submission contract.**
+Your track's `02_*_startkit_submission/` folder contains an inference-only
+solver, trained weights, and a ready-to-upload ZIP produced from the optional
+NeuralBench start kit. Upload it to the matching track, then inspect how its
+architecture and preprocessing are exposed through `submission.py`.
 
-The optional NeuralBench guides provide each task, public data pipeline,
-preprocessing, and reference baseline:
+To reproduce the baseline yourself, follow the corresponding NeuralBench
+guide. Each guide provides the task, public data pipeline, preprocessing, and
+reference model:
 
 | Track             | NeuralBench preparation guide                                                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -191,26 +184,46 @@ preprocessing, and reference baseline:
 | 03 - Sleep Onset  | [Open the Track 03 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)  |
 | 04 - EMG-to-Pose  | [Open the Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)  |
 
-NeuralBench trains the model. Codabench can evaluate it only after its
+NeuralBench trains the model. Codabench can evaluate the result only after its
 architecture and inference preprocessing are exposed through the `Solver`
-contract and its trained weights are included in the ZIP.
+contract and its trained weights are packaged in the ZIP.
 
 1. Follow the track guide and reproduce the baseline on permitted data.
 2. Package its `submission.py` and trained weights.
 3. Upload the ZIP through **My Submissions** and confirm that it finishes and
    receives a score.
 
-If its solver implements `fit` and `save_model`, the Benchopt training run
-performs step 2 and creates:
+### Optional practice 3: Train and package with Benchopt
+
+This pathway is optional and is demonstrated in
+`03_train_and_package_with_benchopt/`. During a local Benchopt run:
+
+- `fit(model, train_loader)` trains the model
+- `save_model(model, path)` saves its weights
+- `CompetSolver` packages the solver and weights into an upload-ready ZIP
+
+Codabench never calls `fit` or `save_model`. If you train and package by
+another method, you may omit both.
+
+Use these track and objective names:
+
+| Track | `<track>`        | `<objective>`    |
+| ----- | ---------------- | ---------------- |
+| 01    | `image_decoding` | `Image-decoding` |
+| 02    | `bci_decoding`   | `BCI-decoding`   |
+| 03    | `sleep_onset`    | `Sleep-onset`    |
+| 04    | `emg_pose`       | `EMG-pose`       |
+
+```bash
+benchopt prepare tracks/<track>
+benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
+```
+
+The training run creates:
 
 ```text
 tracks/<track>/outputs/submission_<model-name>.zip
 ```
-
-With another training pipeline, save the parameters yourself and load them
-from `meta["submission_dir"]` in `load_model`. Track 03's
-[`03_train_and_package_with_benchopt`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers/03_train_and_package_with_benchopt)
-is a minimal end-to-end example of the `fit` and `save_model` pathway.
 
 ---
 
@@ -257,30 +270,6 @@ against them: selectors are case-insensitive globs, so
 `-s MyModel -s "eegnet*"` runs yours against every EEGNet baseline the
 track ships.
 
-### Optional: train through Benchopt
-
-During local training, optional `fit(model, train_loader)` trains the model and
-`save_model(model, path)` writes its artifacts. `CompetSolver` then packages
-them with `submission.py` into an upload-ready ZIP.
-
-Use these track and objective names:
-
-| Track | `<track>`        | `<objective>`    |
-| ----- | ---------------- | ---------------- |
-| 01    | `image_decoding` | `Image-decoding` |
-| 02    | `bci_decoding`   | `BCI-decoding`   |
-| 03    | `sleep_onset`    | `Sleep-onset`    |
-| 04    | `emg_pose`       | `EMG-pose`       |
-
-To train and export through Benchopt, run:
-
-```bash
-benchopt prepare tracks/<track>   # prepare the data
-benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
-```
-
-If you train outside NeuralBench, omit these optional methods.
-
 ---
 
 ## Common submission errors
@@ -297,6 +286,16 @@ If you train outside NeuralBench, omit these optional methods.
 If ingestion fails, start with the **first error in the log**. Later messages
 such as a missing `results.parquet` usually mean that inference already
 failed and no results file could be created.
+
+---
+
+## Optional: use a large pretrained EEG model
+
+`braindecode` ships pretrained models including BENDR, BIOT, CBraMod, and
+SignalJEPA. When a checkpoint is too large for the submission ZIP,
+`Model.from_pretrained(...)` can retrieve its published weights from the
+Hugging Face Hub. Prefer shipping weights when feasible because the download
+runs for every submission and counts against the one-hour evaluation limit.
 
 ---
 
