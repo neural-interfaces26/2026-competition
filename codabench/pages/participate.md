@@ -23,10 +23,19 @@ my_submission.zip
 - Include every weight and optional non-Python artifact the model needs. Read
   them from `meta["submission_dir"]` in `submission.py`.
 
-Nothing will be installed during evaluation. The worker already provides PyTorch,
-scikit-learn, Benchopt, and the competition data stack. During `load_model`
-and `predict`, do not train, download data, or write into the submission
-directory.
+Nothing will be installed during evaluation, so `submission.py` may only
+import what the image already carries: `torch`, `torchvision`, `torchaudio`,
+`numpy`, `pandas`, `scikit-learn`, `mne`, `moabb`, `braindecode`, `benchopt`
+and the `neuralset` / `neuralfetch` / `neuralbench` data stack. During
+`load_model` and `predict`, do not train, do not download competition data,
+and do not write into the submission directory.
+
+**Pretrained EEG foundation models.** `braindecode` ships several (BENDR,
+BIOT, CBraMod, SignalJEPA, ...) and its `Model.from_pretrained(...)` pulls
+the published weights from the HuggingFace Hub, which is the way to use a
+checkpoint too large to ship in your ZIP. Prefer shipping the weights when
+you can: a Hub download runs on every submission and counts against the
+one-hour evaluation limit.
 
 ---
 
@@ -148,7 +157,7 @@ class MyModel(torch.nn.Module):
 **Goal: upload a minimal working model before adapting the same structure to
 your trained model.**
 
-The repository's [worked examples](https://github.com/tomMoral/2026-neurips_compet-eeg/tree/main/examples)
+The repository's [worked examples](https://github.com/neural-interfaces26/2026-competition/tree/main/examples)
 provide a small code-and-weights submission for each track. Choose the folder
 for your track and follow its README to create the ZIP.
 
@@ -284,6 +293,6 @@ Starting kits are standard [Benchopt](https://benchopt.github.io)
 benchmarks. Benchopt supports parameter sweeps, cached reruns, interactive
 reports with `benchopt plot`, reproducible YAML configurations, and local or
 SLURM execution. These features are optional. See the
-[starting-kit README](https://github.com/tomMoral/2026-neurips_compet-eeg#develop--train-your-model-with-benchopt)
+[starting-kit README](https://github.com/neural-interfaces26/2026-competition#develop--train-your-model-with-benchopt)
 for the full workflow. For AI tools, `benchopt sync-skills --global` installs
 Benchopt solver conventions.
