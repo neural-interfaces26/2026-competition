@@ -1,4 +1,4 @@
-"""Minimal PyTorch submission for Track 03, Sleep Onset.
+"""Dummy PyTorch submission for Track 03, Sleep Onset.
 
 Submission contract
 -------------------
@@ -70,7 +70,7 @@ class MinimalSleepCNN(nn.Module):
 class Solver(CompetSolver):
     """Entry point discovered by the Codabench ingestion program."""
 
-    name = "Minimal-Sleep-CNN"
+    name = "Dummy-Sleep-CNN"
     # The worker already provides PyTorch. It installs nothing at submission
     # time, so a submission must only import packages present in its image.
     requirements = []
