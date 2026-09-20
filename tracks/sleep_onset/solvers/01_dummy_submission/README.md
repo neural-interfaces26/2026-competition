@@ -32,7 +32,7 @@ and submitted directly.
 ## Next step
 
 - Adapt this structure to your model and replace the dummy weights.
-- Or continue with `../02_train_and_package_with_benchopt/`, which demonstrates
-  the full local training and automatic packaging pathway.
-- `../03_eegnet_startkit_submission/` will later receive compatible trained
-  weights for the realistic EEGNet start-kit submission.
+- Continue with `../02_eegnet_startkit_submission/` to inspect and upload a
+  trained EEGNet submission produced from the NeuralBench start kit.
+- Use `../03_train_and_package_with_benchopt/` to learn the complete local
+  training and automatic packaging pathway.

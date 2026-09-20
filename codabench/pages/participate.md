@@ -109,17 +109,6 @@ class Solver(CompetSolver):
         ...
 ```
 
-Every track ships working implementations of this contract in its
-`solvers/` directory — real `CompetSolver` subclasses on real data, from
-trivial baselines (`MeanLogReg`, `Median`, `MeanEmbedding`, `MeanPose`) to
-EEGNet variants:
-[image_decoding](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
-[bci_decoding](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
-[sleep_onset](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers),
-[emg_pose](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
-They are the closest thing to a reference answer for your own
-`submission.py`.
-
 Remark: `meta` is a plain Python dictionary created and passed to `load_model`
 automatically. You do not create or upload it. It provides:
 
@@ -163,30 +152,37 @@ class MyModel(torch.nn.Module):
 
 ---
 
-## Get some practice 1: Validate a complete Codabench submission
+## Get some practice 1: Upload a complete example
 
-**Goal: upload a minimal working model before adapting the same structure to
-your trained model.**
+**Goal: validate the complete Codabench workflow before packaging your own
+model.**
 
-The repository's [worked examples](https://github.com/neural-interfaces26/2026-competition/tree/main/examples)
-provide a small code-and-weights submission for each track. Choose the folder
-for your track and follow its README to create the ZIP.
+Each track's `solvers/` directory contains working `CompetSolver`
+implementations on real data, from simple references (`MeanLogReg`, `Median`,
+`MeanEmbedding`, and `MeanPose`) to EEGNet variants. They are the closest
+reference implementations for your own `submission.py`:
+[Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
+[Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
+[Track 03](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers), and
+[Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
 
-Upload the example only to its matching competition. A successful run
-validates the ZIP structure, weight loading, inference, scoring, and
-leaderboard publication. These examples are technical checks, not reference
-baselines.
+Track 03 also provides two ready-made archives. Start with the
+[`01_dummy_submission`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers/01_dummy_submission)
+to test ZIP ingestion, inference, scoring, and leaderboard publication. Then
+inspect and submit the trained
+[`02_eegnet_startkit_submission`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers/02_eegnet_startkit_submission),
+which shows how a NeuralBench model and its weights are wrapped for Codabench.
+Upload examples only to their matching track.
 
 ---
 
-## Get some practice 2: Reproduce and submit a NeuralBench baseline
+## Get some practice 2: Train and package a model
 
-**Goal: apply the workflow from Practice 1 to a trained reference model.**
-Use your track's NeuralBench starting kit to reproduce its public baseline,
-then submit that model to Codabench during the warm-up phase.
+**Goal: reproduce a public baseline, then package your own trained model using
+the same submission contract.**
 
-The guides provide the track tasks, public data pipelines, preprocessing, and
-reference baselines:
+The optional NeuralBench guides provide each task, public data pipeline,
+preprocessing, and reference baseline:
 
 | Track             | NeuralBench preparation guide                                                                                                                          |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -195,24 +191,26 @@ reference baselines:
 | 03 - Sleep Onset  | [Open the Track 03 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)  |
 | 04 - EMG-to-Pose  | [Open the Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)  |
 
-NeuralBench produces the trained model. Codabench can evaluate it only when
-its architecture and inference preprocessing are exposed through the
-`Solver` contract above and its weights are included in the ZIP.
+NeuralBench trains the model. Codabench can evaluate it only after its
+architecture and inference preprocessing are exposed through the `Solver`
+contract and its trained weights are included in the ZIP.
 
 1. Follow the track guide and reproduce the baseline on permitted data.
 2. Package its `submission.py` and trained weights.
 3. Upload the ZIP through **My Submissions** and confirm that it finishes and
    receives a score.
 
-If the NeuralBench solver already implements `fit` and `save_model`, the
-training run performs step 2 and creates:
+If its solver implements `fit` and `save_model`, the Benchopt training run
+performs step 2 and creates:
 
 ```text
 tracks/<track>/outputs/submission_<model-name>.zip
 ```
 
 With another training pipeline, save the parameters yourself and load them
-from `meta["submission_dir"]` in `load_model`.
+from `meta["submission_dir"]` in `load_model`. Track 03's
+[`03_train_and_package_with_benchopt`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers/03_train_and_package_with_benchopt)
+is a minimal end-to-end example of the `fit` and `save_model` pathway.
 
 ---
 

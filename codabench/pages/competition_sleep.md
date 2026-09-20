@@ -38,7 +38,9 @@ Codabench groups targets by their true time to onset: **[0, 40)**, **[40, 90)**,
 
 ## Evaluation data
 
-> **Warm-up configuration pending.** The public evaluation dataset will be named here once finalized. Because the warm-up data are public, they may overlap with development data. Warm-up scores validate the submission workflow and support iteration, but they do not determine the final ranking.
+> **Warm-up evaluation uses the public `Kemp2000Analysis` Sleep-EDF dataset.** NeuralBench uses a fixed participant-level split with random state 33: 46 participants for training, 16 for validation, and 16 for testing. The start kit trains on the training partition and selects its checkpoint using validation bMAE. Codabench does not retrain the submitted model and scores it only on the 7,200 windows from the public test partition, not on the full dataset. This warm-up uses the two bipolar channels `Fpz-Cz` and `Pz-Oz`.
+
+Because Sleep-EDF and its labels are public, warm-up results may include leakage and are intended for workflow validation and iteration. They do not determine the final ranking.
 
 Only the sealed phase determines the final ranking. It uses the private 2026 Muse evaluation cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)**. Its participants, recordings, and labels remain hidden, preventing evaluation-set leakage.
 

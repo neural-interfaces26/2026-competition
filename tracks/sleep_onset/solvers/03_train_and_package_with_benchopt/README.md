@@ -8,7 +8,7 @@ Benchopt discovers solver files placed directly in the track's `solvers/`
 directory. From the repository root, first copy this example there:
 
 ```bash
-cp tracks/sleep_onset/solvers/02_train_and_package_with_benchopt/linear_reg.py \
+cp tracks/sleep_onset/solvers/03_train_and_package_with_benchopt/linear_reg.py \
   tracks/sleep_onset/solvers/linear_reg.py
 ```
 
