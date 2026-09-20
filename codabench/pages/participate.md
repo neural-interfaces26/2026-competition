@@ -4,7 +4,7 @@
 
 Upload a **fully trained model as a ZIP** through the **My Submissions** tab.
 Codabench will mount the extracted files as read-only, run the model in inference
-mode, compute the track metric, and publishe the score. It does not train
+mode, compute the track metric, and publish the score. It does not train
 your model.
 
 Your typical `my_submission.zip` contains:
@@ -13,7 +13,7 @@ Your typical `my_submission.zip` contains:
 my_submission.zip
 ├── submission.py   # required: all Python inference code
 ├── weights.pt      # trained parameters, with any name or format
-└── config.json     # optional non-Python artifact
+└── ...             # optional non-Python artifact like config.json
 ```
 
 - Put every file at the **root of the ZIP**.
@@ -32,16 +32,16 @@ directory.
 
 ## Submit in four steps
 
-1. **Train and validate locally** (with the NeuralBench starting kit or your
+1. **Train and validate locally** (with the benchopt starting kit or your
    own pipeline). Save the trained weights.
 2. **Create `submission.py`** following the contract below.
 3. **Create the ZIP.** For the example above, run:
 
    ```bash
-   zip -j my_submission.zip submission.py weights.pt config.json
+   zip -j my_submission.zip submission.py weights.pt
    ```
 
-   Omit `config.json` if your model does not need it.
+   Add `config.json` or any other non-Python artifact your model needs.
 
 4. **Upload and verify.** In **My Submissions**, select the active phase,
    upload the ZIP, and wait for **Finished**. If it fails, start with the first
@@ -73,11 +73,11 @@ from benchmark_utils.base_solver import CompetSolver
 class Solver(CompetSolver):
     name = "MyModel"
 
-    # Declare only packages already available in the evaluation image.
     requirements = []
 
     def load_model(self, meta):
-        # MyModel must be defined in this submission.py file.
+        # MyModel must be defined in this submission.py file or imported
+        # from a dependency.
         model = MyModel(
             n_chans=meta["n_chans"],
             n_times=meta["n_times"],
@@ -111,7 +111,7 @@ automatically. You do not create or upload it. It provides:
 A fixed-size architecture normally uses `meta["n_chans"]` and
 `meta["n_times"]`. A shape-agnostic model may infer these dimensions from `X`.
 
-### Contract 2: The build model generates predictions
+### Contract 2: The built model generates predictions
 
 After `Solver.load_model(meta)` returns your model, Codabench calls that
 required model's `predict(X)` method for every evaluation batch.
@@ -253,7 +253,7 @@ Use these track and objective names:
 To train and export through Benchopt, run:
 
 ```bash
-benchopt prepare tracks/<track>
+benchopt prepare tracks/<track>   # prepare the data
 benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
 ```
 
