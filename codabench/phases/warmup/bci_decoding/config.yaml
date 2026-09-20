@@ -2,11 +2,11 @@
 # A native `benchopt run --config` file; the extra `scoring` key is read
 # by the scoring program (stripped by ingestion before the run).
 dataset:
-  - Simulated
-  # Public proxy — uncommenting it makes the worker stage it in /data.
+  # Public proxy, staged in /data by the worker provisioning from this file.
   # subset=test restricts extraction to the evaluation split (the raw
   # download still fetches the full study — see benchmark_utils.nb_task).
-  # - BCI[study=dreyer2023,subset=test]
+  # One dataset only: scoring reads the first result row.
+  - BCI[study=dreyer2023,subset=test]
 seed: 42
 no_timeout: true
 scoring:
