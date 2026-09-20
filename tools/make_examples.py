@@ -13,15 +13,23 @@ itself, with the file defining ``class Solver`` renamed to
 
 A folder shipping only sources is a walkthrough rather than an upload
 example (benchopt builds that one's archive from a training run), so it is
-skipped.
+skipped. ``tools/make_starting_kit.py`` packs the same archives into the
+participants' starting kit.
 """
 
 import argparse
+import io
 import zipfile
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 SKIP = {"README.md"}
+
+
+def example_folders(track):
+    """The track's numbered example directories, in order."""
+    solvers = ROOT_DIR / "tracks" / track / "solvers"
+    return [f for f in sorted(solvers.glob("[0-9][0-9]_*")) if f.is_dir()]
 
 
 def _solver_file(folder):
@@ -35,32 +43,38 @@ def _solver_file(folder):
     return found[0]
 
 
-def build(folder):
+def archive_bytes(folder):
+    """The example's upload-ready ZIP, or None when it is a walkthrough."""
     solver = _solver_file(folder)
-    payload = [f for f in folder.iterdir()
-               if f.is_file() and f.suffix not in (".py", ".zip")
-               and f.name not in SKIP]
-    if not payload:
-        print(f"{folder.relative_to(ROOT_DIR)}  --  walkthrough, no archive")
-        return
-    archive = folder / f"{folder.name}.zip"
-    with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
-        for path in sorted(folder.iterdir()):
-            if (not path.is_file() or path == archive
-                    or path.name in SKIP or path.suffix == ".zip"):
-                continue
+    files = [f for f in sorted(folder.iterdir())
+             if f.is_file() and f.suffix != ".zip" and f.name not in SKIP]
+    if all(f.suffix == ".py" for f in files):
+        return None
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
+        for path in files:
             bundle.write(
                 path, "submission.py" if path == solver else path.name)
-        names = bundle.namelist()
-    print(f"{archive.relative_to(ROOT_DIR)}  <-  {', '.join(names)}")
+    return buffer.getvalue()
+
+
+def build(folder):
+    payload = archive_bytes(folder)
+    name = folder.relative_to(ROOT_DIR)
+    if payload is None:
+        print(f"{name}  --  walkthrough, no archive")
+        return
+    archive = folder / f"{folder.name}.zip"
+    archive.write_bytes(payload)
+    with zipfile.ZipFile(archive) as bundle:
+        print(f"{archive.relative_to(ROOT_DIR)}  <-  "
+              f"{', '.join(bundle.namelist())}")
 
 
 def main(track):
     tracks = [track] if track else sorted(
         p.name for p in (ROOT_DIR / "tracks").iterdir() if p.is_dir())
-    folders = [f for t in tracks
-               for f in sorted((ROOT_DIR / "tracks" / t / "solvers").glob(
-                   "[0-9][0-9]_*")) if f.is_dir()]
+    folders = [f for t in tracks for f in example_folders(t)]
     if not folders:
         raise SystemExit(f"No example folders under tracks/{track or '*'}/")
     for folder in folders:

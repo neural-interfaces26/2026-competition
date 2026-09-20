@@ -260,7 +260,10 @@ contract and its trained weights are packaged in the ZIP.
 Local testing is optional, but catches missing files, imports, and incorrect
 output shapes.
 
-From a checkout of the competition repository:
+Download the **starting kit** from the competition's *Files* tab — it holds
+the benchmark, this track's baselines and the example submissions — or clone
+the competition repository. Both unpack to the same `tracks/<track>/` layout,
+so from either root:
 
 ```bash
 benchopt install tracks/<track>  # add --gpu if your setup requires CUDA
