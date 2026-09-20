@@ -18,7 +18,7 @@ from benchmark_utils.data import to_numpy
 class Objective(BaseObjective):
 
     name = "BCI-decoding"
-    url = "https://github.com/tomMoral/2026-neurips_compet-eeg"
+    url = "https://github.com/neural-interfaces26/2026-competition"
 
     # CPU/GPU variants resolved by ``benchopt install [--gpu]``; the conda
     # metapackages pin the matching torch build (CI installs the cpu one).

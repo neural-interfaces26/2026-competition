@@ -24,7 +24,7 @@ BIN_EDGES = (0.0, 40.0, 90.0, 300.0, 600.0)
 class Objective(BaseObjective):
 
     name = "Sleep-onset"
-    url = "https://github.com/tomMoral/2026-neurips_compet-eeg"
+    url = "https://github.com/neural-interfaces26/2026-competition"
 
     # CPU/GPU variants resolved by ``benchopt install [--gpu]``; the conda
     # metapackages pin the matching torch build (CI installs the cpu one).

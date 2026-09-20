@@ -83,7 +83,11 @@ def build_bundle(track):
         _add_dir(bundle, ROOT_DIR / "codabench" / "pages", "pages",
                  exclude=lambda f: (f.name.startswith("competition_")
                                     and f.name != f"competition_{key}.md"))
-        _add_dir(bundle, ROOT_DIR / "solution" / track, "solution")
+        # Code only: the samples' weights are gitignored, so whatever sits
+        # in a working tree is a stale local artefact, not something to ship
+        # — and their load_model falls back to an in-memory model anyway.
+        _add_dir(bundle, ROOT_DIR / "solution" / track, "solution",
+                 exclude=lambda f: f.suffix != ".py")
 
         # Warm-up task data: the phase directory as it stands — config,
         # optional sealed datasets/*.py, and the benchmark it runs (a link to
