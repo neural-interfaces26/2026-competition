@@ -1,13 +1,13 @@
-"""Sample submission for the BCI-decoding track.
+"""Smoke-test submission for the BCI-decoding track.
 
-Demonstrates the full contract with a trivial per-class template matcher:
+This deliberately simple template classifier validates ingestion, data
+loading, inference, scoring, and leaderboard publication. It loads locally
+trained templates from ``weights.npz`` when provided and otherwise creates a
+deterministic stand-in in memory. The optional ``fit`` and ``save_model``
+hooks support local training and export.
 
-- submitted as-is, it **loads** its trained templates from ``weights.npz``
-  shipped alongside (the platform runs inference-only — a stand-in file is
-  generated when missing, so the sample always runs);
-- run with ``-o "BCI-decoding[training=True]"``, ``fit`` recomputes the
-  templates on the train split and ``save_model`` writes them — the run then
-  drops a ready-to-upload ``outputs/submission_Sample-BCI.zip``.
+See "Participation > Optional: train through Benchopt" to see how to train
+this model on actual data to produce weights.npz with benchopt.
 """
 
 import numpy as np
@@ -34,11 +34,14 @@ class Solver(CompetSolver):
 
     def load_model(self, meta):
         weights = meta["submission_dir"] / "weights.npz"
-        if not weights.exists():                      # stand-in artefact
+        if weights.exists():                          # written by save_model
+            templates = np.load(weights)["templates"]
+        else:                                         # in-memory smoke fallback
             rng = np.random.default_rng(0)
-            np.savez(weights, templates=rng.standard_normal(
-                (meta["n_classes"], meta["n_chans"])))
-        return TemplateClassifier(np.load(weights)["templates"])
+            templates = rng.standard_normal(
+                (meta["n_classes"], meta["n_chans"])
+            )
+        return TemplateClassifier(templates)
 
     def fit(self, model, train_loader):
         # Per-class mean of the window channel means.

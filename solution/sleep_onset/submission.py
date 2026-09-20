@@ -1,13 +1,13 @@
-"""Sample submission for the sleep-onset track.
+"""Smoke-test submission for the sleep-onset track.
 
-Demonstrates the full contract with a trivial constant-latency regressor:
+This deliberately simple constant predictor validates ingestion, real-data
+loading, inference, scoring, and leaderboard publication. It loads a locally
+trained latency from ``weights.npz`` when provided and otherwise uses an
+in-memory fallback. The optional ``fit`` and ``save_model`` hooks support
+local training and export.``.
 
-- submitted as-is, it **loads** its latency from ``weights.npz`` shipped
-  alongside (the platform runs inference-only — a stand-in file is generated
-  when missing, so the sample always runs);
-- run with ``-o "Sleep-onset[training=True]"``, ``fit`` recomputes it on the
-  train split and ``save_model`` writes it — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-Sleep.zip``.
+See "Participation > Optional: train through Benchopt" to see how to train
+this model on actual data to produce weights.npz with benchopt.
 """
 
 import numpy as np
@@ -22,9 +22,9 @@ class Solver(CompetSolver):
 
     def load_model(self, meta):
         weights = meta["submission_dir"] / "weights.npz"
-        if not weights.exists():                      # stand-in artefact
-            np.savez(weights, latency=np.float64(300.0))
-        return MedianRegressor(value=float(np.load(weights)["latency"]))
+        value = (float(np.load(weights)["latency"])
+                 if weights.exists() else 300.0)
+        return MedianRegressor(value=value)
 
     def fit(self, model, train_loader):
         model.fit(train_loader)                       # median train latency

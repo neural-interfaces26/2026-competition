@@ -1,12 +1,13 @@
-"""Sample submission for the image-decoding track.
+"""Smoke-test submission for the EEG-to-image track.
 
-Demonstrates the full contract with the shared ``ConstantEmbedder`` baseline:
+This deliberately simple constant-embedding predictor validates ingestion,
+data loading, inference, scoring, and leaderboard publication. It loads a
+locally trained embedding from ``weights.npz`` when provided and otherwise
+uses the baseline's in-memory constant. The optional ``fit`` and
+``save_model`` hooks support local training and export.
 
-- submitted as-is, it **loads** its embedding from ``weights.npz`` shipped
-  alongside (the platform runs inference-only);
-- run with ``-o "Image-decoding[training=True]"``, ``fit`` recomputes it on
-  the train split and ``save_model`` writes it — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-Image.zip``.
+See "Participation > Optional: train through Benchopt" to see how to train
+this model on actual data to produce weights.npz with benchopt.
 """
 
 import numpy as np
