@@ -74,7 +74,9 @@ class Dataset(BaseDataset):
             "eeg", "image", self._data_dir(),
             dataset=_OVERLAYS[self.study],
         )
-        self._load()
+        # The DINOv2-giant embedding is the heavy step; run it on the GPU when
+        # one is available (get_data does the same) instead of the CPU default.
+        self._load(device=get_device())
 
     def _data_dir(self):
         path = get_data_path("neural_compet")
