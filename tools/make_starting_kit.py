@@ -6,19 +6,22 @@ Produces ``starting_kit_<track>.zip`` at the repo root::
 
     README.md            the repo tour
     tracks/<track>/      the benchmark, benchmark_utils dereferenced
-    examples/*.zip       the upload-ready example submissions
+    examples/*.zip       each baseline, ready to upload as a submission
 
 The benchmark keeps its ``tracks/<track>/`` path so every command the
 participation page documents (``benchopt install tracks/<track>``,
 ``benchopt run tracks/<track> ...``) works verbatim from the unzipped kit.
 
-Everything is derived from the checkout, so the kit cannot drift from the
-benchmark the workers run — ``push_all.py`` (neural-compet-aws) builds it in
-the same run that publishes the phase ``input_data`` and attaches it as the
-phase's Codabench starting kit.
+A baseline becomes an example by being a solver: ``solvers/<name>.py`` is
+packaged as ``submission.py``, with a sibling ``<name>.<ext>`` carried
+alongside as its ``weights`` file when one exists. Nothing is committed —
+the archives are derived here, so they cannot drift from the benchmark the
+workers run. ``push_all.py`` (neural-compet-aws) builds the kit in the same
+run that publishes the phase ``input_data``.
 """
 
 import argparse
+import io
 import zipfile
 from pathlib import Path
 
@@ -26,7 +29,17 @@ from pathlib import Path
 # builder; a track's benchmark_utils is a link, and a plain glob would ship a
 # benchmark with no shared code.
 from create_bundle import ROOT_DIR, _SKIP_PARTS, _walk
-from make_examples import archive_bytes, example_folders
+
+
+def example_archive(solver):
+    """One solver packaged as an upload-ready submission ZIP."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
+        bundle.write(solver, "submission.py")
+        for weights in sorted(solver.parent.glob(f"{solver.stem}.*")):
+            if weights.suffix != ".py":
+                bundle.write(weights, f"weights{weights.suffix}")
+    return buffer.getvalue()
 
 
 def build(track):
@@ -41,10 +54,9 @@ def build(track):
                     part in _SKIP_PARTS for part in f.parts):
                 continue
             kit.write(f, Path("tracks") / track / f.relative_to(src))
-        for folder in example_folders(track):
-            payload = archive_bytes(folder)
-            if payload is not None:
-                kit.writestr(f"examples/{folder.name}.zip", payload)
+        for solver in sorted((src / "solvers").glob("*.py")):
+            kit.writestr(f"examples/{solver.stem}.zip",
+                         example_archive(solver))
         count = len(kit.namelist())
     print(f"{out.relative_to(ROOT_DIR)}  ({count} files, "
           f"{out.stat().st_size // 1024} kB)")

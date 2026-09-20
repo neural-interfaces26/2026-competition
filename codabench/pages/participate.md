@@ -184,36 +184,39 @@ undocumented dataset names, paths, subject identifiers, or fixed dimensions.
 
 ## Get some practice
 
-Track 03 ships a three-step progression in its
+Every baseline in a track's
 [`solvers/`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers)
-directory: upload something trivial, then let Benchopt package a model you
-trained, then reproduce a published baseline. The other tracks ship their
-`CompetSolver` references in the same place —
+directory is also a valid submission, and the starting kit ships each one
+pre-packaged under `examples/`. Track 03 carries the full set — a constant
+floor, the same linear model in scikit-learn and in PyTorch, and a trained
+EEGNet:
+
+| Baseline | Solver | What it shows |
+|---|---|---|
+| `Median` | `median_baseline.py` | the contract with no weights and no training |
+| `Mean-Ridge` | `mean_ridge.py` | a scikit-learn model, weights as a joblib dump |
+| `Torch-Linear` | `torch_linear.py` | the same model in PyTorch, with its own `fit` loop |
+| `EEGNet` | `eegnet_reg.py` | a trained network from the NeuralBench start kit |
+
+The other tracks ship their references in the same place —
 [Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
 [Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
-[Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers)
-— from simple baselines (`MeanLogReg`, `Median`, `MeanEmbedding`,
-`MeanPose`) to EEGNet variants.
+[Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
 
-### Practice 1: Test Codabench with a dummy submission
+### Practice 1: Check the platform with a constant baseline
 
-Build the ZIP from Track 03's `01_dummy_submission/` folder and upload
-it through **My Submissions**:
-
-```bash
-python tools/make_examples.py --track sleep_onset
-```
-
-Its predictions are deliberately meaningless. A successful run confirms
-ZIP ingestion, weight loading, inference, scoring and leaderboard
-publication before you package your own model.
+Upload `examples/median_baseline.zip` from the starting kit through **My
+Submissions**. It predicts one constant latency — no weights, no training,
+nothing to install — so a successful run confirms ZIP ingestion, inference,
+scoring and leaderboard publication before you package your own model. Its
+score is the floor every real model has to beat.
 
 ### Practice 2: Train and package with Benchopt
 
 Benchopt already evaluates your submission; it can package it too.
 Rather than assembling the ZIP by hand as in step 3 above, implement
-two optional methods and a local run writes it for you — see
-`03_train_and_package_with_benchopt/`. During that run:
+two optional methods and a local run writes it for you — `torch_linear.py`
+and `mean_ridge.py` are the worked examples. During that run:
 
 - `fit(model, train_loader)` trains the model
 - `save_model(model, path)` saves its weights
@@ -250,11 +253,10 @@ of this page.
 
 ### Optional practice 3: Reproduce the NeuralBench start kit
 
-Track 03's `02_eegnet_startkit_submission/` folder holds an
-inference-only solver and its trained weights, produced from the
-NeuralBench start kit. `python tools/make_examples.py --track
-sleep_onset` builds its ZIP. Upload it, then read how the architecture
-and preprocessing are exposed through `submission.py`.
+Track 03's `eegnet_reg.py` ships with the weights the NeuralBench start
+kit trained on Sleep-EDF; the starting kit packages both as
+`examples/eegnet_reg.zip`. Upload it, then read how the architecture and
+preprocessing are exposed through the `Solver` contract.
 
 To reproduce the baseline yourself, follow the corresponding NeuralBench
 guide. Each guide provides the task, public data pipeline, preprocessing, and

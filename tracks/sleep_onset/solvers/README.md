@@ -1,22 +1,25 @@
-# Track 03 submission examples
+# Track 03 baselines
 
-The examples form a three-step progression:
+Four references, each a benchopt solver *and* a valid submission:
 
-1. **`01_dummy_submission/`** — an immediately uploadable, deliberately
-   meaningless model. Use it only to verify the Codabench workflow.
-2. **`03_train_and_package_with_benchopt/`** — the minimal training
-   pathway: benchopt calls `fit` locally and `save_model` produces a ZIP
-   holding `submission.py` and the trained `weights.pt`.
-3. **`02_eegnet_startkit_submission/`** — the trained EEGNet start-kit
-   example for the public Sleep-EDF warm-up, an inference-only solver plus
-   its `weights.pt`, for reproducing a published baseline.
+| Solver | Name | What it shows |
+|---|---|---|
+| `median_baseline.py` | `Median` | the contract with no weights and no training — the leaderboard floor |
+| `mean_ridge.py` | `Mean-Ridge` | a scikit-learn model; `save_model` writes a joblib dump |
+| `torch_linear.py` | `Torch-Linear` | the same model in PyTorch, with its own Adam loop in `fit` |
+| `eegnet_reg.py` | `EEGNet` | braindecode EEGNet; `eegnet_reg.pt` holds the NeuralBench start-kit weights |
 
-Archives are not committed: `python tools/make_examples.py --track
-sleep_onset` builds them from the folder's sources, so they cannot drift.
+Run them like any solver, or compare against yours:
 
-`median_baseline.py` and `eegnet_reg.py` are the track's active benchopt
-solvers. The numbered directories are examples, not solvers — benchopt
-only discovers `solvers/*.py`, so nothing inside them is run by
-`benchopt run`.
+```bash
+benchopt run tracks/sleep_onset -d Simulated -s Median -s Mean-Ridge
+benchopt run tracks/sleep_onset -s MyModel -o "Sleep-onset[training=True]"
+```
 
-Start with each directory's README.
+Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`
+also work.
+
+Each one is packaged as an upload-ready ZIP in the starting kit
+(`tools/make_starting_kit.py` builds it; a solver's sibling `<name>.<ext>`
+travels as its `weights` file). Training through benchopt writes the same
+kind of archive to `outputs/submission_<name>.zip`.
