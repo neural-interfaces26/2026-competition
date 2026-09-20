@@ -3,6 +3,7 @@
 *.pyc
 *.xml
 *.zip
+!tracks/sleep_onset/solvers/01_dummy_submission/dummy-sleep-linear.zip
 ingestion_res/*
 scoring_res/*
 warmup_phase/*
