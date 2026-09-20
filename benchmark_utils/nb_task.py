@@ -99,6 +99,20 @@ def _task_data_config(modality, task, dataset, data_dir, overrides):
         # the study source is a neuralset model that rejects the key.
         "neuro.infra.permissions": None,
     })
+    # Force serial extraction when set (NEURALBENCH_EXTRACT_CPUS=1): the neuro
+    # and target exca extractors (cpus_per_task=10, cluster=auto) hammer the
+    # study's TimelineLoader Cached backend concurrently and corrupt its jsonl
+    # on big studies (the p4d has 96 cores). Cap those two to serialize; the
+    # study.source infra is a Cached backend and rejects these keys.
+    extract_cpus = os.environ.get("NEURALBENCH_EXTRACT_CPUS")
+    if extract_cpus:
+        n = int(extract_cpus)
+        cfg.update({
+            "neuro.infra.cluster": None,
+            "neuro.infra.cpus_per_task": n,
+            "target.infra.cluster": None,
+            "target.infra.cpus_per_task": n,
+        })
     cfg.update(overrides or {})
     return cfg
 
