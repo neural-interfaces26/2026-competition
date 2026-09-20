@@ -109,6 +109,17 @@ class Solver(CompetSolver):
         ...
 ```
 
+Every track ships working implementations of this contract in its
+`solvers/` directory — real `CompetSolver` subclasses on real data, from
+trivial baselines (`MeanLogReg`, `Median`, `MeanEmbedding`, `MeanPose`) to
+EEGNet variants:
+[image_decoding](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
+[bci_decoding](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
+[sleep_onset](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers),
+[emg_pose](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
+They are the closest thing to a reference answer for your own
+`submission.py`.
+
 Remark: `meta` is a plain Python dictionary created and passed to `load_model`
 automatically. You do not create or upload it. It provides:
 
@@ -242,7 +253,9 @@ benchopt test tracks/<track> --skip-install
 
 Replace `MyModel` with `Solver.name`. `Simulated` requires no download.
 `benchopt test` also exercises small configurations with different dimensions
-where applicable. Neither command produces an official score.
+where applicable. Neither command produces an official score. Dropping your
+files next to the track's own baselines is also the easiest way to compare
+against them — add a second `-s <baseline name>` and both run.
 
 ### Optional: train through Benchopt
 
