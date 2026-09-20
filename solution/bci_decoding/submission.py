@@ -5,6 +5,9 @@ loading, inference, scoring, and leaderboard publication. It loads locally
 trained templates from ``weights.npz`` when provided and otherwise creates a
 deterministic stand-in in memory. The optional ``fit`` and ``save_model``
 hooks support local training and export.
+
+See "Participation > Optional: train through Benchopt" to see how to train
+this model on actual data to produce weights.npz with benchopt.
 """
 
 import numpy as np

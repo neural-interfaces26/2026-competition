@@ -4,8 +4,10 @@ This deliberately simple constant predictor validates ingestion, real-data
 loading, inference, scoring, and leaderboard publication. It loads a locally
 trained latency from ``weights.npz`` when provided and otherwise uses an
 in-memory fallback. The optional ``fit`` and ``save_model`` hooks support
-local training and export. A full PyTorch code-and-weights example lives in
-``examples/sleep_onset/minimal_cnn``.
+local training and export.``.
+
+See "Participation > Optional: train through Benchopt" to see how to train
+this model on actual data to produce weights.npz with benchopt.
 """
 
 import numpy as np
