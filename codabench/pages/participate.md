@@ -105,13 +105,17 @@ class Solver(CompetSolver):
         return model.to(meta["device"]).eval()
 
     # Optional local-training hooks. Codabench never calls them.
-    # See "Optional practice 3: train and package with Benchopt" below.
+    # See "Practice 2: Train and package with Benchopt" below.
     def fit(self, model, train_loader):
         ...
 
     def save_model(self, model, path):
         ...
 ```
+
+Each track's [`solvers/`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks)
+directory holds working implementations of this contract on real data —
+the closest reference for your own `submission.py`.
 
 Remark: `meta` is a plain Python dictionary created and passed to `load_model`
 automatically. You do not create or upload it. It provides:
