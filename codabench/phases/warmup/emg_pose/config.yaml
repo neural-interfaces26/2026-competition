@@ -3,10 +3,10 @@
 # by the scoring program (stripped by ingestion before the run).
 dataset:
   # Official corpus: Salter2024Emg2pose (NM000281), via the neuralbench
-  # `emg/pose` task. subset=test stages the evaluation split only (the raw
-  # download still fetches the full study — see benchmark_utils.nb_task).
-  # One dataset only: scoring reads the first result row.
-  - Salter2024Emg2pose[subset=test]
+  # `emg/pose` task. subset=full: subset=test empties the train split, which
+  # neuralbench's Data.prepare rejects; stage all and build the predefined
+  # splits. One dataset only: scoring reads the first result row.
+  - Salter2024Emg2pose[subset=full]
 seed: 42
 no_timeout: true
 scoring:
