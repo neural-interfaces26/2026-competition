@@ -72,7 +72,6 @@ import torch
 
 from benchmark_utils.base_solver import CompetSolver
 
-
 class Solver(CompetSolver):
     name = "MyModel"
 
@@ -146,87 +145,6 @@ class MyModel(torch.nn.Module):
 
 ---
 
-## Get some practice
-
-Each track's `solvers/` directory provides a gradual progression from a dummy
-upload to a trained start-kit submission:
-[Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
-[Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
-[Track 03](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers), and
-[Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
-These directories also contain working `CompetSolver` references on real data,
-from simple baselines (`MeanLogReg`, `Median`, `MeanEmbedding`, and `MeanPose`)
-to EEGNet variants.
-
-### Practice 1: Test Codabench with a dummy submission
-
-Download the ready-to-upload ZIP from your track's `01_dummy_submission/`
-folder and upload it through **My Submissions**. Its predictions are
-deliberately meaningless. A successful run confirms ZIP ingestion, weight
-loading, inference, scoring, and leaderboard publication before you package
-your own model.
-
-### Practice 2: Inspect and reproduce a trained start-kit submission
-
-Your track's `02_*_startkit_submission/` folder contains an inference-only
-solver, trained weights, and a ready-to-upload ZIP produced from the optional
-NeuralBench start kit. Upload it to the matching track, then inspect how its
-architecture and preprocessing are exposed through `submission.py`.
-
-To reproduce the baseline yourself, follow the corresponding NeuralBench
-guide. Each guide provides the task, public data pipeline, preprocessing, and
-reference model:
-
-| Track             | NeuralBench preparation guide                                                                                                                          |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 01 - EEG-to-Image | [Open the Track 01 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html) |
-| 02 - BCI Decoding | [Open the Track 02 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html)   |
-| 03 - Sleep Onset  | [Open the Track 03 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)  |
-| 04 - EMG-to-Pose  | [Open the Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)  |
-
-NeuralBench trains the model. Codabench can evaluate the result only after its
-architecture and inference preprocessing are exposed through the `Solver`
-contract and its trained weights are packaged in the ZIP.
-
-1. Follow the track guide and reproduce the baseline on permitted data.
-2. Package its `submission.py` and trained weights.
-3. Upload the ZIP through **My Submissions** and confirm that it finishes and
-   receives a score.
-
-### Optional practice 3: Train and package with Benchopt
-
-This pathway is optional and is demonstrated in
-`03_train_and_package_with_benchopt/`. During a local Benchopt run:
-
-- `fit(model, train_loader)` trains the model
-- `save_model(model, path)` saves its weights
-- `CompetSolver` packages the solver and weights into an upload-ready ZIP
-
-Codabench never calls `fit` or `save_model`. If you train and package by
-another method, you may omit both.
-
-Use these track and objective names:
-
-| Track | `<track>`        | `<objective>`    |
-| ----- | ---------------- | ---------------- |
-| 01    | `image_decoding` | `Image-decoding` |
-| 02    | `bci_decoding`   | `BCI-decoding`   |
-| 03    | `sleep_onset`    | `Sleep-onset`    |
-| 04    | `emg_pose`       | `EMG-pose`       |
-
-```bash
-benchopt prepare tracks/<track>
-benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
-```
-
-The training run creates:
-
-```text
-tracks/<track>/outputs/submission_<model-name>.zip
-```
-
----
-
 ## Behind the scenes: How Codabench and Benchopt evaluate your submission
 
 [Benchopt](https://benchopt.github.io) runs each public track benchmark and
@@ -248,7 +166,96 @@ undocumented dataset names, paths, subject identifiers, or fixed dimensions.
 
 ---
 
-## Optional: test your submission locally
+## Get some practice
+
+Track 03 ships a three-step progression in its
+[`solvers/`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers)
+directory: upload something trivial, then let Benchopt package a model you
+trained, then reproduce a published baseline. The other tracks ship their
+`CompetSolver` references in the same place —
+[Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
+[Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
+[Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers)
+— from simple baselines (`MeanLogReg`, `Median`, `MeanEmbedding`,
+`MeanPose`) to EEGNet variants.
+
+### Practice 1: Test Codabench with a dummy submission
+
+Build the ZIP from Track 03's `01_dummy_submission/` folder and upload
+it through **My Submissions**:
+
+```bash
+python tools/make_examples.py --track sleep_onset
+```
+
+Its predictions are deliberately meaningless. A successful run confirms
+ZIP ingestion, weight loading, inference, scoring and leaderboard
+publication before you package your own model.
+
+### Practice 2: Train and package with Benchopt
+
+Benchopt already evaluates your submission; it can package it too.
+Rather than assembling the ZIP by hand as in step 3 above, implement
+two optional methods and a local run writes it for you — see
+`03_train_and_package_with_benchopt/`. During that run:
+
+- `fit(model, train_loader)` trains the model
+- `save_model(model, path)` saves its weights
+- `CompetSolver` packages the solver and weights into an upload-ready ZIP
+
+Codabench never calls `fit` or `save_model` — the server is
+inference-only — so they cost you nothing at evaluation time. If you
+train and package another way, omit both.
+
+Use these track and objective names:
+
+| Track | `<track>`        | `<objective>`    |
+| ----- | ---------------- | ---------------- |
+| 01    | `image_decoding` | `Image-decoding` |
+| 02    | `bci_decoding`   | `BCI-decoding`   |
+| 03    | `sleep_onset`    | `Sleep-onset`    |
+| 04    | `emg_pose`       | `EMG-pose`       |
+
+```bash
+benchopt prepare tracks/<track>
+benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
+```
+
+The training run creates:
+
+```text
+tracks/<track>/outputs/submission_<model-name>.zip
+```
+
+### Optional practice 3: Reproduce the NeuralBench start kit
+
+Track 03's `02_eegnet_startkit_submission/` folder holds an
+inference-only solver and its trained weights, produced from the
+NeuralBench start kit. `python tools/make_examples.py --track
+sleep_onset` builds its ZIP. Upload it, then read how the architecture
+and preprocessing are exposed through `submission.py`.
+
+To reproduce the baseline yourself, follow the corresponding NeuralBench
+guide. Each guide provides the task, public data pipeline, preprocessing, and
+reference model:
+
+| Track             | NeuralBench preparation guide                                                                                                                          |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 01 - EEG-to-Image | [Open the Track 01 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html) |
+| 02 - BCI Decoding | [Open the Track 02 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html)   |
+| 03 - Sleep Onset  | [Open the Track 03 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)  |
+| 04 - EMG-to-Pose  | [Open the Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)  |
+
+NeuralBench trains the model. Codabench can evaluate the result only after its
+architecture and inference preprocessing are exposed through the `Solver`
+contract and its trained weights are packaged in the ZIP.
+
+1. Follow the track guide and reproduce the baseline on permitted data.
+2. Package its `submission.py` and trained weights.
+3. Upload the ZIP through **My Submissions** and confirm that it finishes and
+   receives a score.
+
+## Test your submission locally
 
 Local testing is optional, but catches missing files, imports, and incorrect
 output shapes.
@@ -299,7 +306,7 @@ runs for every submission and counts against the one-hour evaluation limit.
 
 ---
 
-## Optional: develop further with Benchopt
+## Develop further with Benchopt
 
 Starting kits are standard [Benchopt](https://benchopt.github.io)
 benchmarks. Benchopt supports parameter sweeps, cached reruns, interactive

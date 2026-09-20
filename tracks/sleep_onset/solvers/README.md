@@ -2,18 +2,21 @@
 
 The examples form a three-step progression:
 
-1. **`01_dummy_submission/`** contains an immediately uploadable,
-   deliberately meaningless model. Use it only to verify the Codabench
-   workflow.
-2. **`02_eegnet_startkit_submission/`** is the complete, trained EEGNet
-   start-kit example for the public Sleep-EDF warm-up. It includes an
-   inference-only solver, its trained `weights.pt`, and an upload-ready ZIP.
-3. **`03_train_and_package_with_benchopt/`** is the complete minimal training
-   pathway. It shows how Benchopt calls `fit` locally and how `save_model`
-   produces a ZIP containing `submission.py` and trained `weights.pt`.
+1. **`01_dummy_submission/`** — an immediately uploadable, deliberately
+   meaningless model. Use it only to verify the Codabench workflow.
+2. **`03_train_and_package_with_benchopt/`** — the minimal training
+   pathway: benchopt calls `fit` locally and `save_model` produces a ZIP
+   holding `submission.py` and the trained `weights.pt`.
+3. **`02_eegnet_startkit_submission/`** — the trained EEGNet start-kit
+   example for the public Sleep-EDF warm-up, an inference-only solver plus
+   its `weights.pt`, for reproducing a published baseline.
 
-`median_baseline.py` remains the active constant reference floor. The three
-numbered directories are intentionally separate examples rather than active
-Benchopt solvers.
+Archives are not committed: `python tools/make_examples.py --track
+sleep_onset` builds them from the folder's sources, so they cannot drift.
+
+`median_baseline.py` and `eegnet_reg.py` are the track's active benchopt
+solvers. The numbered directories are examples, not solvers — benchopt
+only discovers `solvers/*.py`, so nothing inside them is run by
+`benchopt run`.
 
 Start with each directory's README.
