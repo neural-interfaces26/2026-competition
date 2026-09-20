@@ -9,9 +9,9 @@ Submission contract
 * ``predict(X)`` receives ``X: (B, C, T)`` and returns ``(B,)`` seconds.
 * Server evaluation is inference-only. Training never runs on Codabench.
 
-Upload ``submission.py``, ``weights.pt``, and ``config.json`` together at the
-ZIP root. The included checkpoint is intentionally untrained and only
-validates the full submission path. Replace it with your trained state dict.
+Upload ``dummy_submission.py``, ``dummy_weights.pt``, and
+``dummy_config.json`` together at the ZIP root. The included checkpoint is
+intentionally untrained and only validates the full submission path.
 """
 
 import json
@@ -22,8 +22,8 @@ from torch import nn
 from benchmark_utils.base_solver import CompetSolver
 
 
-class MinimalSleepCNN(nn.Module):
-    """Small channel-agnostic CNN returning one latency per EEG window."""
+class DummySleepCNN(nn.Module):
+    """Dummy channel-agnostic CNN returning one latency per EEG window."""
 
     def __init__(self, hidden_channels=8, max_latency_s=600.0):
         super().__init__()
@@ -77,26 +77,26 @@ class Solver(CompetSolver):
 
     def load_model(self, meta):
         device = meta["device"]
-        config_path = meta["submission_dir"] / "config.json"
-        weights = meta["submission_dir"] / "weights.pt"
+        config_path = meta["submission_dir"] / "dummy_config.json"
+        weights = meta["submission_dir"] / "dummy_weights.pt"
         if not config_path.is_file() or not weights.is_file():
             raise FileNotFoundError(
-                "config.json and weights.pt must be included beside "
-                "submission.py"
+                "dummy_config.json and dummy_weights.pt must be included "
+                "beside dummy_submission.py"
             )
 
         # Any additional shipped file can be read from submission_dir.
         with config_path.open(encoding="utf-8") as file:
             config = json.load(file)
 
-        # MinimalSleepCNN is shape-agnostic, so it does not need n_chans or
+        # DummySleepCNN is shape-agnostic, so it does not need n_chans or
         # n_times here. A fixed-size architecture would instead use, for
         # example:
         #
         # model = MyModel(
         #     n_chans=meta["n_chans"], n_times=meta["n_times"]
         # )
-        model = MinimalSleepCNN(
+        model = DummySleepCNN(
             max_latency_s=config["max_latency_s"]
         ).to(device)
         state_dict = torch.load(

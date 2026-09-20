@@ -4,8 +4,9 @@ This directory provides three complementary examples for understanding a
 Track 03 submission:
 
 - `dummy_submission/` contains a complete, zero-training upload with
-  `submission.py`, dummy `weights.pt`, and an optional `config.json`. Zip those
-  three files to test the full Codabench path immediately.
+  `dummy_submission.py`, `dummy_weights.pt`, and an optional
+  `dummy_config.json`. Zip those three files to test the full Codabench path
+  immediately.
 - `median_baseline.py` is the minimal reference floor and demonstrates the
   regression contract.
 - `eegnet_reg.py` is the trainable example. It uses a Braindecode EEGNet and

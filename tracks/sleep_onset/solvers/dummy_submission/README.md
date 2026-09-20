@@ -1,43 +1,36 @@
 # Dummy Track 03 submission
 
-This zero-training example is the shortest path from the repository to a
-complete Codabench upload for Track 03, Sleep Onset:
+This deliberately untrained example represents what a complete Track 03
+submission can look like:
 
 ```text
-submission.py
-weights.pt
-config.json
+dummy_submission.py
+dummy_weights.pt
+dummy_config.json
 ```
 
-`submission.py` defines a compact temporal CNN and the required `Solver`.
-`weights.pt` is a deterministic, intentionally untrained PyTorch state dict.
-`config.json` is a minimal example of an additional non-Python file read from
-`meta["submission_dir"]` during model loading.
-It produces data-dependent mock predictions around 250 seconds and validates
-model reconstruction, checkpoint loading, device placement, inference,
-scoring, and leaderboard publication. It is not a baseline to beat.
+It includes custom PyTorch model code, shipped weights, and an optional
+configuration file. Its predictions are meaningless. Its only purpose is to
+validate ZIP ingestion, model reconstruction, weight loading, inference,
+scoring, and leaderboard publication without requiring training.
 
-No training is required. This example exists only to make the complete upload
-contract tangible before you train a real model.
-
-## Create the upload
+## Zip and upload it
 
 From this directory, run:
 
 ```bash
-zip -j dummy-sleep-cnn.zip submission.py weights.pt config.json
+zip -j dummy-sleep-cnn.zip \
+  dummy_submission.py dummy_weights.pt dummy_config.json
 ```
 
-All three files must be at the archive root. Do not place them inside an
-additional directory. Upload the resulting ZIP through the Track 03
-**My Submissions** tab.
+The files must be at the ZIP root. Upload `dummy-sleep-cnn.zip` through the
+Track 03 **My Submissions** tab. Codabench discovers the `Solver` in any
+root-level Python file, although `submission.py` remains the standard filename
+for a real submission.
 
-## Adapt it
+## Next step
 
-At minimum, keep the `Solver.load_model` and `predict` contract visible in
-`submission.py`, replace `MinimalSleepCNN` with your model, and replace
-`weights.pt` with the state dict produced by your local training pipeline.
-Keep, adapt, or remove `config.json` according to your model's needs.
-The server runs inference only and treats the uploaded directory as read-only.
-For a trainable reference that can export learned weights, return to the parent
-directory and use `eegnet_reg.py`.
+- Adapt this structure to your model, rename `dummy_submission.py` to
+  `submission.py`, and replace the dummy weights.
+- Or return to the parent directory and train the real worked example in
+  `eegnet_reg.py`, which exports an upload-ready ZIP with learned weights.
