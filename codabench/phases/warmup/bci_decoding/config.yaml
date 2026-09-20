@@ -6,7 +6,7 @@ dataset:
   # subset=test restricts extraction to the evaluation split (the raw
   # download still fetches the full study — see benchmark_utils.nb_task).
   # One dataset only: scoring reads the first result row.
-  - BCI[study=dreyer2023,subset=test]
+  - BCI[study=stieger2021,subset=test]
 seed: 42
 no_timeout: true
 scoring:
