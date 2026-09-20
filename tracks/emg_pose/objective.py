@@ -10,9 +10,9 @@ Ranking metric: **mean angular MAE** (degrees), averaged over joints and
 time. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``; targets
 ``y`` are float ``(B, n_joints, T)`` angle sequences.
 
-.. note:: The real dataset (Salter2024 emg2pose) has no neuralfetch study /
-   neuralbench task config yet — only ``Simulated`` ships for now; the real
-   loader is tracked as follow-up work.
+.. note:: Two datasets ship: ``Salter2024Emg2pose`` — the official corpus via
+   the neuralbench ``emg/pose`` task — and the zero-dependency ``Simulated``
+   smoke test.
 """
 
 import numpy as np
