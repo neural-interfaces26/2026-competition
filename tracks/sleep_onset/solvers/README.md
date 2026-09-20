@@ -8,9 +8,9 @@ The examples form a three-step progression:
 2. **`02_train_and_package_with_benchopt/`** is the complete minimal training
    pathway. It shows how Benchopt calls `fit` locally and how `save_model`
    produces a ZIP containing `submission.py` and trained `weights.pt`.
-3. **`03_eegnet_startkit_submission/`** is the inference-only structure for
-   the realistic EEGNet start-kit submission. Compatible trained weights will
-   be added later. It is not uploadable until `weights.pt` is present.
+3. **`03_eegnet_startkit_submission/`** is the complete, trained EEGNet
+   start-kit example for the public Sleep-EDF warm-up. It includes an
+   inference-only solver, its trained `weights.pt`, and an upload-ready ZIP.
 
 `median_baseline.py` remains the active constant reference floor. The three
 numbered directories are intentionally separate examples rather than active

@@ -1,8 +1,7 @@
-"""Inference-only EEGNet submission for Track 03.
+"""Trained, inference-only EEGNet submission for Track 03 warm-up.
 
-This is the model-loading half of the future ready-to-upload EEGNet example.
-It deliberately contains no training loop. Add a compatible ``weights.pt``
-exported from the official start kit before packaging it for Codabench.
+The shipped weights come from the official NeuralBench sleep-onset start kit
+trained on Sleep-EDF. Codabench only reconstructs the model and runs inference.
 """
 
 import torch
@@ -26,7 +25,8 @@ class EEGNetRegressor:
     def predict(self, X):
         self.net.eval()
         X = torch.as_tensor(X, dtype=torch.float32).to(self.device)
-        pred = self.net(X).squeeze(-1) * CAP_S
+        # NeuralBench trains this regressor directly on latency in seconds.
+        pred = self.net(X).squeeze(-1)
         return pred.clamp(0.0, CAP_S)  # (B,) seconds
 
 
@@ -34,14 +34,14 @@ class Solver(CompetSolver):
 
     name = "EEGNet"
 
-    requirements = ["pip::braindecode"]
+    requirements = ["pip::braindecode==1.8.1"]
 
     def load_model(self, meta):
         device = meta["device"]
         weights = meta["submission_dir"] / "weights.pt"
         if not weights.is_file():
             raise FileNotFoundError(
-                "This inference example requires a compatible weights.pt "
+                "This submission requires its trained weights.pt "
                 "at the submission ZIP root."
             )
 

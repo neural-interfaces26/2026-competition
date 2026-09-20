@@ -4,6 +4,7 @@
 *.xml
 *.zip
 !tracks/sleep_onset/solvers/01_dummy_submission/dummy-sleep-linear.zip
+!tracks/sleep_onset/solvers/03_eegnet_startkit_submission/eegnet-sleep-onset-startkit.zip
 ingestion_res/*
 scoring_res/*
 warmup_phase/*
