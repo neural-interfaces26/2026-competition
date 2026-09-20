@@ -10,6 +10,7 @@ without any participant submission and without the heavy EEG stack:
 """
 
 import numpy as np
+from sklearn.exceptions import NotFittedError
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -41,7 +42,14 @@ class MeanLogReg:
         return self
 
     def predict(self, X):
-        return self.clf.predict(self._features(X))
+        feats = self._features(X)
+        try:
+            labels = self.clf.predict(feats)
+        except NotFittedError:
+            # Inference-only run: no fit, so fall back to the floor class
+            # like the constant baselines rather than raising.
+            labels = np.zeros(len(feats), dtype=np.int64)
+        return labels
 
 
 class ConstantClassifier:
