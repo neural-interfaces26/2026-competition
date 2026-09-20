@@ -36,7 +36,8 @@ and do not write into the submission directory.
 
 1. **Train and validate locally** with an optional NeuralBench start kit,
    directly through Benchopt, or with your own pipeline. Save the trained
-   weights.
+   weights. Training through Benchopt skips steps 2 and 3 below: it writes
+   the solver and the weights into an upload-ready ZIP for you.
 2. **Create `submission.py`** following the contract below.
 3. **Create the ZIP.** For the example above, run:
 
@@ -241,6 +242,11 @@ The training run creates:
 ```text
 tracks/<track>/outputs/submission_<model-name>.zip
 ```
+
+Benchopt does more than package: parameter sweeps, cached reruns, plots and
+SLURM execution are summarised in
+[Develop further with Benchopt](#develop-further-with-benchopt) at the end
+of this page.
 
 ### Optional practice 3: Reproduce the NeuralBench start kit
 
