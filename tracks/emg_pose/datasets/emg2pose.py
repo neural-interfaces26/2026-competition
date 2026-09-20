@@ -66,6 +66,14 @@ class Dataset(BaseDataset):
             seed=self.get_seed(),
             num_workers=self.num_workers,
             subset=self.subset,
+            # Cache the pose-target extraction next to the data; without a
+            # folder its exca cache defaults to the container-local /tmp, which
+            # --rm drops, so the replay (and every submission) rebuilds it.
+            overrides={
+                "target.infra.cluster": None,
+                "target.infra.folder": str(self._data_dir() / "cache"),
+                "target.infra.permissions": None,
+            },
         )
 
     def get_data(self):

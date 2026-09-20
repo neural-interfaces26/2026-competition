@@ -98,12 +98,6 @@ def _task_data_config(modality, task, dataset, data_dir, overrides):
         # read-only; None disables the chmod. Only exca infras take it —
         # the study source is a neuralset model that rejects the key.
         "neuro.infra.permissions": None,
-        # Same treatment for the target extractor: without a folder its exca
-        # cache defaults to the container-local /tmp, so --rm drops it and the
-        # read-only replay (and every submission) rebuilds the targets.
-        "target.infra.cluster": None,
-        "target.infra.folder": str(data_dir / "cache"),
-        "target.infra.permissions": None,
     })
     # Force serial extraction when set (NEURALBENCH_EXTRACT_CPUS=1): the neuro
     # and target exca extractors (cpus_per_task=10, cluster=auto) hammer the
