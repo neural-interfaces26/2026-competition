@@ -4,15 +4,15 @@
 
 **Sep 21 to Oct 25, 2026**
 
-The competition datasets, baselines, and starting kit become available when the warm-up phase opens. Use this phase to develop, test, and refine your model with feedback from the public leaderboard.
+Codabench evaluates submissions on public, track-specific test data during warm-up. Because these data and labels are public, overlap or leakage is possible. Use the indicative leaderboard to validate the submission workflow and iterate on your model. Warm-up scores do not determine the final ranking.
 
 **Submission limit:** Up to five submissions per team per day.
 
 ## Sealed final phase
 
-**Oct 25 to Nov 21, 2026, Anywhere on Earth**
+**Oct 28 to Nov 21, 2026, Anywhere on Earth**
 
-Submit your final models for evaluation on held-out data with confidential labels. The final ranking is determined by the best of each team’s last five sealed submissions.
+Codabench switches to the private 2026 evaluation cohorts, which are uploaded only for this phase. Their examples and labels remain hidden. Only sealed-phase scores determine the final ranking, using the best of each team’s last five sealed submissions.
 
 **Submission limit:** One submission per team per day.
 

@@ -22,13 +22,13 @@ Given one multichannel EEG epoch recorded during natural-image viewing, predict 
 
 ## Task contract
 
-| | |
-|---|---|
-| **Input** | One multichannel EEG epoch |
-| **Prediction** | One 1536-dimensional DINOv2-giant embedding |
-| **Objective** | Retrieve the viewed image from the complete candidate gallery |
-| **Generalization shift** | New participants and images |
-| **Sealed split** | Evaluation participants and images are absent from training |
+|                          |                                                               |
+| ------------------------ | ------------------------------------------------------------- |
+| **Input**                | One multichannel EEG epoch                                    |
+| **Prediction**           | One 1536-dimensional DINOv2-giant embedding                   |
+| **Objective**            | Retrieve the viewed image from the complete candidate gallery |
+| **Generalization shift** | New participants and images                                   |
+| **Sealed split**         | Evaluation participants and images are absent from training   |
 
 ## Ranking metric
 
@@ -36,11 +36,13 @@ Given one multichannel EEG epoch recorded during natural-image viewing, predict 
 
 The candidate pool is the set of unique target-image embeddings in the evaluation split. For each EEG epoch, Codabench L2-normalizes the predicted embedding and every candidate embedding, ranks their cosine similarities, and counts the prediction as correct when the viewed image is among the five highest-ranked candidates. The score is the mean of these outcomes across all evaluation epochs. Top-1 accuracy is reported separately but does not determine the ranking.
 
-## Evaluation data
+## Development, warm-up, and sealed data
 
-> **Warm-up configuration pending.** The public evaluation dataset will be named here once finalized. Because the warm-up data are public, they may overlap with development data. Warm-up scores validate the submission workflow and support iteration, but they do not determine the final ranking.
+**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
 
-Only the sealed phase determines the final ranking. It uses the private 2026 Track 01 cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-1)**. Its evaluation examples and labels remain hidden, preventing evaluation-set leakage.
+**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **THINGS-EEG2** dataset (`Gifford2022Large`). This subset matches the test set defined in the [Track 01 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html) and is loaded in Codabench as `Image[study=gifford2022large, subset=test]`. In particular, NeuralBench follows the dataset’s predefined `split` column: timelines marked as test form the test partition, while 20% of the training timelines form the validation partition using random state 33. Codabench mounts only the test partition and does not retrain your model. THINGS-EEG2 is both the default dataset in the **[Track 01 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html)** and the dataset used for the **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-1)**. Because the test data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
+
+**Sealed evaluation.** Codabench switches to the private 2026 Alljoined cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-1)**. This cohort is uploaded only for the sealed phase, and its participants, images, and labels remain hidden.
 
 ## Track resources and next steps
 

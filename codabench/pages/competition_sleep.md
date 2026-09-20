@@ -22,13 +22,13 @@ Given a short window from a continuous **four-channel home EEG** recording, pred
 
 ## Task contract
 
-| | |
-|---|---|
-| **Input** | One window from a continuous four-channel home EEG recording |
-| **Prediction** | One latency in seconds until the first stable N2 epoch, capped at 600 seconds |
-| **Objective** | Estimate the transition from wakefulness to stable N2 sleep |
-| **Generalization shift** | New participants and home-recording variability |
-| **Sealed split** | Evaluation participants are absent from training |
+|                          |                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------- |
+| **Input**                | One window from a continuous four-channel home EEG recording                  |
+| **Prediction**           | One latency in seconds until the first stable N2 epoch, capped at 600 seconds |
+| **Objective**            | Estimate the transition from wakefulness to stable N2 sleep                   |
+| **Generalization shift** | New participants and home-recording variability                               |
+| **Sealed split**         | Evaluation participants are absent from training                              |
 
 ## Ranking metric
 
@@ -36,13 +36,17 @@ Given a short window from a continuous **four-channel home EEG** recording, pred
 
 Codabench groups targets by their true time to onset: **[0, 40)**, **[40, 90)**, **[90, 300)**, and **[300, 600]** seconds. It computes mean absolute error within each non-empty range, then takes the unweighted mean across ranges. Short and long prediction horizons therefore contribute equally instead of being weighted by their number of windows. Plain MAE is reported separately but does not determine the ranking.
 
-## Evaluation data
+## Development, warm-up, and sealed data
 
-> **Warm-up evaluation uses the public `Kemp2000Analysis` Sleep-EDF dataset.** NeuralBench uses a fixed participant-level split with random state 33: 46 participants for training, 16 for validation, and 16 for testing. The start kit trains on the training partition and selects its checkpoint using validation bMAE. Codabench does not retrain the submitted model and scores it only on the 7,200 windows from the public test partition, not on the full dataset. This warm-up uses the two bipolar channels `Fpz-Cz` and `Pz-Oz`.
+**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
 
-Because Sleep-EDF and its labels are public, warm-up results may include leakage and are intended for workflow validation and iteration. They do not determine the final ranking.
+**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **Sleep-EDF Expanded** dataset (`Kemp2000Analysis`). This subset matches the test set defined in the [Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html). In particular, NeuralBench uses a fixed participant-level split with random state 33: 46 participants for training, 16 for validation, and 16 for testing. The start kit selects its checkpoint using validation bMAE. Codabench mounts only the 7,200 five-second windows from the 16-participant test partition and does not retrain your model. Evaluation uses the two bipolar channels `Fpz-Cz` and `Pz-Oz`.
 
-Only the sealed phase determines the final ranking. It uses the private 2026 Muse evaluation cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)**. Its participants, recordings, and labels remain hidden, preventing evaluation-set leakage.
+Sleep-EDF is both the default dataset in the **[Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)** and the dataset used for the **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-3)**. Because the test data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
+
+> **Upcoming data release.** The public 2026 Muse training data described in the **[Track 03 dataset entry](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)** will be released soon. Codabench warm-up evaluation will then switch from Sleep-EDF to the new Track 03 dataset.
+
+**Sealed evaluation.** Codabench uses the private 2026 Muse cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)**. It is uploaded for the sealed phase, and its participants, recordings, and labels remain hidden.
 
 ## Track resources and next steps
 

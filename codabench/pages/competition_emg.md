@@ -22,13 +22,13 @@ Given a window of **16-channel wrist surface EMG**, predict continuous trajector
 
 ## Task contract
 
-| | |
-|---|---|
-| **Input** | One temporal window of 16-channel wrist sEMG |
-| **Prediction** | Continuous trajectories for 20 UmeTrack joint angles in degrees |
-| **Objective** | Reconstruct hand pose throughout the input window |
+|                          |                                                                    |
+| ------------------------ | ------------------------------------------------------------------ |
+| **Input**                | One temporal window of 16-channel wrist sEMG                       |
+| **Prediction**           | Continuous trajectories for 20 UmeTrack joint angles in degrees    |
+| **Objective**            | Reconstruct hand pose throughout the input window                  |
 | **Generalization shift** | New users, new movement stages, and unseen user-stage combinations |
-| **Sealed split** | Evaluation examples and labels remain hidden |
+| **Sealed split**         | Evaluation examples and labels remain hidden                       |
 
 ## Ranking metric
 
@@ -36,11 +36,13 @@ Given a window of **16-channel wrist surface EMG**, predict continuous trajector
 
 Codabench computes the absolute angular difference between every predicted and reference value, then averages over all evaluation examples, joints, and time points. If a model predicts on a coarser time axis, its output is nearest-neighbor resampled to the target length before scoring.
 
-## Evaluation data
+## Development, warm-up, and sealed data
 
-> **Warm-up configuration pending.** The public evaluation dataset will be named here once finalized. Because the warm-up data are public, they may overlap with development data. Warm-up scores validate the submission workflow and support iteration, but they do not determine the final ranking.
+**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
 
-Only the sealed phase determines the final ranking. It uses the private 2026 Meta Reality Labs evaluation cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4)**. Its evaluation examples and labels remain hidden, preventing evaluation-set leakage.
+**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **EMG2Pose** dataset. This subset matches the test set defined in the [Track 04 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html) and is loaded in Codabench as `Salter2024Emg2pose[subset=test]`. In particular, NeuralBench follows the dataset’s predefined split and retains test rows marked `generalization = user_stage`, which contain unseen combinations of users and movement stages represented elsewhere in the public data. Codabench mounts only this test partition and does not retrain your model. EMG2Pose is both the default dataset in the **[Track 04 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)** and the public dataset underlying the **[reported NeuroPose reference result](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4)**. This warm-up dataset is not a temporary proxy. Because its data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
+
+**Sealed evaluation.** Codabench switches to the private 2026 Meta Reality Labs cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4)**. This cohort is uploaded only for the sealed phase, and its evaluation examples and labels remain hidden.
 
 ## Track resources and next steps
 
