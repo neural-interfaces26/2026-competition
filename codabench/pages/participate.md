@@ -32,7 +32,7 @@ and do not write into the submission directory.
 
 ---
 
-## Submit in four steps
+## Submit in five steps
 
 1. **Train and validate locally** with an optional NeuralBench start kit,
    directly through Benchopt, or with your own pipeline. Save the trained
@@ -46,9 +46,20 @@ and do not write into the submission directory.
 
    Add `config.json` or any other non-Python artifact your model needs.
 
-4. **Upload and verify.** In **My Submissions**, select the active phase,
-   upload the ZIP, and wait for **Finished**. If it fails, start with the first
-   error in the ingestion log.
+4. **Check it locally first.** A failed upload still costs you one of the
+   day's submissions, and most failures are caught in seconds:
+
+   ```bash
+   cp my_submission/* tracks/<track>/solvers/
+   benchopt run tracks/<track> -d Simulated -s MyModel
+   ```
+
+   See [Test your submission locally](#test-your-submission-locally) for
+   what this does and does not cover.
+
+5. **Upload.** In **My Submissions**, select the active phase, upload the
+   ZIP, and wait for **Finished**. If it fails, start with the first error
+   in the ingestion log.
 
 ---
 
@@ -217,7 +228,7 @@ Use these track and objective names:
 | 04    | `emg_pose`       | `EMG-pose`       |
 
 ```bash
-benchopt prepare tracks/<track>
+benchopt prepare tracks/<track>   # prepare the data
 benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
 ```
 
