@@ -255,7 +255,9 @@ Replace `MyModel` with `Solver.name`. `Simulated` requires no download.
 `benchopt test` also exercises small configurations with different dimensions
 where applicable. Neither command produces an official score. Dropping your
 files next to the track's own baselines is also the easiest way to compare
-against them — add a second `-s <baseline name>` and both run.
+against them: selectors are case-insensitive globs, so
+`-s MyModel -s "eegnet*"` runs yours against every EEGNet baseline the
+track ships.
 
 ### Optional: train through Benchopt
 
