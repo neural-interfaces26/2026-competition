@@ -56,6 +56,7 @@ class Solver(CompetSolver):
     def load_model(self, meta):
         weights = meta["submission_dir"] / "weights.joblib"
         if weights.exists():
+            print(f"[loading] {weights} into {self.name}")
             return MeanRidge(meta["n_outputs"],
                              estimator=joblib.load(weights))
         return MeanRidge(meta["n_outputs"])

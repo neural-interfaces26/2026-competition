@@ -70,6 +70,7 @@ class Solver(CompetSolver):
         # without it (a local training run) the net starts from scratch.
         weights = meta["submission_dir"] / "weights.pt"
         if weights.exists():
+            print(f"[loading] {weights} into {self.name}")
             model.net.load_state_dict(
                 torch.load(weights, map_location=self.device))
         return model

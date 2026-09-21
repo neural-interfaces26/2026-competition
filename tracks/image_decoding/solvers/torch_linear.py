@@ -43,6 +43,7 @@ class Solver(CompetSolver):
         ).to(self.device)
         weights = meta["submission_dir"] / "weights.pt"
         if weights.exists():
+            print(f"[loading] {weights} into {self.name}")
             model.load_state_dict(
                 torch.load(weights, map_location=self.device))
         return model
