@@ -12,7 +12,7 @@ the submission contract.
 |---|---|---|---|
 | 1 | `tracks/image_decoding` | decode the viewed image from an EEG epoch (retrieval) | top-5 accuracy |
 | 2 | `tracks/bci_decoding` | cued mental-command classification | balanced accuracy |
-| 3 | `tracks/sleep_onset` | regress seconds to the first stable N2 epoch | binned MAE (s) |
+| 3 | `tracks/sleep_onset` | regress seconds to the first N2 epoch | weighted binned MAE (W-bMAE, s) |
 | 4 | `tracks/emg_pose` | regress hand-joint angles from wrist EMG | angular MAE (°) |
 
 Each track runs on its own (`benchopt run tracks/<name>`), so participants
