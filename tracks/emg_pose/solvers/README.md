@@ -23,6 +23,8 @@ benchopt run tracks/emg_pose -s MyModel -o "EMG-pose[training=True]"
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`
 also work.
 
-Training through benchopt runs each solver's `fit`, then zips its
-`submission.py` and saved weights into `outputs/submission_<name>.zip` —
-ready to upload on the competition's *My Submissions* tab.
+Training through benchopt writes each trained submission to its own folder
+`outputs/<Solver.name>/` (`submission.py` + weights) — re-run the solver to
+test it, or zip that folder to upload. `tools/make_starting_kit.py` packages
+each solver as an example ZIP, pulling weights from that folder when present
+and shipping it untrained otherwise.
