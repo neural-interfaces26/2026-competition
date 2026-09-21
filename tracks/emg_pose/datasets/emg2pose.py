@@ -73,13 +73,16 @@ class Dataset(BaseDataset):
                 "target.infra.cluster": None,
                 "target.infra.folder": str(self._data_dir() / "cache"),
                 "target.infra.permissions": None,
-                # Serialize the timeline build. Its pool is os.cpu_count()-1
-                # wide (95 on the p4d); concurrent workers append to the
-                # TimelineLoader cachedict while others read it, tripping
-                # exca's "non-last line" jsonl guard. max_jobs=1 runs it
-                # inline (single writer). cpus_per_task/cluster don't apply
-                # here — they are submitit-only fields.
-                "study.source.infra.max_jobs": 1,
+                # Serialize the timeline build. Its default infra is an
+                # os.cpu_count()-1-wide ProcessPool (95 on the p4d); concurrent
+                # workers append to the TimelineLoader cachedict while others
+                # read it, tripping exca's "non-last line" jsonl guard. The
+                # racing pool is study.source.timelines.infra (the
+                # TimelineLoader) — NOT study.source.infra (the Study step,
+                # which rejects the key). Switch it to the inline Cached
+                # backend (single writer, still persisted next to the data).
+                "study.source.timelines.infra.backend": "Cached",
+                "study.source.timelines.infra.folder": str(self._data_dir() / "cache"),
             },
         )
 
