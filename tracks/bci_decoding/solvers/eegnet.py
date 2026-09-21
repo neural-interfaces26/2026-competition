@@ -75,12 +75,6 @@ class Solver(CompetSolver):
             n_classes=meta["n_classes"],
             device=self.device,
         )
-        return self._load_weights(model, meta)
-
-    def fit(self, model, train_loader):
-        model.fit(train_loader)
-
-    def _load_weights(self, model, meta):
         # A submitted network ships the state dict written by ``save_model``;
         # without it (a local training run) the net starts from scratch.
         weights = meta["submission_dir"] / "weights.pt"
@@ -88,6 +82,10 @@ class Solver(CompetSolver):
             model.net.load_state_dict(
                 torch.load(weights, map_location=self.device))
         return model
+
+    # Optional training helpers to train with benchopt
+    def fit(self, model, train_loader):
+        model.fit(train_loader)
 
     def save_model(self, model, path):
         torch.save(model.net.state_dict(), path / "weights.pt")

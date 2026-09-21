@@ -2,12 +2,12 @@
 # A native `benchopt run --config` file; the extra `scoring` key is read
 # by the scoring program (stripped by ingestion before the run).
 dataset:
-  - Simulated
-  # Warm-up proxy — Alljoined-1.6M, same 32-ch Emotiv hardware as the hidden
-  # eval cohort. Uncommenting it makes the worker stage it in /data (needs
-  # the neuralbench >= 0.3 stack in the image). subset=test restricts
-  # extraction and the DINOv2 embedding pass to the evaluation split.
-  # - Image[study=xu2025alljoined,subset=test]
+  # Gifford2022Large (THINGS-EEG2), the task default; staged in /data by the
+  # worker provisioning from this file. subset=full: subset=test leaves an empty
+  # train split, which neuralbench's Data.prepare rejects (Empty subselection);
+  # stage all and build the predefined splits. One dataset only: scoring reads
+  # the first result row.
+  - Image[study=gifford2022large,subset=full]
 seed: 42
 no_timeout: true
 scoring:
