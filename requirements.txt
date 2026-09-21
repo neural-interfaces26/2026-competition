@@ -3,9 +3,9 @@
 # inference-only on the submission, so it needs benchopt plus everything the
 # tracks import at run time (the benchmark and its benchmark_utils ship in
 # the phase bundle, not in the image).
-# main tarball until 1.10 (`benchopt prepare` + up-to-date run CLI) hits
-# PyPI — a tarball, not git+https: the docker image has no git.
-benchopt @ https://github.com/benchopt/benchopt/archive/refs/heads/main.tar.gz
+# 1.10+ for `benchopt prepare` and file-path solver/dataset selection (the
+# ingestion program selects the submission with `-s <path>/submission.py`).
+benchopt>=1.10
 pandas
 scikit-learn
 # unpinned since neuralbench 0.3.x (only needs torch>=2.5.1). Portable on
