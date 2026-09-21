@@ -36,8 +36,9 @@ data, and do not write into the submission directory.
 
 1. **Train and validate locally** with an optional NeuralBench start kit,
    directly through Benchopt, or with your own pipeline. Save the trained
-   weights. Training through Benchopt skips steps 2 and 3 below: it writes
-   the solver and the weights into a ready-to-upload submission folder for you.
+   weights. If your Benchopt solver implements the optional `fit` and
+   `save_model` methods described below, its training run writes the solver
+   and weights into a ready-to-upload submission folder for you.
 2. **Create `submission.py`** following the contract below.
 3. **Create the ZIP.** For the example above, run:
 
@@ -51,8 +52,9 @@ data, and do not write into the submission directory.
    day's submissions, and most failures are caught in seconds:
 
    ```bash
-   cp my_submission/* tracks/<track>/solvers/
-   benchopt run tracks/<track> -d Simulated -s MyModel
+   cp my_submission/submission.py tracks/<track>/solvers/my_submission.py
+   COMPET_SUBMISSION_DIR="$PWD/my_submission" \
+       benchopt run tracks/<track> -d Simulated -s MyModel
    ```
 
    See [Test your submission locally](#test-your-submission-locally) for
@@ -66,8 +68,9 @@ data, and do not write into the submission directory.
 
 ## The `submission.py` contract
 
-In `submission.py`, you write ordinary PyTorch code. Benchopt provides the evaluation wrapper, but
-you do not need to understand its internals. In `submission.py`, Codabench expects two components:
+In `submission.py`, you write ordinary Python or PyTorch code. Benchopt
+provides the evaluation wrapper, but you do not need to understand its
+internals. Codabench expects two components:
 
 1. A named `class Solver(CompetSolver)` implementing `load_model(meta)`.
 2. A model returned by `load_model` and exposing `predict(X)`.
@@ -177,7 +180,7 @@ the task or metric may differ by phase:
 | Benchmark framework and worker image | public competition stack      | same competition stack                   |
 | Task and ranking metric         | public proxy; see Track description | final specification; see Track description |
 | `meta` keys and tensor contract | documented contract              | same contract, runtime values may differ |
-| Submission ZIP                  | your trained model               | unchanged                                |
+| Submission ZIP format           | same contract                     | same contract                            |
 
 Tracks 01–03 currently have phase-specific proxy details. Track 04 uses the
 same prediction task and metric in both phases, on different evaluation data.
@@ -189,32 +192,43 @@ undocumented dataset names, paths, subject identifiers, or fixed dimensions.
 
 ## Get some practice
 
-Every baseline in a track's
-[`solvers/`](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers)
-directory is also a valid submission, and the starting kit ships each one
-pre-packaged under `examples/`. Track 03 carries the full set — a constant
-floor, the same linear model in scikit-learn and in PyTorch, and a trained
-EEGNet:
+The canonical worked implementations live in each track's `solvers/`
+directory: [Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
+[Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
+[Track 03](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset/solvers),
+and [Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
+
+These files show the submission contract, but they are at different stages:
+some are weightless floors, some implement local training and export, and
+neural models need a trained checkpoint before they represent a baseline.
+The `examples/` directory is not stored in Git. It is created only inside a
+generated starting-kit archive by `tools/make_starting_kit.py`. The generator
+includes trained weights only when they already exist under the track's
+`outputs/` directory; otherwise it warns that the example is untrained.
+
+Track 03 currently provides the most complete progression:
 
 | Baseline | Solver | What it shows |
 |---|---|---|
 | `Median` | `median_baseline.py` | the contract with no weights and no training |
 | `Mean-Ridge` | `mean_ridge.py` | a scikit-learn model, weights as a joblib dump |
 | `Torch-Linear` | `torch_linear.py` | the same model in PyTorch, with its own `fit` loop |
-| `EEGNet` | `eegnet_reg.py` | a trained network from the NeuralBench start kit |
-
-The other tracks ship their references in the same place —
-[Track 01](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding/solvers),
-[Track 02](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding/solvers),
-[Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
+| `EEGNet` | `eegnet_reg.py` | the NeuralBench-compatible architecture and inference wrapper; trained weights are published separately |
 
 ### Practice 1: Check the platform with a constant baseline
 
-Upload `examples/median_baseline.zip` from the starting kit through **My
-Submissions**. It predicts one constant latency — no weights, no training,
-nothing to install — so a successful run confirms ZIP ingestion, inference,
-scoring and leaderboard publication before you package your own model. Its
-score is the floor every real model has to beat.
+Start with a weightless floor where one is provided:
+
+- Track 01: `mean_embedding.py`
+- Track 03: `median_baseline.py`
+- Track 04: `mean_pose.py`
+
+Copy the selected file to `submission.py`, place it at the root of a ZIP,
+and upload it through **My Submissions**. A successful run confirms ZIP
+ingestion, inference, scoring, and leaderboard publication before you package
+your own model. For Track 02, train and package `eegnet.py` as described in
+Practice 2. Its `mean_logreg.py` currently illustrates `fit`, but does not yet
+serialize and reload trained weights, so do not upload it untrained.
 
 ### Practice 2: Train and package with Benchopt
 
@@ -245,8 +259,9 @@ benchopt prepare tracks/<track>   # prepare the data
 benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
 ```
 
-The training run writes a ready-to-upload submission folder (`submission.py`
-plus its weights) — zip its contents to upload:
+For a solver implementing `save_model`, the training run writes a
+ready-to-upload submission folder (`submission.py` plus its weights). Zip its
+contents to upload:
 
 ```text
 tracks/<track>/outputs/<model-name>/
@@ -259,10 +274,12 @@ of this page.
 
 ### Optional practice 3: Reproduce the NeuralBench start kit
 
-Track 03's `eegnet_reg.py` ships with the weights the NeuralBench start
-kit trained on Sleep-EDF; the starting kit packages both as
-`examples/eegnet_reg.zip`. Upload it, then read how the architecture and
-preprocessing are exposed through the `Solver` contract.
+The EEGNet solver files currently provided for Tracks 01–03 show how an
+architecture and its inference preprocessing are exposed through the
+`Solver` contract. Track 04 still needs the equivalent wrapper for its
+NeuralBench reference model. The official trained checkpoints are not
+currently stored in this repository. Until they are published, an untrained
+or dummy checkpoint can test the worker, but it is not a reference baseline.
 
 To reproduce the baseline yourself, follow the corresponding NeuralBench
 guide. Each guide provides the task, public data pipeline, preprocessing, and
@@ -289,23 +306,27 @@ contract and its trained weights are packaged in the ZIP.
 Local testing is optional, but catches missing files, imports, and incorrect
 output shapes.
 
-Download the **starting kit** from the competition's *Files* tab — it holds
-the benchmark, this track's baselines and the example submissions — or clone
-the competition repository. Both unpack to the same `tracks/<track>/` layout,
-so from either root:
+Clone or download the
+[competition repository](https://github.com/neural-interfaces26/2026-competition).
+If a generated track starting kit is also provided, it uses the same
+`tracks/<track>/` layout and additionally contains derived submission ZIPs
+under `examples/`. From the repository or an extracted kit root:
 
 ```bash
 benchopt install tracks/<track>  # add --gpu if your setup requires CUDA
-cp my_submission/* tracks/<track>/solvers/
-benchopt run tracks/<track> -d Simulated -s MyModel
-benchopt test tracks/<track> --skip-install
+cp my_submission/submission.py tracks/<track>/solvers/my_submission.py
+COMPET_SUBMISSION_DIR="$PWD/my_submission" \
+    benchopt run tracks/<track> -d Simulated -s MyModel
 ```
 
-Replace `MyModel` with `Solver.name`. `Simulated` requires no download.
-`benchopt test` also exercises small configurations with different dimensions
-where applicable. Neither command produces an official score. Dropping your
-files next to the track's own baselines is also the easiest way to compare
-against them: selectors are case-insensitive globs, so
+Replace `MyModel` with `Solver.name`. `COMPET_SUBMISSION_DIR` makes
+`meta["submission_dir"]` point at the folder containing your weights and
+optional artifacts. `Simulated` requires no download.
+It is a quick contract check, not an official score. A fixed-size checkpoint
+trained for the real task may be incompatible with the smaller simulated
+dimensions; validate such a model on the public track data instead. Dropping
+your solver next to the track's own baselines is also the easiest way to
+compare against them: selectors are case-insensitive globs, so
 `-s MyModel -s "eegnet*"` runs yours against every EEGNet baseline the
 track ships.
 
