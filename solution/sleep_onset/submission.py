@@ -7,7 +7,7 @@ Demonstrates the full contract with a trivial constant-latency regressor:
   when missing, so the sample always runs);
 - run with ``-o "Sleep-onset[training=True]"``, ``fit`` recomputes it on the
   train split and ``save_model`` writes it — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-Sleep.zip``.
+  ready-to-upload ``outputs/Sample-Sleep/`` folder.
 """
 
 import numpy as np

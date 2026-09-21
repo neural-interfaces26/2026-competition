@@ -7,7 +7,7 @@ Demonstrates the full contract with a trivial per-class template matcher:
   generated when missing, so the sample always runs);
 - run with ``-o "BCI-decoding[training=True]"``, ``fit`` recomputes the
   templates on the train split and ``save_model`` writes them — the run then
-  drops a ready-to-upload ``outputs/submission_Sample-BCI.zip``.
+  writes a ready-to-upload ``outputs/Sample-BCI/`` folder.
 """
 
 import numpy as np
@@ -51,8 +51,7 @@ class Solver(CompetSolver):
             [feats[labels == k].mean(axis=0) for k in np.unique(labels)])
 
     def save_model(self, model, path):
-        # ``path`` is the root of the zip built at the end of a training run,
-        # next to this file copied in as ``submission.py``. Uploading that zip
-        # makes ``path`` the submission folder — i.e. ``meta["submission_dir"]``
-        # — so write the file name ``load_model`` reads back.
+        # ``path`` is the submission folder — the ``outputs/<name>/`` a
+        # training run writes, i.e. ``meta["submission_dir"]`` — so write the
+        # file name ``load_model`` reads back.
         np.savez(path / "weights.npz", templates=model.templates)

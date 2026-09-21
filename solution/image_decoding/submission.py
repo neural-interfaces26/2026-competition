@@ -6,7 +6,7 @@ Demonstrates the full contract with the shared ``ConstantEmbedder`` baseline:
   alongside (the platform runs inference-only);
 - run with ``-o "Image-decoding[training=True]"``, ``fit`` recomputes it on
   the train split and ``save_model`` writes it — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-Image.zip``.
+  ready-to-upload ``outputs/Sample-Image/`` folder.
 """
 
 import numpy as np

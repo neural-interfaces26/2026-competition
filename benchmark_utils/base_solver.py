@@ -33,7 +33,6 @@ submission_dir``. Batches are torch tensors ``(X, y, info)`` already moved onto
 import inspect
 import os
 import shutil
-import tempfile
 from pathlib import Path
 
 from benchopt import BaseSolver
@@ -57,14 +56,19 @@ class CompetSolver(BaseSolver):
         # Device the batches already live on (set by the dataset's loaders);
         # place the model there in ``load_model``.
         self.device = meta.get("device", "cpu")
-        # Weight files ship alongside ``submission.py``: the ingestion program
-        # points COMPET_SUBMISSION_DIR at the submission folder; locally this
-        # defaults to the directory holding the solver file itself.
+        # A submission is one folder: ``submission.py`` plus its weight files,
+        # read back through ``meta["submission_dir"]``. The platform points
+        # COMPET_SUBMISSION_DIR at the uploaded folder; locally each solver
+        # gets its own ``outputs/<name>/`` so trained submissions persist,
+        # coexist, and reload on the next (inference-only) run.
         submission_dir = os.environ.get("COMPET_SUBMISSION_DIR")
         if submission_dir is None:
-            submission_dir = Path(inspect.getfile(type(self))).parent
+            out = get_running_benchmark().get_output_folder()
+            submission_dir = out / self.name
+        submission_dir = Path(submission_dir)
+        submission_dir.mkdir(parents=True, exist_ok=True)
         self.meta = {**meta, "device": self.device,
-                     "submission_dir": Path(submission_dir)}
+                     "submission_dir": submission_dir}
         self.model = self.load_model(self.meta)
 
     def run(self, _):
@@ -76,18 +80,17 @@ class CompetSolver(BaseSolver):
             self._export_submission()
 
     def _export_submission(self):
-        """Zip the solver file + saved weights into a submittable artifact."""
+        """Write the solver + trained weights into ``submission_dir`` (its
+        ``outputs/<name>/`` folder) — a ready-to-upload submission that the
+        next inference-only run reloads."""
         if type(self).save_model is CompetSolver.save_model:
             return
-        src = Path(inspect.getfile(type(self)))
-        out_dir = get_running_benchmark().get_output_folder()
-        with tempfile.TemporaryDirectory() as tmp:
-            shutil.copyfile(src, Path(tmp) / "submission.py")
-            self.save_model(self.model, Path(tmp))
-            archive = shutil.make_archive(
-                str(out_dir / f"submission_{self.name}"), "zip", tmp)
-        print(f"[compet] submission artifact ready: {archive} — upload it"
-              " on the competition's 'My Submissions' tab.")
+        sub_dir = self.meta["submission_dir"]
+        shutil.copyfile(Path(inspect.getfile(type(self))),
+                        sub_dir / "submission.py")
+        self.save_model(self.model, sub_dir)
+        print(f"[compet] submission ready in {sub_dir} — zip its contents to "
+              "upload on the competition's 'My Submissions' tab.")
 
     def get_result(self):
         return dict(model=self.model)

@@ -6,7 +6,7 @@ Demonstrates the full contract with the shared ``ConstantPose`` baseline:
   shipped alongside (the platform runs inference-only);
 - run with ``-o "EMG-pose[training=True]"``, ``fit`` recomputes them on the
   train split and ``save_model`` writes them — the run then drops a
-  ready-to-upload ``outputs/submission_Sample-EMG.zip``.
+  ready-to-upload ``outputs/Sample-EMG/`` folder.
 """
 
 import numpy as np

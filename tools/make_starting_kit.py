@@ -12,38 +12,51 @@ The benchmark keeps its ``tracks/<track>/`` path so every command the
 participation page documents (``benchopt install tracks/<track>``,
 ``benchopt run tracks/<track> ...``) works verbatim from the unzipped kit.
 
-A baseline becomes an example by being a solver: ``solvers/<name>.py`` is
-packaged as ``submission.py``, with a sibling ``<name>.<ext>`` carried
-alongside as its ``weights`` file when one exists. Nothing is committed —
-the archives are derived here, so they cannot drift from the benchmark the
-workers run. ``push_all.py`` (neural-compet-aws) builds the kit in the same
-run that publishes the phase ``input_data``.
+A baseline is a solver: ``solvers/<name>.py`` is packaged as ``submission.py``.
+Its trained weights, if any, come from the ``outputs/<Solver.name>/`` folder a
+training run writes; they travel at the ZIP root, where ``load_model`` reads.
+A solver that trains (defines ``save_model``) but has no such folder is shipped
+untrained, with a warning. Nothing is committed, so the examples cannot drift
+from the benchmark the workers run.
 """
 
 import argparse
 import io
+import re
 import zipfile
 from pathlib import Path
 
 # The symlink-following walk and the artefact skip list live with the bundle
 # builder; a track's benchmark_utils is a link, and a plain glob would ship a
-# benchmark with no shared code.
+# benchmark with no shared code. ``_SKIP_PARTS`` also excludes ``outputs`` from
+# the shipped tree — trained weights travel in the example ZIPs instead.
 from create_bundle import ROOT_DIR, _SKIP_PARTS, _walk
 
+_NAME_RE = re.compile(r'^\s*name\s*=\s*["\'](.+?)["\']', re.M)
 
-def example_archive(solver):
-    """One solver packaged as an upload-ready submission ZIP."""
+
+def example_archive(solver, weights_dir):
+    """One solver packaged as an upload-ready submission ZIP.
+
+    Ships ``submission.py`` plus any weight files a training run left in
+    ``weights_dir`` (the solver's ``outputs/<name>/``). Returns
+    ``(bytes, trained)`` — ``trained`` is False when no weights were found.
+    """
     buffer = io.BytesIO()
+    trained = False
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as bundle:
         bundle.write(solver, "submission.py")
-        for weights in sorted(solver.parent.glob(f"{solver.stem}.*")):
-            if weights.suffix != ".py":
-                bundle.write(weights, f"weights{weights.suffix}")
-    return buffer.getvalue()
+        if weights_dir.is_dir():
+            for f in sorted(weights_dir.iterdir()):
+                if f.is_file() and f.name != "submission.py":
+                    bundle.write(f, f.name)
+                    trained = True
+    return buffer.getvalue(), trained
 
 
 def build(track):
     src = ROOT_DIR / "tracks" / track
+    outputs = src / "outputs"
     out = ROOT_DIR / f"starting_kit_{track}.zip"
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as kit:
         kit.write(ROOT_DIR / "README.md", "README.md")
@@ -55,8 +68,14 @@ def build(track):
                 continue
             kit.write(f, Path("tracks") / track / f.relative_to(src))
         for solver in sorted((src / "solvers").glob("*.py")):
-            kit.writestr(f"examples/{solver.stem}.zip",
-                         example_archive(solver))
+            source = solver.read_text()
+            match = _NAME_RE.search(source)
+            name = match.group(1) if match else solver.stem
+            data, trained = example_archive(solver, outputs / name)
+            kit.writestr(f"examples/{solver.stem}.zip", data)
+            if "def save_model" in source and not trained:
+                print(f"  ! {solver.stem}: no trained weights in "
+                      f"outputs/{name}/ — shipping it untrained")
         count = len(kit.namelist())
     print(f"{out.relative_to(ROOT_DIR)}  ({count} files, "
           f"{out.stat().st_size // 1024} kB)")

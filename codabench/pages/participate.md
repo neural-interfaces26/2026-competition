@@ -220,7 +220,7 @@ and `mean_ridge.py` are the worked examples. During that run:
 
 - `fit(model, train_loader)` trains the model
 - `save_model(model, path)` saves its weights
-- `CompetSolver` packages the solver and weights into an upload-ready ZIP
+- `CompetSolver` writes the solver and weights into a submission folder
 
 Codabench never calls `fit` or `save_model` — the server is
 inference-only — so they cost you nothing at evaluation time. If you
@@ -240,10 +240,11 @@ benchopt prepare tracks/<track>   # prepare the data
 benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
 ```
 
-The training run creates:
+The training run writes a ready-to-upload submission folder (`submission.py`
+plus its weights) — zip its contents to upload:
 
 ```text
-tracks/<track>/outputs/submission_<model-name>.zip
+tracks/<track>/outputs/<model-name>/
 ```
 
 Benchopt does more than package: parameter sweeps, cached reruns, plots and
