@@ -23,12 +23,12 @@ my_submission.zip
 - Include every weight and optional non-Python artifact the model needs. Read
   them from `meta["submission_dir"]` in `submission.py`.
 
-Nothing will be installed during evaluation, so `submission.py` may only
-import what the image already carries: `torch`, `torchvision`, `torchaudio`,
-`numpy`, `pandas`, `scikit-learn`, `mne`, `moabb`, `braindecode`, `benchopt`
-and the `neuralset` / `neuralfetch` / `neuralbench` data stack. During
-`load_model` and `predict`, do not train, do not download competition data,
-and do not write into the submission directory.
+Nothing is installed during evaluation, so `submission.py` may only import
+what the worker image already carries — `torch` and the rest of the stack
+pinned in
+[`requirements.txt`](https://github.com/neural-interfaces26/2026-competition/blob/main/requirements.txt).
+During `load_model` and `predict`, do not train, do not download competition
+data, and do not write into the submission directory.
 
 ---
 
@@ -86,8 +86,6 @@ from benchmark_utils.base_solver import CompetSolver
 
 class Solver(CompetSolver):
     name = "MyModel"
-
-    requirements = []
 
     def load_model(self, meta):
         # MyModel must be defined in this submission.py file or imported
