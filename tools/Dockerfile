@@ -3,7 +3,7 @@
 # shared benchmark_utils travel in the phase bundle mounted on
 # /app/input_data, which is what lets one image serve every track.
 #
-#     docker build -f tools/Dockerfile -t <registry>/neural-compet:v1 .
+#     docker build -f tools/Dockerfile -t <registry>/neural-compet:v2 .
 #
 # The same image serves the Codabench workers and the participants:
 #

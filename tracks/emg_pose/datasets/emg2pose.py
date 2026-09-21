@@ -1,9 +1,9 @@
 """EMG-to-pose task on Salter2024Emg2pose, the official corpus.
 
-Wraps the neuralbench ``emg/pose`` task config — see ``benchmark_utils.nb_task``:
-5-s windows of 16-channel wrist surface EMG at 2 kHz, target = 20 hand
-joint-angle trajectories (``EmgExtractor`` MISC picks), with the corpus'
-predefined train/val/test split.
+Wraps the neuralbench ``emg/pose`` task config — see
+``benchmark_utils.nb_task``: 5-s windows of 16-channel wrist surface EMG at
+2 kHz, target = 20 hand joint-angle trajectories (``EmgExtractor`` MISC
+picks), with the corpus' predefined train/val/test split.
 
 Requires a one-time full-study download (``benchopt prepare`` — large; prefer
 a compute node). The zero-dependency ``Simulated`` dataset covers no-network

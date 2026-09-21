@@ -3,11 +3,17 @@
 A thin wrapper around ``benchopt run``. A submission ships a trained model:
 ``submission.py`` (a ``CompetSolver``) + weight files. This program copies
 the benchmark the phase ships (``<input_data>/benchmark``) to a writable
-workdir, drops in the submission solver(s) and the phase's sealed dataset
-files, then execs::
+workdir, drops in the phase's sealed dataset files, then execs benchopt,
+selecting the submission **by file path**::
 
-    benchopt run <workdir> --config <input_data>/config.yaml -s <solver> \
+    benchopt run <workdir> --config <input_data>/config.yaml \
+        -s <submission_dir>/submission.py \
         -r 1 --no-cache --no-plot --output submission
+
+Selecting by path (benchopt >= 1.10) loads the Solver from that exact file
+and keeps its own ``name``, so a submission reusing a bundled baseline's name
+(the example kits ship the baselines as ``submission.py``) is run as itself
+instead of being shadowed by the benchmark's ``solvers/`` copy of that name.
 
 The phase ``config.yaml`` is a **native benchopt run config** (``dataset``,
 ``seed``, ``no_timeout``, ...) plus one competition-only key stripped before
@@ -22,7 +28,6 @@ $BENCHOPT_DEBUG ensures any solver error aborts the run.
 """
 
 import os
-import sys
 from pathlib import Path
 
 os.environ["BENCHOPT_DEBUG"] = "true"
@@ -30,7 +35,6 @@ os.environ["BENCHOPT_DEBUG"] = "true"
 os.environ.setdefault("SCIPY_ARRAY_API", "1")
 
 import argparse  # noqa: E402
-import importlib.util  # noqa: E402
 import json  # noqa: E402
 import shutil  # noqa: E402
 import subprocess  # noqa: E402
@@ -52,29 +56,6 @@ def setup_workdir(benchmark_dir, input_dir):
     for path in sorted((input_dir / "datasets").glob("*.py")):
         shutil.copyfile(path, workdir / "datasets" / path.name)
     return workdir
-
-
-def install_submission_solvers(submission_dir, workdir):
-    """Copy the submission's Solver files into the benchmark; return names."""
-    sys.path.insert(0, str(workdir))  # submissions import benchmark_utils
-    names = []
-    for path in sorted(submission_dir.glob("*.py")):
-        spec = importlib.util.spec_from_file_location(f"_sub_{path.stem}",
-                                                      path)
-        module = importlib.util.module_from_spec(spec)
-        try:
-            spec.loader.exec_module(module)
-        except Exception as e:
-            print(f"[ingestion] skip {path.name}: import failed ({e!r})")
-            continue
-        solver = getattr(module, "Solver", None)
-        if solver is not None and getattr(solver, "name", None):
-            shutil.copyfile(
-                path, workdir / "solvers" / f"_submission_{path.stem}.py")
-            names.append(solver.name)
-    if not names:
-        raise SystemExit(f"No `class Solver` found in {submission_dir}.")
-    return names
 
 
 def main(submission_dir, output_dir, benchmark_dir, input_dir):
@@ -107,17 +88,24 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
         run_config = workdir.parent / "run_config.yml"
         run_config.write_text(yaml.safe_dump(cfg))
 
+    # Select the submission by file path (benchopt >= 1.10): the Solver is
+    # loaded from this exact file and keeps its own name, so it cannot be
+    # shadowed by a same-named baseline in the benchmark's solvers/.
+    submission = submission_dir / "submission.py"
+    if not submission.is_file():
+        raise SystemExit(
+            f"[ingestion] no submission.py in {submission_dir} — a submission "
+            "is a folder with a submission.py defining `class Solver`."
+        )
+
     cmd = [
         "benchopt", "run", str(workdir),
         "-r", "1", "--no-cache", "--no-plot", "--no-html", "--no-display",
-        "--output", "submission",
+        "--output", "submission", "-s", str(submission),
         *(["--config", str(run_config)] if run_config else []),
     ]
-    names = install_submission_solvers(submission_dir, workdir)
-    for name in names:
-        cmd += ["-s", name]
 
-    print(f"[ingestion] evaluating {', '.join(names)}", flush=True)
+    print(f"[ingestion] evaluating {submission}", flush=True)
     start = time.time()
     subprocess.run(cmd, check=True)
 

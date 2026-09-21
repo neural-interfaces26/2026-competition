@@ -27,7 +27,7 @@ class Objective(BaseObjective):
         "gpu": ["scikit-learn", "pytorch-gpu"],
     }
 
-    min_benchopt_version = "1.9.2"
+    min_benchopt_version = "1.10.0"
 
     # Each solver runs once to completion (no convergence curve).
     sampling_strategy = "run_once"
