@@ -82,7 +82,9 @@ class Dataset(BaseDataset):
                 # which rejects the key). Switch it to the inline Cached
                 # backend (single writer, still persisted next to the data).
                 "study.source.timelines.infra.backend": "Cached",
-                "study.source.timelines.infra.folder": str(self._data_dir() / "cache"),
+                "study.source.timelines.infra.folder": str(
+                    self._data_dir() / "cache"
+                ),
             },
         )
 
