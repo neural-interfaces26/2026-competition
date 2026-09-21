@@ -37,7 +37,7 @@ and do not write into the submission directory.
 1. **Train and validate locally** with an optional NeuralBench start kit,
    directly through Benchopt, or with your own pipeline. Save the trained
    weights. Training through Benchopt skips steps 2 and 3 below: it writes
-   the solver and the weights into an upload-ready ZIP for you.
+   the solver and the weights into a ready-to-upload submission folder for you.
 2. **Create `submission.py`** following the contract below.
 3. **Create the ZIP.** For the example above, run:
 
