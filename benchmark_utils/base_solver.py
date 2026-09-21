@@ -20,9 +20,9 @@ neuralbench knowledge is required:
   offline and shipped as weights loaded in ``load_model``.
 - ``save_model(self, model, path)`` (optional). Write the trained model's
   weight files into the directory ``path`` — the mirror of ``load_model``.
-  When implemented, a training run ends by zipping your solver file (as
-  ``submission.py``) together with those files into
-  ``<track>/outputs/submission_<name>.zip``, ready to upload on Codabench.
+  When implemented, a training run writes your solver (as ``submission.py``)
+  and those files into ``<track>/outputs/<name>/`` — a ready-to-upload
+  submission folder.
 
 ``meta`` is a plain dict: ``sfreq, ch_names, chs_info, n_chans, n_times,
 n_classes`` (classification) or ``n_outputs`` (regression), ``device,
