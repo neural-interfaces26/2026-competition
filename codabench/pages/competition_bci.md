@@ -1,12 +1,12 @@
 # Registration
 
-> **You must first register for Track 02 - BCI Decoding before you can participate. Registration takes three steps.** Open **Get Started → Registration** in the menu on the left. Follow the approval instructions and, if applicable, the additional setup required for teams.
+> **You must first register for Track 02 - BCI Decoding before you can participate. Registration takes three steps.** Open **Get Started → Registration Guide** in the menu on the left. Follow the approval instructions and, if applicable, the additional setup required for teams.
 
 ---
 
 # Before building a submission
 
-> **To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the strict Codabench submission contract.** Before preparing and uploading your model, open **Get Started → Participation** in the menu on the left. It defines the submission contract, including the required model architecture, trained weights, optional files, and validation workflow.
+> **To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the strict Codabench submission contract.** Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the submission contract, including the required model architecture, trained weights, optional files, and validation workflow.
 
 ---
 
@@ -54,7 +54,7 @@ Please note that the default **[Track 02 NeuralBench start kit](https://facebook
 
 **[Explore the full Track 02 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-2)** · **[Use the optional NeuralBench start kit and public baselines →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-2)**
 
-For packaging and uploads, use **Get Started → Participation**. For current dates and submission limits, use **Phases**. For eligibility, data use, and the reproducibility audit, use **Terms**.
+For packaging and uploads, use **Get Started → Submission Guide**. For current dates and submission limits, use **Phases**. For eligibility, data use, and the reproducibility audit, use **Terms**.
 
 ---
 
