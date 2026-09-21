@@ -5,12 +5,12 @@ short EEG window, capped at 600 s. A submission's model receives torch
 batches ``(B, C, T)`` and must return one predicted latency per window
 (``predict(X) -> (B,)`` floats, in seconds).
 
-For the warmup phase, the current Sleep-EDF warm-up proxy reports **binned MAE** (bMAE), computed
-inside time-to-onset bins ``[0, 40, 90, 300, 600]`` s, plus plain MAE. For the sealed phase, the
-official sealed Muse evaluation instead ranks weighted binned MAE (W-bMAE),
-macro-averaged across seen- and unseen-subject groups. That scorer will ship with
-the final Muse evaluation data. Data flows as lazy dataloaders — see
-``benchmark_utils/data.py``.
+For the warmup phase, the current Sleep-EDF warm-up proxy reports **binned
+MAE** (bMAE), computed inside time-to-onset bins ``[0, 40, 90, 300, 600]`` s,
+plus plain MAE. For the sealed phase, the official sealed Muse evaluation
+instead ranks weighted binned MAE (W-bMAE), macro-averaged across seen- and
+unseen-subject groups. That scorer will ship with the final Muse evaluation
+data. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
 """
 
 import numpy as np
