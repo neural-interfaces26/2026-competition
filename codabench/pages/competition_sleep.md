@@ -12,41 +12,45 @@
 
 # Track 03 · Sleep Onset
 
-_Estimate how long remains before stable sleep begins from wearable EEG recorded at home._
+> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final Muse phase. Warm-up currently uses Sleep-EDF and reports unweighted bMAE and MAE instead of the sealed W-bMAE. Phase-specific differences are detailed below.
 
-Given a short window from a continuous **four-channel home EEG** recording, predict the number of seconds remaining until the first stable N2 epoch, capped at 600 seconds. Evaluation on participants absent from training tests whether sleep-onset patterns transfer across individuals despite night-to-night variability, motion artifacts, impedance changes, and occasional channel dropout.
+_Estimate how long remains before the first N2 sleep epoch from wearable EEG recorded at home._
+
+Given a short window from a continuous **four-channel, 128 Hz home EEG** recording, predict the number of seconds remaining until the first N2 epoch, capped at 600 seconds. Evaluation includes both new recordings from participants represented in training and recordings from completely unseen participants, testing robustness to both night-to-night and inter-person variability, as well as motion artifacts, impedance changes, and occasional channel dropout.
 
 <p align="center">
-  <img src="https://neural-interfaces26.github.io/exports/sleep-onset.gif" alt="Continuous wearable EEG used to predict the time remaining until stable N2 sleep" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
+  <img src="https://neural-interfaces26.github.io/exports/sleep-onset.gif?v=20260921muse" alt="Continuous wearable EEG used to predict the time remaining until the first N2 epoch" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
 </p>
 
-## Task contract
+## Sealed-phase task contract
 
-|                          |                                                                               |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| **Input**                | One window from a continuous four-channel home EEG recording                  |
-| **Prediction**           | One latency in seconds until the first stable N2 epoch, capped at 600 seconds |
-| **Objective**            | Estimate the transition from wakefulness to stable N2 sleep                   |
-| **Generalization shift** | New participants and home-recording variability                               |
-| **Sealed split**         | Evaluation participants are absent from training                              |
+|                          |                                                                           |
+| ------------------------ | ------------------------------------------------------------------------- |
+| **Input**                | One window from a continuous four-channel, 128 Hz home EEG recording      |
+| **Prediction**           | One latency in seconds until the first N2 epoch, capped at 600 seconds    |
+| **Objective**            | Estimate the transition from wakefulness to N2 sleep                      |
+| **Generalization shift** | New nights from seen participants and recordings from unseen participants |
+| **Sealed split**         | Separate seen-subject and unseen-subject evaluation groups                |
 
-## Ranking metric
+## Sealed-phase ranking metric
 
-> **Binned mean absolute error, or bMAE, in seconds. Lower is better.**
+> **Weighted binned mean absolute error, or W-bMAE, in seconds. Lower is better.**
 
-Codabench groups targets by their true time to onset: **[0, 40)**, **[40, 90)**, **[90, 300)**, and **[300, 600]** seconds. It computes mean absolute error within each non-empty range, then takes the unweighted mean across ranges. Short and long prediction horizons therefore contribute equally instead of being weighted by their number of windows. Plain MAE is reported separately but does not determine the ranking.
+Codabench computes mean absolute error separately within four true time-to-onset ranges: **[0, 40)**, **[40, 90)**, **[90, 300)**, and **[300, 600]** seconds. These ranges receive severity weights of **10×, 5×, 3×, and 1×**, respectively, so errors closer to sleep onset contribute more strongly.
+
+W-bMAE is reported separately for **seen subjects** (new recordings from people represented in training) and **unseen subjects** (people absent from training). The final ranking metric is the macro-average of these two scores, giving equal importance to night-to-night and inter-person generalization.
 
 ## Development, warm-up, and sealed data
 
 **Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **Sleep-EDF Expanded** dataset. This evaluation subset matches the test set in the [Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html): using random state 33, 46 participants are assigned to training, 16 to validation, and 16 to the test partition used for Codabench evaluation.
+**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **Sleep-EDF Expanded** dataset. This evaluation subset matches the test set in the [Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html): using random state 33, 46 participants are assigned to training, 16 to validation, and 16 to the test partition used for Codabench evaluation. This temporary proxy reports unweighted bMAE and plain MAE. The official W-bMAE and seen/unseen macro-average apply to the sealed Muse evaluation.
 
 Sleep-EDF is both the default dataset in the **[Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)** and the dataset used for the **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-3)**. Because the test data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
 
-> **Upcoming data release.** The public 2026 Muse training data described in the **[Track 03 dataset entry](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)** will be released soon. Codabench warm-up evaluation will then switch from Sleep-EDF to the new Track 03 dataset.
+> **Upcoming data release.** The public 2026 Muse training data described in the **[Track 03 dataset entry](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)** will be released soon. Before Codabench warm-up switches from Sleep-EDF to the new Track 03 data, its scorer and the NeuralBench start kit will also be updated together to the agreed Muse warm-up W-bMAE scheme. Until then, unweighted bMAE remains the warm-up proxy.
 
-**Sealed evaluation.** Codabench uses the private 2026 Muse cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)**. It is uploaded for the sealed phase, and its participants, recordings, and labels remain hidden.
+**Sealed evaluation.** Codabench uses the private 2026 Muse cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)**. It combines new recordings from participants represented in training with recordings from completely unseen participants. Evaluation recordings and labels remain hidden.
 
 ## Track resources and next steps
 

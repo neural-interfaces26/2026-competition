@@ -12,6 +12,8 @@
 
 # Track 04 · EMG-to-Pose
 
+> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final sealed phase. Warm-up uses the same prediction and metric contract on public EMG2Pose data. Phase-specific data are detailed below.
+
 _Predict continuous hand motion from electrical activity recorded at the wrist._
 
 Given a window of **16-channel wrist surface EMG**, predict continuous trajectories for **20 UmeTrack hand-joint angles** in degrees. The sealed evaluation covers users and movement stages absent from training, plus unseen combinations of users and stages. This tests transfer across anatomy, wristband placement, and movement context.
@@ -20,7 +22,7 @@ Given a window of **16-channel wrist surface EMG**, predict continuous trajector
   <img src="https://neural-interfaces26.github.io/exports/emg-to-pose.gif" alt="Wrist surface EMG decoded into continuous hand-pose trajectories" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
 </p>
 
-## Task contract
+## Sealed-phase task contract
 
 |                          |                                                                    |
 | ------------------------ | ------------------------------------------------------------------ |
@@ -30,7 +32,7 @@ Given a window of **16-channel wrist surface EMG**, predict continuous trajector
 | **Generalization shift** | New users, new movement stages, and unseen user-stage combinations |
 | **Sealed split**         | Evaluation examples and labels remain hidden                       |
 
-## Ranking metric
+## Sealed-phase ranking metric
 
 > **Mean absolute angular error in degrees. Lower is better.**
 
@@ -40,7 +42,9 @@ Codabench computes the absolute angular difference between every predicted and r
 
 **Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **EMG2Pose** dataset. This evaluation subset matches the test set in the [Track 04 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html): rows marked `generalization = user_stage` form the Codabench evaluation partition and contain unseen combinations of users and movement stages represented elsewhere in the public data. EMG2Pose also underlies the **[reported NeuroPose baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4)**. Because the data and labels are public, leakage is possible and warm-up scores are indicative only. Only the sealed phase determines the final ranking.
+**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **EMG2Pose** dataset. This evaluation subset matches the test set in the [Track 04 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html): rows marked `generalization = user_stage` form the Codabench evaluation partition and contain unseen combinations of users and movement stages represented elsewhere in the public data. Warm-up uses the same mean absolute angular error as the sealed phase, averaged across all examples, joints, and time points. Codabench reports degrees; this is equivalent to NeuralBench's `test/mae` in radians multiplied by `57.29578`.
+
+EMG2Pose also underlies the **[reported NeuroPose baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4)**. Because the data and labels are public, leakage is possible and warm-up scores are indicative only. Only the sealed phase determines the final ranking.
 
 **Sealed evaluation.** Codabench switches to the private 2026 Meta Reality Labs cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4)**. This cohort is uploaded only for the sealed phase, and its evaluation examples and labels remain hidden.
 

@@ -12,6 +12,8 @@
 
 # Track 02 · BCI Decoding
 
+> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final three-command phase. Warm-up currently uses a two-class motor-imagery task on Dreyer 2023 instead. Phase-specific differences are detailed below.
+
 _Decode a user’s intended mental command reliably across recording sessions._
 
 Given a short 47-channel recording window, predict one of three cued commands: **kinesthetic motor imagery, mental calculation, or word association**. The channels comprise 43 EEG, 2 EMG, and 2 EOG signals sampled at 500 Hz. Models receive labeled calibration sessions from each evaluation participant, then predict later sessions from those same participants. This longitudinal split isolates within-user, cross-session drift without additional calibration.
@@ -20,7 +22,7 @@ Given a short 47-channel recording window, predict one of three cued commands: *
   <img src="https://neural-interfaces26.github.io/exports/bci-decoding.gif" alt="Three cued mental commands decoded from EEG across recording sessions" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
 </p>
 
-## Task contract
+## Sealed-phase task contract
 
 |                          |                                                                                      |
 | ------------------------ | ------------------------------------------------------------------------------------ |
@@ -30,7 +32,7 @@ Given a short 47-channel recording window, predict one of three cued commands: *
 | **Generalization shift** | Later sessions from the same users                                                   |
 | **Sealed split**         | Labeled early sessions provide calibration, while later-session labels remain hidden |
 
-## Ranking metric
+## Sealed-phase ranking metric
 
 > **Balanced accuracy averaged across subject, session, and context cells. Higher is better.**
 
@@ -40,11 +42,11 @@ Within each subject, session, and context cell, balanced accuracy is the unweigh
 
 **Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **Dreyer 2023** dataset. This evaluation subset matches the test set in the [Track 02 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html) when run with its Dreyer configuration: Part B participants 61 to 81 form the test partition used for Codabench evaluation. Participants 1 to 60 and 82 to 87 form the training pool, from which 20% are assigned to validation by participant using random state 33. This is a temporary two-class motor-imagery proxy, not the final three-command task.
+**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **Dreyer 2023** dataset. This evaluation subset matches the test set in the [Track 02 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html) when run with its Dreyer configuration: Part B participants 61 to 81 form the test partition used for Codabench evaluation. Participants 1 to 60 and 82 to 87 form the training pool, from which 20% are assigned to validation by participant using random state 33. This is a temporary two-class motor-imagery proxy, ranked by balanced accuracy computed across all evaluation windows. It does not yet use the sealed phase's three commands or subject-session-context cell aggregation. Plain accuracy is reported separately.
 
 Please note that the default **[Track 02 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html)** and the **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-2)** use the **Stieger 2021** dataset, not Dreyer 2023. To run the NeuralBench task on the warm-up dataset instead, select its Dreyer configuration with `neuralbench eeg motor_imagery --dataset dreyer2023`. Because the warm-up test data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
 
-> **Upcoming data release.** The public 2026 Graz and BrainHero training data described in the **[Track 02 dataset entry](https://neural-interfaces26.github.io/tracks.html#dataset-track-2)** will be released soon. Codabench warm-up evaluation will then switch from Dreyer 2023 to the new Track 02 dataset.
+> **Upcoming data release.** The public 2026 Graz and BrainHero training data described in the **[Track 02 dataset entry](https://neural-interfaces26.github.io/tracks.html#dataset-track-2)** will be released soon. Codabench warm-up evaluation will then switch from the temporary Dreyer task and pooled metric to the new Track 02 data, three-command output, and cell-averaged balanced accuracy used by the sealed phase.
 
 **Sealed evaluation.** Codabench uses the private later-session split of the 2026 Graz and BrainHero dataset described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-2)**. It is uploaded for the sealed phase, and its later-session recordings and labels remain hidden.
 
