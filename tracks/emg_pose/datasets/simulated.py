@@ -1,11 +1,9 @@
 """Zero-dependency simulated dataset — the always-available smoke test.
 
-Stands in for the real EMG-to-pose task (Salter2024 emg2pose, **no
-neuralfetch study / neuralbench task config yet** — this simulated dataset is
-currently the track's only one): joint-angle trajectories are smooth random
-curves in a plausible range, and the EMG channels are an instantaneous linear
-mixture of the joint angles + noise, so a per-time-step linear readout can
-recover the pose above the noise floor.
+Stands in for the real EMG-to-pose task (``Salter2024Emg2pose``): joint-angle
+trajectories are smooth random curves in a plausible range, and the EMG
+channels are an instantaneous linear mixture of the joint angles + noise, so a
+per-time-step linear readout can recover the pose above the noise floor.
 
 Only depends on numpy + torch (the benchmark's base stack), so it powers
 ``benchopt run tracks/emg_pose -d Simulated`` and ``benchopt test``.

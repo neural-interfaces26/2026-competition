@@ -1,15 +1,16 @@
 """Objective for the sleep-onset track (track 3).
 
-Regress the latency (in seconds) to the first stable N2 sleep epoch from a
+Regress the latency (in seconds) to the first N2 sleep epoch from a
 short EEG window, capped at 600 s. A submission's model receives torch
 batches ``(B, C, T)`` and must return one predicted latency per window
 (``predict(X) -> (B,)`` floats, in seconds).
 
-Ranking metric: **binned MAE** (bMAE) — the MAE is computed inside
-time-to-onset bins ``[0, 40, 90, 300, 600]`` s and averaged with equal
-weight across bins, so early-onset windows (rare, clinically interesting)
-count as much as the common late ones. Plain MAE is reported alongside.
-Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
+For the warmup phase, the current Sleep-EDF warm-up proxy reports **binned
+MAE** (bMAE), computed inside time-to-onset bins ``[0, 40, 90, 300, 600]`` s,
+plus plain MAE. For the sealed phase, the official sealed Muse evaluation
+instead ranks weighted binned MAE (W-bMAE), macro-averaged across seen- and
+unseen-subject groups. That scorer will ship with the final Muse evaluation
+data. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
 """
 
 import numpy as np
@@ -33,7 +34,7 @@ class Objective(BaseObjective):
         "gpu": ["scikit-learn", "pytorch-gpu"],
     }
 
-    min_benchopt_version = "1.9.2"
+    min_benchopt_version = "1.10.0"
 
     # Each solver runs once to completion (no convergence curve).
     sampling_strategy = "run_once"

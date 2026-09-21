@@ -16,3 +16,4 @@ solution/**/*.npz
 worktrees/
 .venv-margaret/
 tracks/*/solvers/*.npz
+.claude/

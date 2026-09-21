@@ -1,9 +1,22 @@
 import pytest
 
+# The real dataset's pip stack (neuralset/neuralfetch/neuralbench) pins a CUDA
+# torch build — installing it exceeds the CI runners' disk, and the emg2pose
+# download is too large for CI anyway. Use ``benchopt install`` locally / on a
+# compute node instead.
+HEAVY_DATASETS = ("salter2024emg2pose",)
+
+
+def check_test_dataset_install(dataset_class):
+    """Hook to skip dataset install test cases in benchopt tests."""
+    if dataset_class.name.lower() in HEAVY_DATASETS:
+        pytest.skip("real-data stack is too heavy for CI runners")
+
 
 def check_test_dataset_get_data(dataset_class):
     """Hook to skip dataset test cases in benchopt tests."""
-    # Only the simulated dataset ships for now (no real emg2pose loader yet).
+    if dataset_class.name.lower() in HEAVY_DATASETS:
+        pytest.skip("emg2pose is too large for full download in CI")
 
 
 def check_test_solver_install(solver_class):

@@ -2,10 +2,11 @@
 # A native `benchopt run --config` file; the extra `scoring` key is read
 # by the scoring program (stripped by ingestion before the run).
 dataset:
-  - Simulated
-  # Official corpus: Salter2024Emg2pose (NM000281) — neuralbench >= 0.3 now
-  # ships the `emg/pose` task config and study class; the benchmark dataset
-  # wrapping it is not implemented yet (needs the stack bump to 0.3.x).
+  # Official corpus: Salter2024Emg2pose (NM000281), via the neuralbench
+  # `emg/pose` task. subset=full: subset=test empties the train split, which
+  # neuralbench's Data.prepare rejects; stage all and build the predefined
+  # splits. One dataset only: scoring reads the first result row.
+  - Salter2024Emg2pose[subset=full]
 seed: 42
 no_timeout: true
 scoring:

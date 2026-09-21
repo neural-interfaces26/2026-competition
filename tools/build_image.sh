@@ -12,7 +12,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 REGISTRY=${REGISTRY:-tommoral}
-TAG=v1 PUSH=0
+TAG=v2 PUSH=0
 while [[ $# -gt 0 ]]; do
     case $1 in
         -t|--tag) TAG=$2; shift 2 ;;

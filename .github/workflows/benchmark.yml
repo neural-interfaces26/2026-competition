@@ -8,8 +8,9 @@
 #   real datasets, whose pip stack pins a CUDA torch build (their runs are
 #   validated on the cluster instead).
 #
-# The release job (benchopt_version: latest) is disabled until benchopt 1.9.2
-# is on PyPI (the benchmarks' min_benchopt_version).
+# benchopt_dev runs against benchopt@main (1.10.x), matching the benchmarks'
+# min_benchopt_version=1.10.0. A release job (benchopt_version: latest) can be
+# added now that 1.10 is on PyPI.
 name: Benchmark
 
 on:

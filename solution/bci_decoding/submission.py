@@ -54,8 +54,6 @@ class Solver(CompetSolver):
             [feats[labels == k].mean(axis=0) for k in np.unique(labels)])
 
     def save_model(self, model, path):
-        # ``path`` is the root of the zip built at the end of a training run,
-        # next to this file copied in as ``submission.py``. Uploading that zip
-        # makes ``path`` the submission folder — i.e. ``meta["submission_dir"]``
-        # — so write the file name ``load_model`` reads back.
+        # ``path`` is the submission folder, so write the
+        # file name ``load_model`` reads back.
         np.savez(path / "weights.npz", templates=model.templates)

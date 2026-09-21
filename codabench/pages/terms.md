@@ -1,4 +1,4 @@
-# Competition terms
+# Participation rules
 
 ## Rule 1: Anyone can enter. Organisers cannot win prizes
 
