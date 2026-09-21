@@ -140,12 +140,15 @@ required model's `predict(X)` method for every evaluation batch.
 
 `predict(X)` must return the output required by the track:
 
-| Track             | `predict(X)` must return                   | Output-size key           | Ranking metric           |
+| Track             | `predict(X)` must return                   | Output-size key           | Final sealed metric      |
 | ----------------- | ------------------------------------------ | ------------------------- | ------------------------ |
 | 01 - EEG-to-Image | image embeddings `(B, D)`                  | `meta["n_outputs"]` = `D` | top-5 retrieval accuracy |
 | 02 - BCI Decoding | one class index per window `(B,)`          | `meta["n_classes"]`       | balanced accuracy        |
 | 03 - Sleep Onset  | seconds to sleep onset `(B,)` as floats    | `meta["n_outputs"]` = `1` | weighted binned MAE      |
 | 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in degrees | `meta["n_joints"]`        | mean angular MAE         |
+
+Warm-up proxy metrics may differ. The **Track description** tab gives the
+active warm-up metric and the final sealed specification for each track.
 
 A PyTorch model can implement `predict` directly:
 
@@ -164,16 +167,20 @@ class MyModel(torch.nn.Module):
 [Benchopt](https://benchopt.github.io) runs each public track benchmark and
 computes its metrics. Codabench manages uploads, workers, and leaderboards.
 
-Only the sealed evaluation data and labels are hidden. The evaluation code
-and model contract remain public:
+Only the sealed evaluation data and labels are hidden. The submission
+contract remains stable, while the evaluation data and, for proxy warm-ups,
+the task or metric may differ by phase:
 
 |                                 | Warm-up phase                    | Sealed final phase                       |
 | ------------------------------- | -------------------------------- | ---------------------------------------- |
 | Evaluation data                 | development or public proxy data | held-out cohort, never released          |
-| Benchmark code and worker image | public and fixed                 | same                                     |
-| Objective and metric            | public                           | same                                     |
+| Benchmark framework and worker image | public competition stack      | same competition stack                   |
+| Task and ranking metric         | public proxy; see Track description | final specification; see Track description |
 | `meta` keys and tensor contract | documented contract              | same contract, runtime values may differ |
 | Submission ZIP                  | your trained model               | unchanged                                |
+
+Tracks 01–03 currently have phase-specific proxy details. Track 04 uses the
+same prediction task and metric in both phases, on different evaluation data.
 
 For portability, **use only `meta` and the provided batches**. Do not rely on
 undocumented dataset names, paths, subject identifiers, or fixed dimensions.
