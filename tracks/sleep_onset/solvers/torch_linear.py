@@ -1,14 +1,17 @@
-"""Reference baseline: a linear network trained in plain PyTorch.
+"""Reference baseline: a linear network in plain PyTorch.
 
-The smallest end-to-end torch example of the submission contract: an
-``nn.Module`` built in ``load_model`` from ``meta``, the Adam loop right in
-``Solver.fit``, and ``save_model`` writing the checkpoint ``load_model`` reads
-back. Swap the network for your own architecture and the rest still holds.
+The smallest end-to-end torch example of the submission contract. Inference,
+all the platform runs, needs only ``load_model`` (build the ``nn.Module`` from
+``meta``, load its weights) and the module's ``predict``.
 
-Each window collapses to one value per channel (mean over time), then a linear
-layer maps those to a latency. Latencies are regressed in ``[0, 1]`` (seconds
-over ``CAP_S``) so the loss is well scaled, and mapped back to seconds in
-``predict``.
+Training is optional — Codabench never runs it. ``Solver.fit`` holds a plain
+Adam loop and ``save_model`` writes the checkpoint ``load_model`` reads back,
+so ``benchopt run ... -o "Sleep-onset[training=True]"`` regenerates the
+weights. Swap the network for your own architecture and the rest still holds.
+
+Each window collapses to one value per channel (mean over time); a linear
+layer maps those to a latency, regressed in ``[0, 1]`` (seconds over
+``CAP_S``) and mapped back to seconds in ``predict``.
 """
 
 import torch
