@@ -61,10 +61,6 @@ ENV BENCHOPT_DATA_HOME=/app/data \
 ENV PYTHONWARNINGS=ignore::FutureWarning \
     MNE_LOGGING_LEVEL=ERROR \
     TQDM_DISABLE=1
-
-# Enable SciPy/scikit-learn array API so linear heads keep torch tensors
-# on-device (with array_api_dispatch) instead of copying to NumPy.
-ENV SCIPY_ARRAY_API=1
 VOLUME /app/data
 
 # Fail the build if the data stack is incoherent.
