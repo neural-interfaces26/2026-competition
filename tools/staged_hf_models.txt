@@ -1,9 +1,7 @@
-# Pretrained encoders pre-staged into the shared Hugging Face cache so a
+# Pretrained models pre-staged into the shared Hugging Face cache so a
 # submission can load them offline (they are mirrored into the container's
 # HF cache before each run; see codabench/ingestion_program/ingestion.py).
 # One HF Hub id per line; blank lines and #-comments are ignored.
-# Add an encoder you want available by opening a PR here.
-#
-# (DINOv2-giant, the image-track *target*, is staged separately by the image
-#  benchmark's prepare(), not from this list.)
+# Open a PR here to add a model you want available in submissions.
+facebook/dinov2-giant
 brain-bzh/reve-base
