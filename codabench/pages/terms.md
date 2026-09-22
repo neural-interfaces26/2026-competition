@@ -20,6 +20,8 @@ Training data is suggested to stay within the track, but pre-training on any pub
 
 Train on whatever you have. The single constraint is inference: the scoring container must complete a full test pass in under 60 minutes on one A100 instance, so that audit cost stays bounded and per-team runtime stays comparable.
 
+Codabench limits each profile to 15 GB of submission storage shared across all tracks and uploads. This makes 15 GB the theoretical maximum for one submission, but the practical limit is the space remaining in the profile. Participants may delete unused archived submissions under **Profile → Resources**, but a submission displayed on a leaderboard cannot be deleted.
+
 ## Rule 6: Cheating attempts
 
 Any attempt to cheat, including but not limited to using closed clinical data, accessing the sealed test split, or modifying the scoring harness, will result in immediate disqualification from the competition. This decision will be made by the organisation committee and will be final.
@@ -31,3 +33,7 @@ After the sealed final closes on Nov 21, 2026, the top three teams in every trac
 ## Rule 8: Reproducible top teams will be announced during the NeurIPS workshop
 
 Top-ranked teams that pass the audit and submit a method description, training and inference code, and pre-training disclosures will be announced during the NeurIPS workshop. This opportunity is offered to teams with complete, reproducible artifacts.
+
+## Submission ownership and audit use
+
+Participants retain the intellectual property rights they hold in their submitted code, models, and related materials. Finalists must provide the materials required for the reproducibility audit and grant the auditing committee permission to access and run them solely to verify the submission and detect cheating. This limited audit permission does not allow the organizers to publish, share, modify, commercialize, or otherwise use those materials outside the audit. The organizers encourage participants to release their solutions through established open-source libraries after the competition, but that decision remains entirely with each participant.

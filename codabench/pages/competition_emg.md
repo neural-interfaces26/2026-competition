@@ -12,7 +12,7 @@
 
 # After uploading: when will my score appear?
 
-> **Your submission may remain queued before evaluation starts.** All four tracks share the same evaluation queue, so your score may not appear immediately. Once started, Track 04 currently needs more than 15 minutes to load and score the evaluation data, plus the model's inference time. You can leave the page and return later; refreshing the Codabench webpage will not accelerate the evaluation process.
+> **Your submission may remain queued before evaluation starts.** All four tracks share the same evaluation queue, so your score may not appear immediately. Once started, Track 04 currently needs around 2–3 minutes to load and score the evaluation data, plus the model's inference time. You can leave the page and return later; refreshing the Codabench webpage will not accelerate the evaluation process.
 
 ---
 

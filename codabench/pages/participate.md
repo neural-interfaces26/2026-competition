@@ -30,6 +30,13 @@ pinned in
 During `load_model` and `predict`, do not train, do not download competition
 data, and do not write into the submission directory.
 
+**Submission storage limit.** Codabench gives each profile 15 GB of submission
+storage shared across all tracks and uploads; it is not a separate 15 GB limit
+for each ZIP. This makes 15 GB the theoretical maximum for one submission,
+but the practical limit is the space remaining in your profile. If needed,
+delete unused archived submissions under **Profile → Resources**. A submission
+displayed on a leaderboard cannot be deleted.
+
 ---
 
 ## Submit in five steps
@@ -148,7 +155,12 @@ required model's `predict(X)` method for every evaluation batch.
 | 01 - EEG-to-Image | image embeddings `(B, D)`                  | `meta["n_outputs"]` = `D` | top-5 retrieval accuracy |
 | 02 - BCI Decoding | one class index per window `(B,)`          | `meta["n_classes"]`       | balanced accuracy        |
 | 03 - Sleep Onset  | seconds to sleep onset `(B,)` as floats    | `meta["n_outputs"]` = `1` | weighted binned MAE      |
-| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in radians | `meta["n_joints"]`        | mean angular MAE in degrees |
+| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in radians | `meta["n_joints"]`        | mean angular MAE, reported in degrees |
+
+**Track 04 unit contract:** `predict(X)` must return joint angles in radians.
+Do not convert predictions to degrees. Codabench computes the MAE from the
+radian predictions and targets, then converts only the final aggregate score
+to degrees for the leaderboard.
 
 Warm-up proxy metrics may differ. The **Track description** tab gives the
 active warm-up metric and the final sealed specification for each track.
