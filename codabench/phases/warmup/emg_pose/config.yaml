@@ -6,7 +6,7 @@ dataset:
   # `emg/pose` task. subset=full: subset=test empties the train split, which
   # neuralbench's Data.prepare rejects; stage all and build the predefined
   # splits. One dataset only: scoring reads the first result row.
-  - Salter2024Emg2pose[subset=full]
+  - Salter2024Emg2pose[num_workers=6,subset=full]
 seed: 42
 no_timeout: true
 scoring:
