@@ -3,7 +3,7 @@
 Regress hand-joint angle trajectories from wrist surface EMG: a submission's
 model receives torch batches ``(B, C, T)`` (16-channel EMG windows) and must
 return the joint-angle sequences ``predict(X) -> (B, n_joints, T)`` in
-**degrees** (predictions on a coarser time axis are nearest-resampled to the
+**radians** (predictions on a coarser time axis are nearest-resampled to the
 target's ``T``).
 
 Ranking metric: **mean angular MAE** (degrees), averaged over joints and
@@ -77,7 +77,9 @@ class Objective(BaseObjective):
             abs_err += np.abs(pred - y).sum()
             count += y.size
 
-        return dict(angular_mae=float(abs_err / count))
+        # NeuralBench and EMG2Pose train and infer in radians. The competition
+        # reports that same angular error in degrees.
+        return dict(angular_mae=float(abs_err / count * 180.0 / np.pi))
 
     def get_one_result(self):
         # A trivial constant model, used by ``benchopt test`` to validate the

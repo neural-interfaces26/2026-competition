@@ -32,14 +32,14 @@ class Dataset(BaseDataset):
 
     def _make_windows(self, rng, n, mixing):
         # Smooth trajectories: cumulative sum of noise, low-pass by windowed
-        # averaging, scaled to a plausible joint-angle range (degrees).
+        # averaging, scaled to a plausible joint-angle range (radians).
         y = np.cumsum(rng.standard_normal((n, self.n_joints, self.n_times)),
                       axis=-1)
         kernel = np.ones(9) / 9.0
         y = np.apply_along_axis(
             lambda s: np.convolve(s, kernel, mode="same"), -1, y
         )
-        y = 30.0 * y / np.abs(y).max(axis=-1, keepdims=True) + 20.0
+        y = 0.5 * y / np.abs(y).max(axis=-1, keepdims=True) + 0.35
         # Instantaneous linear mixture + noise.
         X = np.einsum("cj,njt->nct", mixing, y)
         X += 2.0 * rng.standard_normal(X.shape)
