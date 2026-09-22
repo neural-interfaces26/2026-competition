@@ -43,10 +43,8 @@ COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Bake the DINOv2-giant weights (image-track target extractor) into the
-# image's default HF cache so submissions reuse them instead of
-# re-downloading ~2 GB each run. HF_HOME is left at its default (writable,
-# per-container) so a participant's own from_pretrained downloads still work
-# (a read-only HF_HOME on /app/data would break those).
+# default (writable) HF cache so submissions reuse them instead of
+# re-downloading ~2 GB each run.
 RUN python -c "from huggingface_hub import snapshot_download; \
     snapshot_download('facebook/dinov2-giant')"
 
