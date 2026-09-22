@@ -203,7 +203,7 @@ def require_prepared(modality, task, data_dir, dataset=None):
     if not study_path.exists():
         raise RuntimeError(
             f"{modality}/{task} data is not prepared under {data_dir}. "
-            "Run `benchopt prepare` (or `benchopt run --prepare`) first."
+            "Run `benchopt prepare` first."
         )
 
 
