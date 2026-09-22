@@ -17,7 +17,7 @@ from benchmark_utils.base_solver import CompetSolver
 
 
 class TorchLinearPose(nn.Module):
-    """Per-time-step linear map ``(B, C, T) -> (B, n_joints, T)``, in radians."""
+    """Per-time-step map ``(B, C, T) -> (B, n_joints, T)``, in radians."""
 
     def __init__(self, n_chans, n_joints):
         super().__init__()
