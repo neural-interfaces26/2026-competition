@@ -50,12 +50,10 @@ IGNORE = shutil.ignore_patterns(
 
 
 def seed_hf_cache():
-    """Reuse the staged Hugging Face weights instead of re-downloading.
-
-    The image-track target (DINOv2-giant) is fetched once at staging under
-    $BENCHOPT_DATA_HOME. Symlink-mirror that read-only cache into the
-    container's writable HF cache so ``from_pretrained`` hits it; a
-    participant's own pretrained downloads still land in the writable copy.
+    """Ingest staged cache into writable HF_HOME.
+    
+     This avoids redownloading very common weights while letting
+     participants experiment with new ones.
     """
     staged = (Path(os.environ.get("BENCHOPT_DATA_HOME", "/app/data"))
               / "neural_compet" / "hf_cache")
