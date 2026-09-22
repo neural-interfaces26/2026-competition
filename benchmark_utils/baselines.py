@@ -24,8 +24,10 @@ class MeanLogReg:
     → one label per window.
     """
 
-    def __init__(self):
-        self.clf = make_pipeline(
+    def __init__(self, estimator=None):
+        # A loaded estimator arrives fitted; a fresh pipeline does not.
+        self.fitted = estimator is not None
+        self.clf = estimator or make_pipeline(
             StandardScaler(), LogisticRegression(max_iter=1000)
         )
 
@@ -38,10 +40,15 @@ class MeanLogReg:
             feats.append(self._features(X))
             targets.append(to_numpy(y))
         self.clf.fit(np.concatenate(feats), np.concatenate(targets))
+        self.fitted = True
         return self
 
     def predict(self, X):
-        return self.clf.predict(self._features(X))
+        feats = self._features(X)
+        if not self.fitted:
+            # Untrained with no shipped weights: floor class, not a raise.
+            return np.zeros(len(feats), dtype=np.int64)
+        return self.clf.predict(feats)
 
 
 class ConstantClassifier:
