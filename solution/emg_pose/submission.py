@@ -6,7 +6,7 @@ trained joint angles from ``weights.npz`` when provided and otherwise uses
 the baseline's in-memory zero pose. The optional ``fit`` and ``save_model``
 hooks support local training and export.
 
-See "Participation > Optional: train through Benchopt" to see how to train
+See "Submission Guide > Practice 2: Train and package with Benchopt" to train
 this model on actual data to produce weights.npz with benchopt.
 """
 
