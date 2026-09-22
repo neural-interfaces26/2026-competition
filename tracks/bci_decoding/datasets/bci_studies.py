@@ -23,7 +23,7 @@ import moabb  # noqa: F401
 import neuralbench  # noqa: F401
 
 from benchmark_utils.data import get_device
-from benchmark_utils.nb_task import download_study, load_task
+from benchmark_utils.nb_task import download_study, load_task, require_prepared
 
 # Overlay yaml in the task's ``datasets/`` folder (None = the task default).
 _OVERLAYS = {
@@ -93,7 +93,10 @@ class Dataset(BaseDataset):
         )
 
     def get_data(self):
-        self.prepare()  # idempotent — so plain ``benchopt run`` also works
+        # Load already-prepared data only; downloading + extracting is the
+        # explicit ``prepare`` step (``benchopt prepare`` / ``--prepare``).
+        require_prepared("eeg", "motor_imagery", self._data_dir(),
+                         dataset=_OVERLAYS[self.study])
         loaders, meta = self._load(device=get_device())
         return dict(
             # subset="test" stages the evaluation split only: no train

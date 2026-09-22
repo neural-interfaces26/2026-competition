@@ -185,6 +185,28 @@ def download_study(modality, task, data_dir, dataset=None):
     ns.Study(**study).download()
 
 
+def require_prepared(modality, task, data_dir, dataset=None):
+    """Fail with a clear message when the study data is not prepared.
+
+    ``get_data`` only loads already-prepared data — downloading + extracting
+    is the explicit ``prepare`` step (``benchopt prepare`` / ``--prepare``).
+    On a read-only staged mount the data is present by construction, so this
+    is a no-op; on a writable checkout it fails fast pointing at ``prepare``
+    rather than silently downloading a large study mid-run.
+    """
+    if not os.access(data_dir, os.W_OK):
+        return  # read-only staged bundle: prepared by construction
+
+    cfg = _task_data_config(modality, task, dataset, data_dir, None)
+    study = dict(cfg["study"]["source"])
+    study_path = Path(study["path"]) / study["name"]
+    if not study_path.exists():
+        raise RuntimeError(
+            f"{modality}/{task} data is not prepared under {data_dir}. "
+            "Run `benchopt prepare` (or `benchopt run --prepare`) first."
+        )
+
+
 class _NBWindows(torch.utils.data.Dataset):
     """Adapt a prepared neuralset ``SegmentDataset`` split to ``(X, y, info)``.
 
