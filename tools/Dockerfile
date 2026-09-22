@@ -42,12 +42,6 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Bake the DINOv2-giant weights (image-track target extractor) into the
-# default (writable) HF cache so submissions reuse them instead of
-# re-downloading ~2 GB each run.
-RUN python -c "from huggingface_hub import snapshot_download; \
-    snapshot_download('facebook/dinov2-giant')"
-
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
 # The programs, for running the platform's evaluation locally.

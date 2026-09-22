@@ -49,6 +49,26 @@ IGNORE = shutil.ignore_patterns(
 )
 
 
+def seed_hf_cache():
+    """Reuse the staged Hugging Face weights instead of re-downloading.
+
+    The image-track target (DINOv2-giant) is fetched once at staging under
+    $BENCHOPT_DATA_HOME. Symlink-mirror that read-only cache into the
+    container's writable HF cache so ``from_pretrained`` hits it; a
+    participant's own pretrained downloads still land in the writable copy.
+    """
+    staged = (Path(os.environ.get("BENCHOPT_DATA_HOME", "/app/data"))
+              / "neural_compet" / "hf_cache")
+    if not staged.is_dir():
+        return
+    cache = Path(os.environ.get("HF_HOME")
+                 or Path.home() / ".cache" / "huggingface")
+    cache.mkdir(parents=True, exist_ok=True)
+    # -s: symlink to the read-only staged files; -n: keep anything already
+    # downloaded in this container.
+    subprocess.run(["cp", "-rsn", f"{staged}/.", str(cache)], check=False)
+
+
 def setup_workdir(benchmark_dir, input_dir):
     """Writable benchmark copy + the phase's dataset files."""
     workdir = Path(tempfile.mkdtemp(prefix="compet_run_")) / "benchmark"
@@ -105,6 +125,7 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
         *(["--config", str(run_config)] if run_config else []),
     ]
 
+    seed_hf_cache()
     print(f"[ingestion] evaluating {submission}", flush=True)
     start = time.time()
     subprocess.run(cmd, check=True)
