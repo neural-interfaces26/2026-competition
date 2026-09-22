@@ -52,8 +52,7 @@ COPY codabench/scoring_program /compet/scoring_program
 # mounts (read-only) in every submission container. The phase bundle lands
 # on /app/input_data, benchmark included.
 ENV BENCHOPT_DATA_HOME=/app/data \
-    NEURALBENCH_CONFIG=/compet/neuralbench_config.json \
-    HF_HOME=/app/data/neural_compet/hf_cache
+    NEURALBENCH_CONFIG=/compet/neuralbench_config.json
 
 # Keep the participant trace to what their submission does: upstream
 # deprecations, MNE's per-file reading log and tqdm bars say nothing about a

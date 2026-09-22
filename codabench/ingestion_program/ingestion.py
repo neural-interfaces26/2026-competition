@@ -49,6 +49,24 @@ IGNORE = shutil.ignore_patterns(
 )
 
 
+def seed_hf_cache():
+    """Inject staged cache into writable HF_HOME.
+
+     This avoids redownloading very common weights while letting
+     participants experiment with new ones.
+    """
+    staged = (Path(os.environ.get("BENCHOPT_DATA_HOME", "/app/data"))
+              / "neural_compet" / "hf_cache")
+    if not staged.is_dir():
+        return
+    cache = Path(os.environ.get("HF_HOME")
+                 or Path.home() / ".cache" / "huggingface")
+    cache.mkdir(parents=True, exist_ok=True)
+    # -s: symlink to the read-only staged files; -n: keep anything already
+    # downloaded in this container.
+    subprocess.run(["cp", "-rsn", f"{staged}/.", str(cache)], check=False)
+
+
 def setup_workdir(benchmark_dir, input_dir):
     """Writable benchmark copy + the phase's dataset files."""
     workdir = Path(tempfile.mkdtemp(prefix="compet_run_")) / "benchmark"
@@ -105,6 +123,7 @@ def main(submission_dir, output_dir, benchmark_dir, input_dir):
         *(["--config", str(run_config)] if run_config else []),
     ]
 
+    seed_hf_cache()
     print(f"[ingestion] evaluating {submission}", flush=True)
     start = time.time()
     subprocess.run(cmd, check=True)

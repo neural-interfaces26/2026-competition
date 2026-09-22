@@ -1,0 +1,5 @@
+# Pretrained models pre-staged into the shared Hugging Face cache so a
+# submission can load them offline.
+# Open a PR here to add a model you want available in submissions.
+facebook/dinov2-giant
+brain-bzh/reve-base
