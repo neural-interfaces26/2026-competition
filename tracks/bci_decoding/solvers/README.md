@@ -1,0 +1,26 @@
+# Track 02 baselines
+
+Four references, each a benchopt solver *and* a valid submission:
+
+| Solver | Name | What it shows |
+|---|---|---|
+| `constant.py` | `Constant` | the contract with no weights and no training — the leaderboard floor (chance) |
+| `mean_logreg.py` | `MeanLogReg` | a scikit-learn model: mean-over-time features + logistic regression |
+| `torch_linear.py` | `Torch-Linear` | the same model in PyTorch, with its own Adam loop in `fit` |
+| `eegnet.py` | `EEGNet` | braindecode EEGNet, trained end-to-end |
+
+Run them like any solver, or compare against yours:
+
+```bash
+benchopt run tracks/bci_decoding -d Simulated -s Constant -s Torch-Linear
+benchopt run tracks/bci_decoding -s MyModel -o "BCI-decoding[training=True]"
+```
+
+Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`
+also work.
+
+Training through benchopt writes each trained submission to its own folder
+`outputs/<Solver.name>/` (`submission.py` + weights) — re-run the solver to
+test it, or zip that folder to upload. `tools/make_starting_kit.py` packages
+each solver as an example ZIP, pulling weights from that folder when present
+and shipping it untrained otherwise.

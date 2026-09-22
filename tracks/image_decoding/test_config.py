@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 # The real dataset's pip stack (neuralset/neuralbench + transformers) pins a
@@ -29,5 +31,7 @@ def check_test_solver_install(solver_class):
         pytest.skip("braindecode/torchaudio stack unavailable on CI runners")
 
 
-def check_test_solver_run(solver_class, test_dataset_name):
+def check_test_solver_run(solver_class, test_dataset_name, tmp_path):
     """Hook to skip solver test cases in benchopt tests."""
+    # Test-trained weights go to a throwaway dir, not the real outputs/.
+    os.environ["COMPET_SUBMISSION_DIR"] = str(tmp_path)

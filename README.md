@@ -31,7 +31,7 @@ tracks/
   image_decoding/       track 1 benchmark
   bci_decoding/         track 2 benchmark
   sleep_onset/          track 3 benchmark
-  emg_pose/             track 4 benchmark (simulated data only for now)
+  emg_pose/             track 4 benchmark (EMG2Pose + simulated smoke data)
 codabench/              shared ingestion/scoring programs, one competition
                         config per track, competition pages
 solution/<track>/       sample submission per track
@@ -96,8 +96,8 @@ gives you the things you end up wanting when iterating on a model:
   their parameters; `benchopt test tracks/<t> --skip-install` sanity-checks
   a new solver against the tiny test configs.
 - **Submission artifact** — implement `save_model(model, path)` next to your
-  `fit` and every training run ends with a ready-to-upload
-  `outputs/submission_<name>.zip` (your solver as `submission.py` + the
+  `fit` and every training run writes a ready-to-zip submission folder at
+  `tracks/<track>/outputs/<name>/` (your solver as `submission.py` + the
   weights it saved). `solution/bci_decoding/submission.py` shows the full
   load/fit/save triple.
 

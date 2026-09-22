@@ -18,7 +18,7 @@ from benchopt.config import get_data_path
 import neuralbench  # noqa: F401
 
 from benchmark_utils.data import get_device
-from benchmark_utils.nb_task import download_study, load_task
+from benchmark_utils.nb_task import download_study, load_task, require_prepared
 
 
 class Dataset(BaseDataset):
@@ -73,18 +73,21 @@ class Dataset(BaseDataset):
                 "target.infra.cluster": None,
                 "target.infra.folder": str(self._data_dir() / "cache"),
                 "target.infra.permissions": None,
-                # Serialize the timeline build. Its pool is os.cpu_count()-1
-                # wide (95 on the p4d); concurrent workers append to the
-                # TimelineLoader cachedict while others read it, tripping
-                # exca's "non-last line" jsonl guard. max_jobs=1 runs it
-                # inline (single writer). cpus_per_task/cluster don't apply
-                # here — they are submitit-only fields.
-                "study.source.infra.max_jobs": 1,
+                # Serialize the timeline build: concurrent
+                # workers append to the TimelineLoader cachedict while others
+                # read it, making exca's "non-last line" jsonl guard fail.
+                # Switch to inline Cached backend.
+                "study.source.timelines.infra.backend": "Cached",
+                "study.source.timelines.infra.folder": str(
+                    self._data_dir() / "cache"
+                ),
             },
         )
 
     def get_data(self):
-        self.prepare()  # idempotent — so plain ``benchopt run`` also works
+        # Load already-prepared data only; downloading + extracting is the
+        # explicit ``prepare`` step (``benchopt prepare`` / ``--prepare``).
+        require_prepared("emg", "pose", self._data_dir())
         loaders, meta = self._load(device=get_device())
         return dict(
             # subset="test" stages the evaluation split only: no train

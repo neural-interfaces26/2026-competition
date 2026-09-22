@@ -148,7 +148,7 @@ required model's `predict(X)` method for every evaluation batch.
 | 01 - EEG-to-Image | image embeddings `(B, D)`                  | `meta["n_outputs"]` = `D` | top-5 retrieval accuracy |
 | 02 - BCI Decoding | one class index per window `(B,)`          | `meta["n_classes"]`       | balanced accuracy        |
 | 03 - Sleep Onset  | seconds to sleep onset `(B,)` as floats    | `meta["n_outputs"]` = `1` | weighted binned MAE      |
-| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in degrees | `meta["n_joints"]`        | mean angular MAE         |
+| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in radians | `meta["n_joints"]`        | mean angular MAE in degrees |
 
 Warm-up proxy metrics may differ. The **Track description** tab gives the
 active warm-up metric and the final sealed specification for each track.
@@ -199,8 +199,8 @@ directory: [Track 01](https://github.com/neural-interfaces26/2026-competition/tr
 and [Track 04](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose/solvers).
 
 These files show the submission contract, but they are at different stages:
-some are weightless floors, some implement local training and export, and
-neural models need a trained checkpoint before they represent a baseline.
+each track has an uploadable dependency-light floor, while neural models need
+a trained checkpoint before they represent a baseline.
 The `examples/` directory is not stored in Git. It is created only inside a
 generated starting-kit archive by `tools/make_starting_kit.py`. The generator
 includes trained weights only when they already exist under the track's
@@ -217,18 +217,19 @@ Track 03 currently provides the most complete progression:
 
 ### Practice 1: Check the platform with a constant baseline
 
-Start with a weightless floor where one is provided:
+Start with the dependency-light floor for your track:
 
 - Track 01: `mean_embedding.py`
+- Track 02: `mean_logreg.py`
 - Track 03: `median_baseline.py`
 - Track 04: `mean_pose.py`
 
 Copy the selected file to `submission.py`, place it at the root of a ZIP,
 and upload it through **My Submissions**. A successful run confirms ZIP
 ingestion, inference, scoring, and leaderboard publication before you package
-your own model. For Track 02, train and package `eegnet.py` as described in
-Practice 2. Its `mean_logreg.py` currently illustrates `fit`, but does not yet
-serialize and reload trained weights, so do not upload it untrained.
+your own model. Without weights, these examples deliberately return a trivial
+constant prediction. Train them through Practice 2 to save and reload a fitted
+floor instead.
 
 ### Practice 2: Train and package with Benchopt
 

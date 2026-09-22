@@ -6,7 +6,7 @@
 
 Codabench evaluates submissions on public, track-specific test data during warm-up. Because these data and labels are public, overlap or leakage is possible. Use the indicative leaderboard to validate the submission workflow and iterate on your model. Warm-up scores do not determine the final ranking.
 
-**Submission limit:** Up to five submissions per team per day.
+**Submission limit:** Up to five submissions per participant per day.
 
 ## Sealed final phase
 
@@ -14,7 +14,7 @@ Codabench evaluates submissions on public, track-specific test data during warm-
 
 Codabench switches to the private 2026 evaluation cohorts, which are uploaded only for this phase. Their examples and labels remain hidden. Only sealed-phase scores determine the final ranking, using the best of each team’s last five sealed submissions.
 
-**Submission limit:** One submission per team per day.
+**Submission limit:** One submission per participant per day.
 
 ## Reproducibility audit
 

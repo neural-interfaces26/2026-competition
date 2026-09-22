@@ -23,7 +23,7 @@ from benchopt.config import get_data_path
 import neuralbench  # noqa: F401
 
 from benchmark_utils.data import get_device
-from benchmark_utils.nb_task import download_study, load_task
+from benchmark_utils.nb_task import download_study, load_task, require_prepared
 
 
 class Dataset(BaseDataset):
@@ -95,7 +95,9 @@ class Dataset(BaseDataset):
         )
 
     def get_data(self):
-        self.prepare()  # idempotent — so plain ``benchopt run`` also works
+        # Load already-prepared data only; downloading + extracting is the
+        # explicit ``prepare`` step (``benchopt prepare`` / ``--prepare``).
+        require_prepared("eeg", "sleep_onset", self._data_dir())
         loaders, meta = self._load(device=get_device())
         return dict(
             # subset="test" stages the evaluation split only: no train
