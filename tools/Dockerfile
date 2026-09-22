@@ -42,6 +42,14 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Bake the DINOv2-giant weights (image-track target extractor) into the
+# image's default HF cache so submissions reuse them instead of
+# re-downloading ~2 GB each run. HF_HOME is left at its default (writable,
+# per-container) so a participant's own from_pretrained downloads still work
+# (a read-only HF_HOME on /app/data would break those).
+RUN python -c "from huggingface_hub import snapshot_download; \
+    snapshot_download('facebook/dinov2-giant')"
+
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
 # The programs, for running the platform's evaluation locally.
@@ -52,8 +60,7 @@ COPY codabench/scoring_program /compet/scoring_program
 # mounts (read-only) in every submission container. The phase bundle lands
 # on /app/input_data, benchmark included.
 ENV BENCHOPT_DATA_HOME=/app/data \
-    NEURALBENCH_CONFIG=/compet/neuralbench_config.json \
-    HF_HOME=/app/data/neural_compet/hf_cache
+    NEURALBENCH_CONFIG=/compet/neuralbench_config.json
 
 # Keep the participant trace to what their submission does: upstream
 # deprecations, MNE's per-file reading log and tqdm bars say nothing about a
