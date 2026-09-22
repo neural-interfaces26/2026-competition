@@ -50,7 +50,7 @@ IGNORE = shutil.ignore_patterns(
 
 
 def seed_hf_cache():
-    """Ingest staged cache into writable HF_HOME.
+    """Inject staged cache into writable HF_HOME.
     
      This avoids redownloading very common weights while letting
      participants experiment with new ones.
