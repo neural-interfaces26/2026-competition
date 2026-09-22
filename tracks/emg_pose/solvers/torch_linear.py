@@ -17,13 +17,13 @@ from benchmark_utils.base_solver import CompetSolver
 
 
 class TorchLinearPose(nn.Module):
-    """Per-time-step linear map ``(B, C, T) -> (B, n_joints, T)``, in degrees."""
+    """Per-time-step linear map ``(B, C, T) -> (B, n_joints, T)``, in radians."""
 
     def __init__(self, n_chans, n_joints):
         super().__init__()
         self.linear = nn.Linear(n_chans, n_joints)
         # Target scale, learned in fit; identity until then so an untrained
-        # net still predicts in degrees.
+        # net still predicts in radians.
         self.register_buffer("y_mean", torch.zeros(1))
         self.register_buffer("y_std", torch.ones(1))
 
@@ -34,7 +34,7 @@ class TorchLinearPose(nn.Module):
     @torch.no_grad()
     def predict(self, X):
         self.eval()
-        return self(X) * self.y_std + self.y_mean       # (B, J, T) degrees
+        return self(X) * self.y_std + self.y_mean       # (B, J, T) radians
 
 
 class Solver(CompetSolver):

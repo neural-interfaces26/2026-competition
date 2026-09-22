@@ -21,7 +21,7 @@ from benchmark_utils.data import resample_labels
 
 
 class DensePose(nn.Module):
-    """EEGNet emitting a joint-angle sequence, in degrees."""
+    """EEGNet emitting a joint-angle sequence, in radians."""
 
     def __init__(self, n_chans, n_joints, n_times):
         super().__init__()
@@ -30,7 +30,7 @@ class DensePose(nn.Module):
             final_conv_length=1,
         )
         # Target scale, learned in fit; identity until then so an untrained
-        # net still predicts in degrees.
+        # net still predicts in radians.
         self.register_buffer("y_mean", torch.zeros(1))
         self.register_buffer("y_std", torch.ones(1))
 
@@ -42,7 +42,7 @@ class DensePose(nn.Module):
         # axis rather than the joints.
         return out[..., None] if out.ndim == 2 else out
 
-    def to_degrees(self, out):
+    def restore_scale(self, out):
         return out * self.y_std + self.y_mean
 
 
@@ -92,7 +92,7 @@ class EEGNetPose:
     def predict(self, X):
         self.net.eval()
         X = torch.as_tensor(X, dtype=torch.float32).to(self.device)
-        return self.net.to_degrees(self.net(X))   # (B, J, T') degrees
+        return self.net.restore_scale(self.net(X))  # (B, J, T') radians
 
 
 class Solver(CompetSolver):
