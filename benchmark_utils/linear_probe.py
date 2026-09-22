@@ -6,12 +6,18 @@ probes). A frozen *encoder* maps a batch of windows to a temporal embedding::
     encode(X: (B, C, T)) -> (B, T', D)
 
 i.e. one ``D``-dim vector per output time position ``T'`` (no pooling). The
-encoder receives **torch tensors** (so braindecode foundation models run
-directly), and thanks to scikit-learn's **array API** support the torch
-features can be passed straight to the linear head with no numpy round-trip
-(when scipy's array-API support is enabled — see the env var below —
-otherwise the head transparently falls back to numpy). One probe style serves
-both regimes:
+encoder returns **torch tensors** (so braindecode foundation models run
+directly), and the linear head consumes them **in place** via scikit-learn's
+array-API dispatch — the features never leave the encoder's device.
+
+Array-API dispatch requires ``SCIPY_ARRAY_API=1`` in the environment *before
+scipy is imported*; the competition worker image sets it. Otherwise
+scikit-learn raises telling you to set it (we deliberately do not silently
+copy to numpy — that would hide that the on-device path is off). Only
+array-API-aware heads work here: ``Ridge`` / ``RidgeClassifier`` /
+``LinearDiscriminantAnalysis`` (``LogisticRegression`` does not dispatch).
+
+One probe style serves both regimes:
 
 - ``epoched`` : mean-pool over ``T'`` → one target per window.
 - ``dense``   : keep every position; the head maps ``(B, T', D) -> (B, T',
@@ -22,20 +28,13 @@ encoder (e.g. a pretrained REVE) and reuse :class:`Encoder` /
 :class:`LinearProbe` from here.
 """
 
-import os
-# scikit-learn array-API dispatch requires scipy's array-API support, which
-# is gated behind this env var and must be set before scipy is imported.
-os.environ.setdefault("SCIPY_ARRAY_API", "1")
+from abc import ABC, abstractmethod
 
-from abc import ABC, abstractmethod  # noqa: E402
-
-import torch  # noqa: E402
-from sklearn import config_context  # noqa: E402
-from sklearn.linear_model import LogisticRegression  # noqa: E402
-from sklearn.pipeline import make_pipeline  # noqa: E402
-from sklearn.preprocessing import StandardScaler  # noqa: E402
-
-from benchmark_utils.data import to_numpy  # noqa: E402
+import torch
+from sklearn import config_context
+from sklearn.linear_model import RidgeClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 
 class Encoder(ABC):
@@ -63,16 +62,17 @@ def _resample(seq, new_len):
 
 
 class LinearProbe:
-    """Frozen encoder + per-position scikit-learn linear head (array API).
+    """Frozen encoder + per-position scikit-learn linear head (on-device).
 
     Parameters
     ----------
     encoder : Encoder
         Frozen feature extractor (``encode(X) -> (B, T', D)``).
     estimator : scikit-learn estimator, optional
-        The linear head, wrapped in a ``StandardScaler`` pipeline. Defaults to
-        ``LogisticRegression`` (classification); pass ``Ridge()`` for
-        regression / multi-output embedding targets.
+        The linear head, wrapped in a ``StandardScaler`` pipeline. Must be
+        array-API-aware (see the module docstring). Defaults to
+        ``RidgeClassifier``; pass ``Ridge()`` for regression / multi-output
+        embedding targets.
     mode : {"epoched", "dense"}
         ``epoched`` pools over ``T'`` and predicts one target per window;
         ``dense`` fits the head over every position and predicts a per-step
@@ -84,8 +84,7 @@ class LinearProbe:
         self.mode = mode
         self.head = make_pipeline(
             StandardScaler(),
-            estimator if estimator is not None
-            else LogisticRegression(max_iter=1000),
+            estimator if estimator is not None else RidgeClassifier(),
         )
 
     def fit(self, train_loader):
@@ -99,33 +98,20 @@ class LinearProbe:
                 y_ds = _resample(y, emb.shape[1])        # (B, T')
                 feats.append(emb.reshape(-1, emb.shape[-1]))
                 targets.append(y_ds.reshape(-1))
-        X_feat = torch.cat(feats)
-        y_all = torch.cat(targets)
-        # Prefer array-API dispatch (torch tensors stay on-device, no numpy
-        # copy); fall back to numpy if scipy's array-API support is off.
-        try:
-            with config_context(array_api_dispatch=True):
-                self.head.fit(X_feat, y_all)
-        except (RuntimeError, ValueError, TypeError):
-            self.head.fit(to_numpy(X_feat), to_numpy(y_all))
+        # Fit in the features' torch namespace: the tensors stay on-device.
+        # Needs SCIPY_ARRAY_API=1 (set in the image); scikit-learn raises with
+        # instructions if it is not.
+        with config_context(array_api_dispatch=True):
+            self.head.fit(torch.cat(feats), torch.cat(targets))
         return self
-
-    def _fit_used_torch(self):
-        # StandardScaler.mean_ is a torch tensor iff the head was fit under
-        # array-API dispatch; mirror that at predict so params and input share
-        # a namespace (also correct for a joblib-reloaded head).
-        return isinstance(getattr(self.head[0], "mean_", None), torch.Tensor)
-
-    def _head_predict(self, X_feat):
-        if self._fit_used_torch():
-            with config_context(array_api_dispatch=True):
-                return torch.as_tensor(self.head.predict(X_feat))
-        return torch.as_tensor(to_numpy(self.head.predict(to_numpy(X_feat))))
 
     def predict(self, X):
         emb = torch.as_tensor(self.encoder.encode(X))    # (B, T', D)
-        if self.mode == "epoched":
-            return self._head_predict(emb.mean(dim=1))   # (B,) or (B, K)
-        B, t_prime, D = emb.shape
-        pred = self._head_predict(emb.reshape(-1, D)).reshape(B, t_prime)
+        with config_context(array_api_dispatch=True):
+            if self.mode == "epoched":
+                return torch.as_tensor(self.head.predict(emb.mean(dim=1)))
+            B, t_prime, D = emb.shape
+            pred = torch.as_tensor(
+                self.head.predict(emb.reshape(-1, D))
+            ).reshape(B, t_prime)
         return _resample(pred, X.shape[-1])              # (B, T_in)

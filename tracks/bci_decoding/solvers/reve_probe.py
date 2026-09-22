@@ -1,9 +1,10 @@
-"""Baseline — frozen REVE encoder + logistic-regression linear probe.
+"""Baseline — frozen REVE encoder + ridge-classifier linear probe.
 
 A complete submission example: the frozen encoder is defined *here* (as
 ``REVEEncoder``) so you can swap it, the head, or the pooling freely. REVE
-(braindecode, pretrained) maps each window to an embedding; a logistic head on
-the mean-pooled embedding predicts the class. Only the head is trained — its
+(braindecode, pretrained) maps each window to an embedding; a ridge-classifier
+head on the mean-pooled embedding predicts the class. Only the head is
+trained — its
 weights travel as a joblib dump; REVE's weights are pulled from the Hugging
 Face Hub at load time (not shipped).
 
@@ -15,7 +16,7 @@ inline them if you want to change the probe itself.
 import joblib
 import torch
 import torch.nn.functional as F
-from sklearn.linear_model import LogisticRegression
+from sklearn.linear_model import RidgeClassifier
 
 from benchmark_utils.base_solver import CompetSolver
 from benchmark_utils.linear_probe import Encoder, LinearProbe
@@ -71,9 +72,7 @@ class Solver(CompetSolver):
     requirements = ["pip::braindecode", "pip::safetensors"]
 
     def load_model(self, meta):
-        probe = LinearProbe(
-            REVEEncoder(meta), LogisticRegression(max_iter=1000)
-        )
+        probe = LinearProbe(REVEEncoder(meta), RidgeClassifier())
         weights = meta["submission_dir"] / "weights.joblib"
         if weights.exists():
             print(f"[loading] {weights} into {self.name}")
