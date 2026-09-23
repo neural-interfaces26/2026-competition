@@ -21,6 +21,14 @@ def check_test_dataset_get_data(dataset_class):
         pytest.skip("emg2pose is too large for full download in CI")
 
 
+def check_test_solver_install(solver_class):
+    """Hook to skip solver install test cases in benchopt tests."""
+    if "eegnet" in solver_class.name.lower():
+        # pip braindecode pulls a CUDA torchaudio that cannot load against
+        # the CPU torch of the CI env; exercised on the cluster instead.
+        pytest.skip("braindecode/torchaudio stack unavailable on CI runners")
+
+
 def check_test_solver_run(solver_class, test_dataset_name, tmp_path):
     """Hook to skip solver test cases in benchopt tests."""
     # Test-trained weights go to a throwaway dir, not the real outputs/.
