@@ -218,27 +218,28 @@ generated starting-kit archive by `tools/make_starting_kit.py`. The generator
 includes trained weights only when they already exist under the track's
 `outputs/` directory; otherwise it warns that the example is untrained.
 
+Every track ships the same four-rung progression, from an upload-ready floor to
+a trained neural network. Copy the rung closest to what you want and adapt it:
+
+| Rung | What it shows | 01 · Image | 02 · BCI | 03 · Sleep | 04 · EMG |
+|---|---|---|---|---|---|
+| Constant floor | the contract with no weights and no training | `mean_embedding.py` | `constant.py` | `median_baseline.py` | `mean_pose.py` |
+| scikit-learn linear | a linear model, weights saved as a joblib dump | `mean_ridge.py` | `mean_logreg.py` | `mean_ridge.py` | `ridge_pose.py` |
+| Torch linear | the same idea in PyTorch, with its own `fit` / `save_model` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` |
+| EEGNet | a NeuralBench-compatible architecture and inference wrapper, trained end-to-end | `eegnet_clip.py` | `eegnet.py` | `eegnet_reg.py` | `eegnet_pose.py` |
+
 Prefer a guided start? The **NeuralBench start kits** are a parallel on-ramp —
 one per track, each with public data, an explicit train/validation/test split,
 and a reference baseline. Reproduce one, then expose it through the `Solver`
 contract here (see Practice 3 below). Browse them at the
 [NeuralBench challenge hub](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/index.html).
 
-Track 03 currently provides the most complete progression:
-
-| Baseline | Solver | What it shows |
-|---|---|---|
-| `Median` | `median_baseline.py` | the contract with no weights and no training |
-| `Mean-Ridge` | `mean_ridge.py` | a scikit-learn model, weights as a joblib dump |
-| `Torch-Linear` | `torch_linear.py` | the same model in PyTorch, with its own `fit` loop |
-| `EEGNet` | `eegnet_reg.py` | the NeuralBench-compatible architecture and inference wrapper; trained weights are published separately |
-
 ### Practice 1: Check the platform with a constant baseline
 
 Start with the dependency-light floor for your track:
 
 - Track 01: `mean_embedding.py`
-- Track 02: `mean_logreg.py`
+- Track 02: `constant.py`
 - Track 03: `median_baseline.py`
 - Track 04: `mean_pose.py`
 
