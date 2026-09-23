@@ -73,8 +73,12 @@ benchopt run tracks/bci_decoding -d Simulated -s my-solver \
     -o "BCI-decoding[training=True]"
 ```
 
-trains and scores it exactly like the platform will. Along the way, benchopt
-gives you the things you end up wanting when iterating on a model:
+trains and scores it exactly like the platform will. `-d Simulated` needs no
+download but is only a contract check — swap it for a real study (e.g.
+`-d "BCI[study=dreyer2023]"`) to train on competition data;
+[`participate.md`](codabench/pages/participate.md) lists each track's studies
+and which one the warm-up scores. Along the way, benchopt gives you the things
+you end up wanting when iterating on a model:
 
 - **Hyperparameter grids, one flag** — declare `parameters` on your solver
   and sweep them inline: `-s "my-solver[lr=[1e-4,1e-3],n_epochs=[20,50]]"`

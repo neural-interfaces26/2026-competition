@@ -218,6 +218,12 @@ generated starting-kit archive by `tools/make_starting_kit.py`. The generator
 includes trained weights only when they already exist under the track's
 `outputs/` directory; otherwise it warns that the example is untrained.
 
+Prefer a guided start? The **NeuralBench start kits** are a parallel on-ramp —
+one per track, each with public data, an explicit train/validation/test split,
+and a reference baseline. Reproduce one, then expose it through the `Solver`
+contract here (see Practice 3 below). Browse them at the
+[NeuralBench challenge hub](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/index.html).
+
 Track 03 currently provides the most complete progression:
 
 | Baseline | Solver | What it shows |
@@ -267,10 +273,33 @@ Use these track and objective names:
 | 03    | `sleep_onset`    | `Sleep-onset`    |
 | 04    | `emg_pose`       | `EMG-pose`       |
 
+Then pick **what to train on** with `-d`. Each track ships a real dataset (a
+one-time `benchopt prepare` download) plus a zero-download `Simulated` set for
+contract smoke-tests. Pass `-d` explicitly so a run's training data is
+unambiguous — these are the same datasets named in the
+[participant guide](https://neural-interfaces26.github.io/participant-guide.html):
+
+| Track | `-d` data source | What it is |
+| ----- | ---------------- | ---------- |
+| 01 | `"Image[study=gifford2022large]"` | THINGS-EEG2 (Gifford2022Large) — public proxy, **default** |
+| 01 | `"Image[study=grootswagers2022human]"`, `"…[study=xu2024alljoined]"`, `"…[study=xu2025alljoined]"` | alternative public studies |
+| 02 | `"BCI[study=dreyer2023]"` | Dreyer2023Large — the **warm-up evaluation** study, **default** |
+| 02 | `"BCI[study=stieger2021]"` | Stieger2021Continuous — additional 4-class public proxy |
+| 02 | `"BCI[study=tangermann2012]"` | BNCI2014_001 — small, for real-data smoke tests |
+| 03 | `"Sleep-EDF"` | Sleep-EDF (Kemp2000Analysis) |
+| 04 | `"Salter2024Emg2pose"` | public EMG2Pose |
+| any | `Simulated` | tiny synthetic set — contract check only, no download |
+
 ```bash
-benchopt prepare tracks/<track>   # prepare the data
-benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
+# one-time download of the chosen study, then train + package in one run
+benchopt prepare tracks/<track> -d "<data source>"
+benchopt run tracks/<track> -d "<data source>" -s MyModel \
+    -o "<objective>[training=True]"
 ```
+
+`-d Simulated` needs no download and is the fastest contract check, but a model
+trained on its small dimensions will not transfer to the real task — train on a
+real study before packaging a submission.
 
 For a solver implementing `save_model`, the training run writes a
 ready-to-upload submission folder (`submission.py` plus its weights). Zip its

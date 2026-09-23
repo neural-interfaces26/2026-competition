@@ -4,11 +4,11 @@ Wraps the neuralbench ``eeg/motor_imagery`` task config (study, subject-level
 split, 4-s stimulus windows, one-hot labels) — see ``benchmark_utils.nb_task``.
 The ``study`` parameter picks the dataset overlay:
 
-- ``stieger2021``    : Stieger2021Continuous — the competition's public proxy
+- ``dreyer2023``     : Dreyer2023Large — the warm-up evaluation study
+                       (2-class, predefined train/test subjects); the default.
+- ``stieger2021``    : Stieger2021Continuous — additional public proxy
                        (62 subjects, 4-class; large download).
 - ``tangermann2012`` : BNCI2014_001 — small, handy for real-data smoke tests.
-- ``dreyer2023``     : Dreyer2023Large — official-candidate dataset
-                       (2-class, predefined train/test subjects).
 
 Requires a one-time download (``benchopt prepare``); the zero-dependency
 ``Simulated`` dataset covers no-network smoke testing.
@@ -43,7 +43,7 @@ class Dataset(BaseDataset):
     ]
 
     parameters = {
-        "study": ["stieger2021"],
+        "study": ["dreyer2023"],
         "batch_size": [64],
         # Dataloader workers; 0 extracts windows in-process, which is what
         # shared CI/platform runners want. Raise it from the phase config
