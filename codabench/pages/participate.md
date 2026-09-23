@@ -228,11 +228,14 @@ a trained neural network. Copy the rung closest to what you want and adapt it:
 | Torch linear | the same idea in PyTorch, with its own `fit` / `save_model` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` |
 | EEGNet | a NeuralBench-compatible architecture and inference wrapper, trained end-to-end | `eegnet_clip.py` | `eegnet.py` | `eegnet_reg.py` | `eegnet_pose.py` |
 
-Prefer a guided start? The **NeuralBench start kits** are a parallel on-ramp —
-one per track, each with public data, an explicit train/validation/test split,
-and a reference baseline. Reproduce one, then expose it through the `Solver`
-contract here (see Practice 3 below). Browse them at the
-[NeuralBench challenge hub](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/index.html).
+**Which path should you train with?** Your own architecture — or any
+non-NeuralBench model — trains and packages best with the **Benchopt starting
+kit** (Practice 2): you define it in `submission.py` as plain PyTorch. A
+**NeuralBench-native model** — the built-in task-specific and foundation models,
+or one you register in NeuralTrain — trains with **NeuralBench** (Practice 3);
+browse the per-track kits at the [NeuralBench challenge hub](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/index.html),
+then package the result. Either way the upload is the same self-contained
+`submission.py` + weights.
 
 ### Practice 1: Check the platform with a constant baseline
 
