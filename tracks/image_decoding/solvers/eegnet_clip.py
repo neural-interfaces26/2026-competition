@@ -2,9 +2,8 @@
 
 Maps each EEG window to the target embedding space with an EEGNet backbone
 (``n_outputs = D``) trained with an asymmetric InfoNCE / CLIP loss over the
-batch (mirrors the official neuralbench baseline: targets L2-normalized,
-fixed temperature, no symmetric term). Same device pattern as the other
-EEGNet baselines.
+batch (targets L2-normalized, fixed temperature, no symmetric term). The
+model owns its device (batches already live on ``meta['device']``).
 """
 
 import torch

@@ -1,8 +1,8 @@
 """Baseline — EEGNet regressor trained end-to-end (torch, GPU-ready).
 
-Same device pattern as the bci_decoding ``EEGNet`` baseline; single-output
-head trained with MSE on latencies normalized to ``[0, 1]``, predictions
-mapped back to seconds and clamped to ``[0, CAP_S]``.
+The model owns its device (batches already live on ``meta['device']``);
+single-output head trained with MSE on latencies normalized to ``[0, 1]``,
+predictions mapped back to seconds and clamped to ``[0, CAP_S]``.
 """
 
 import torch

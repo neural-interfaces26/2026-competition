@@ -1,11 +1,10 @@
 """Reference baseline: ridge regression to the target embedding space.
 
-The scikit-learn slot for this track and the retrieval counterpart of the
-sleep track's ``Mean-Ridge``: each window collapses to one value per channel,
-``(B, C, T) -> (B, C)``, and a multi-output ridge maps those to a ``D``-dim
-embedding the objective ranks by cosine similarity. Weights travel as a
-joblib dump, so this is also the example for a submission whose model is not
-a torch module.
+The scikit-learn slot for this track: each window collapses to one value per
+channel, ``(B, C, T) -> (B, C)``, and a multi-output ridge maps those to a
+``D``-dim embedding the objective ranks by cosine similarity. Weights travel
+as a joblib dump, so this is also the example for a submission whose model is
+not a torch module.
 """
 
 import joblib
@@ -43,8 +42,7 @@ class MeanRidge:
         feats = self._features(X)
         if not self.fitted:
             # Inference-only run with no shipped weights: a constant
-            # embedding (uninformative ranking), like the other untrained
-            # baselines, rather than raise.
+            # embedding (uninformative ranking) rather than raise.
             return np.ones((len(feats), self.n_outputs), dtype=np.float32)
         return self.clf.predict(feats)
 

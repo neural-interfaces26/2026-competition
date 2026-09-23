@@ -1,10 +1,9 @@
 """Reference baseline: ridge regression on the per-channel time means.
 
-The scikit-learn counterpart of ``torch_linear`` and the regression
-counterpart of the BCI track's ``MeanLogReg``: each window collapses to one
-value per channel, ``(B, C, T) -> (B, C)``, and a linear model maps those to
-a latency. Weights travel as a joblib dump, so this is also the example for
-a submission whose model is not a torch module.
+The scikit-learn counterpart of ``torch_linear``: each window collapses to
+one value per channel, ``(B, C, T) -> (B, C)``, and a linear model maps those
+to a latency. Weights travel as a joblib dump, so this is also the example
+for a submission whose model is not a torch module.
 """
 
 import joblib
@@ -43,7 +42,7 @@ class MeanRidge:
         feats = self._features(X)
         if not self.fitted:
             # Inference-only run with no shipped weights: predict the floor
-            # rather than raise, like the other untrained baselines.
+            # rather than raise.
             return np.full(len(feats), CAP_S / 2, dtype=np.float64)
         return np.clip(self.clf.predict(feats), 0.0, CAP_S)
 
