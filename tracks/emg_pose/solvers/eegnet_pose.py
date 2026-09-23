@@ -1,7 +1,7 @@
 """Baseline — EEGNet with a dense readout, trained end-to-end (GPU-ready).
 
-Same device pattern as the other tracks' ``EEGNet`` baselines, but this
-track wants a *sequence* out, not one label per window. EEGNet's head is a
+The model owns its device (batches already live on ``meta['device']``). This
+track wants a *sequence* out, not one label per window: EEGNet's head is a
 convolution spanning the whole remaining time axis, which the final squeeze
 then drops; ``final_conv_length=1`` slides that head instead, so the net
 emits one joint-angle vector per remaining time step — ``(B, n_joints, T')``
