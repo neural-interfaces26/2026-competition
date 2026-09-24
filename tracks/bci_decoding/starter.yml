@@ -1,0 +1,11 @@
+# Starter config — train the linear baseline on the public warm-up data and
+# write a ready-to-upload submission. Two steps from the repo root:
+#   benchopt prepare tracks/bci_decoding --config tracks/bci_decoding/starter.yml
+#   benchopt run     tracks/bci_decoding --config tracks/bci_decoding/starter.yml
+objective:
+  - BCI-decoding[training=True]
+dataset:
+  - BCI[study=dreyer2023]
+solver:
+  - Torch-Linear
+seed: 42

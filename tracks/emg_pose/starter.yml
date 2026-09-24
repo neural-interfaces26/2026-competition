@@ -1,0 +1,11 @@
+# Starter config — train the linear baseline on the public warm-up data and
+# write a ready-to-upload submission. Two steps from the repo root:
+#   benchopt prepare tracks/emg_pose --config tracks/emg_pose/starter.yml
+#   benchopt run     tracks/emg_pose --config tracks/emg_pose/starter.yml
+objective:
+  - EMG-pose[training=True]
+dataset:
+  - Salter2024Emg2pose
+solver:
+  - Torch-Linear
+seed: 42

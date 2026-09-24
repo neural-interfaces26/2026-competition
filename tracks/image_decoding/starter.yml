@@ -1,0 +1,11 @@
+# Starter config — train the linear baseline on the public warm-up data and
+# write a ready-to-upload submission. Two steps from the repo root:
+#   benchopt prepare tracks/image_decoding --config tracks/image_decoding/starter.yml
+#   benchopt run     tracks/image_decoding --config tracks/image_decoding/starter.yml
+objective:
+  - Image-decoding[training=True]
+dataset:
+  - Image[study=gifford2022large]
+solver:
+  - Torch-Linear
+seed: 42
