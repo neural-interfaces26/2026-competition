@@ -13,7 +13,7 @@ Run them like any solver, or compare against yours:
 
 ```bash
 benchopt run tracks/bci_decoding -d Simulated -s Constant -s Torch-Linear
-benchopt run tracks/bci_decoding -s MyModel -o "BCI-decoding[training=True]"
+benchopt run tracks/bci_decoding --config tracks/bci_decoding/starter.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`

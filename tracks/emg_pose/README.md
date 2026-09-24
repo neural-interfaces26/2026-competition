@@ -84,10 +84,13 @@ A submission is one `submission.py` with `class Solver(CompetSolver)`:
 `n_joints`, and `device`. `predict(X)` must return `(B, n_joints, T)` joint
 angles in radians.
 
-Fastest loop — copy a baseline from `solvers/`, edit `load_model` / `fit`, then:
+Fastest loop — copy a baseline from `solvers/`, rename it `MyModel`, edit
+`load_model` / `fit`, then reuse the starter config (it pins the dataset and
+`training=True`; `-s` overrides its baseline solver, so that flag is all you
+change — the data is already prepared from the step above):
 
 ```bash
-benchopt run tracks/emg_pose -s MyModel -o "EMG-pose[training=True]"
+benchopt run tracks/emg_pose --config tracks/emg_pose/starter.yml -s MyModel
 ```
 
 Full submission contract, `meta` keys, and packaging:

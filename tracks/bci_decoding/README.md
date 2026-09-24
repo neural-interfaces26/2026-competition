@@ -82,10 +82,13 @@ A submission is one `submission.py` with `class Solver(CompetSolver)`:
 `meta` provides `n_chans`, `n_times`, `sfreq`, `ch_names`, `chs_info`,
 `n_classes`, and `device`. `predict(X)` must return `(B,)` integer class labels.
 
-Fastest loop — copy a baseline from `solvers/`, edit `load_model` / `fit`, then:
+Fastest loop — copy a baseline from `solvers/`, rename it `MyModel`, edit
+`load_model` / `fit`, then reuse the starter config (it pins the dataset and
+`training=True`; `-s` overrides its baseline solver, so that flag is all you
+change — the data is already prepared from the step above):
 
 ```bash
-benchopt run tracks/bci_decoding -s MyModel -o "BCI-decoding[training=True]"
+benchopt run tracks/bci_decoding --config tracks/bci_decoding/starter.yml -s MyModel
 ```
 
 Full submission contract, `meta` keys, and packaging:

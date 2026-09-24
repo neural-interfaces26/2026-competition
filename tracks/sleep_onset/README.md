@@ -85,10 +85,13 @@ A submission is one `submission.py` with `class Solver(CompetSolver)`:
 `n_outputs` (= `1`), and `device`. `predict(X)` must return `(B,)` float
 latencies in seconds.
 
-Fastest loop — copy a baseline from `solvers/`, edit `load_model` / `fit`, then:
+Fastest loop — copy a baseline from `solvers/`, rename it `MyModel`, edit
+`load_model` / `fit`, then reuse the starter config (it pins the dataset and
+`training=True`; `-s` overrides its baseline solver, so that flag is all you
+change — the data is already prepared from the step above):
 
 ```bash
-benchopt run tracks/sleep_onset -s MyModel -o "Sleep-onset[training=True]"
+benchopt run tracks/sleep_onset --config tracks/sleep_onset/starter.yml -s MyModel
 ```
 
 Full submission contract, `meta` keys, and packaging:
