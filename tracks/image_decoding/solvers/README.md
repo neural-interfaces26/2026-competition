@@ -12,7 +12,9 @@ Four references, each a benchopt solver *and* a valid submission:
 Run them like any solver, or compare against yours:
 
 ```bash
+# Inference only on simulated
 benchopt run tracks/image_decoding -d Simulated -s MeanEmbedding -s Mean-Ridge
+# Training a model with name MyModel
 benchopt run tracks/image_decoding -s MyModel -o "Image-decoding[training=True]"
 ```
 
