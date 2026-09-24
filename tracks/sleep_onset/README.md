@@ -94,6 +94,10 @@ change — the data is already prepared from the step above):
 benchopt run tracks/sleep_onset --config tracks/sleep_onset/starter.yml -s MyModel
 ```
 
+**Train on different data.** The config pins the dataset; override it with `-d`
+to train elsewhere — `Sleep-EDF` with different parameters, or your own data
+loaded straight from a file: `-d path/to/my_dataset.py`.
+
 Full submission contract, `meta` keys, and packaging:
 [`codabench/pages/participate.md`](../../codabench/pages/participate.md) and the
 repo [README](../../README.md#develop--train-your-model-with-benchopt).

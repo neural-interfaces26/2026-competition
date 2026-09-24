@@ -268,7 +268,19 @@ Codabench never calls `fit` or `save_model` — the server is
 inference-only — so they cost you nothing at evaluation time. If you
 train and package another way, omit both.
 
-Use these track and objective names:
+Each track ships a **starter config** — `tracks/<track>/starter.yml` — that pins
+the public warm-up dataset and turns training on. Copy a baseline into
+`solvers/`, rename its `Solver` to `MyModel`, then prepare the data and train it
+into a ready-to-upload submission through that config:
+
+```bash
+benchopt prepare tracks/<track> --config tracks/<track>/starter.yml
+benchopt run     tracks/<track> --config tracks/<track>/starter.yml -s MyModel
+```
+
+`-s MyModel` overrides the config's baseline solver; drop it to train the
+baseline itself. The config hides the dataset and `training=True` flags — if you
+ever need the names by hand:
 
 | Track | `<track>`        | `<objective>`    |
 | ----- | ---------------- | ---------------- |
@@ -277,10 +289,9 @@ Use these track and objective names:
 | 03    | `sleep_onset`    | `Sleep-onset`    |
 | 04    | `emg_pose`       | `EMG-pose`       |
 
-Then pick **what to train on** with `-d`. Each track ships a real dataset (a
-one-time `benchopt prepare` download) plus a zero-download `Simulated` set for
-contract smoke-tests. Pass `-d` explicitly so a run's training data is
-unambiguous — these are the same datasets named in the
+**Train on different data.** The config uses each track's default public study.
+To train on another study — or your own data — override the dataset with `-d`
+(it replaces the config's dataset); these are the same datasets named in the
 [participant guide](https://neural-interfaces26.github.io/participant-guide.html):
 
 | Track | `-d` data source | What it is |
@@ -293,12 +304,11 @@ unambiguous — these are the same datasets named in the
 | 03 | `"Sleep-EDF"` | Sleep-EDF (Kemp2000Analysis) |
 | 04 | `"Salter2024Emg2pose"` | public EMG2Pose |
 | any | `Simulated` | tiny synthetic set — contract check only, no download |
+| any | `path/to/my_dataset.py` | your own benchopt Dataset, loaded straight from the file |
 
 ```bash
-# one-time download of the chosen study, then train + package in one run
 benchopt prepare tracks/<track> -d "<data source>"
-benchopt run tracks/<track> -d "<data source>" -s MyModel \
-    -o "<objective>[training=True]"
+benchopt run     tracks/<track> -d "<data source>" -s MyModel -o "<objective>[training=True]"
 ```
 
 `-d Simulated` needs no download and is the fastest contract check, but a model
