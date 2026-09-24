@@ -56,13 +56,16 @@ So packaging a NeuralBench-trained EEGNet reduces to: **produce that
    `submission.py`, put `weights.pt` next to it, and confirm `load_model`
    reads `meta["submission_dir"] / "weights.pt"`.
 
-5. **Test locally before uploading** — a fixed-size checkpoint trained on the
-   real dimensions will *not* fit `Simulated`, so validate on the prepared
-   track data:
+5. **Test locally before uploading — inference-only** (no training config; that
+   is how Codabench evaluates). `COMPET_SUBMISSION_DIR` points the solver at your
+   folder so it loads *your* `weights.pt` — it is the local stand-in for the
+   read-only folder Codabench mounts from your ZIP (set for you on the platform;
+   without it the solver reads `tracks/<track>/outputs/<name>/` instead). A
+   fixed-size checkpoint will not fit `Simulated`, so use the real data:
    ```bash
-   benchopt prepare tracks/<track> --config tracks/<track>/starter.yml
+   benchopt prepare tracks/<track> -d "<real data source>"
    COMPET_SUBMISSION_DIR="$PWD/my_submission" \
-       benchopt run tracks/<track> --config tracks/<track>/starter.yml -s EEGNet
+       benchopt run tracks/<track> -d "<real data source>" -s EEGNet
    ```
 
 6. **Zip and upload** `submission.py` + `weights.pt` at the root of the ZIP,
