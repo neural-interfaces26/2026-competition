@@ -1,87 +1,95 @@
-# Packaging a NeuralBench-trained EEGNet as a submission — DRAFT
+# Package a NeuralBench model for Codabench
 
-> **Status: draft, not yet linked from the participant guide.** The
-> checkpoint-key mapping in step 3 is **not yet verified against a real
-> NeuralBench run** — inspect your own checkpoint's keys before trusting it.
-> This page covers **EEGNet only**. Foundation models (REVE) trained through
-> NeuralBench's `DownstreamWrapper` (channel adapter + probe/LoRA) are **out of
-> scope** — they need a wrapper solver that does not exist in the repo yet.
+This page covers the models used by the four NeuralBench competition start
+kits: EEGNet for Tracks 01 to 03 and VEMG2Pose for Track 04. NeuralBench trains
+the model; Codabench only loads the trained checkpoint and runs inference.
+This is the manual **NeuralBench-to-Codabench path**: Benchopt is not used to
+train the model or package the submission.
 
-## The idea
+## What you need
 
-Each track already ships an **EEGNet solver that *is* the inference wrapper**.
-In `load_model` it rebuilds `braindecode.models.EEGNet(...)` and loads a plain
-PyTorch `state_dict` from `weights.pt`:
+Keep the best checkpoint produced by your NeuralBench training run. Depending
+on how it was exported, it may be a Lightning `best.ckpt`, a NeuralBench model
+state dictionary, or a plain model state dictionary. The submission wrappers
+below accept all three formats and ignore training-only entries such as loss
+parameters.
 
-| Track | Solver file | `Solver.name` | Note |
-|---|---|---|---|
-| 01 image_decoding | `solvers/eegnet_clip.py` | `EEGNet-CLIP` | EEGNet **+ a CLIP retrieval head** — see caveat below |
-| 02 bci_decoding | `solvers/eegnet.py` | `EEGNet` | plain EEGNet classifier |
-| 03 sleep_onset | `solvers/eegnet_reg.py` | `EEGNet` | plain EEGNet regressor |
-| 04 emg_pose | `solvers/eegnet_pose.py` | `EEGNet` | EEGNet + dense readout |
+If you already have an exported `.pt` file, use it directly. No key conversion
+is needed. NeuralBench currently deletes its temporary best checkpoint when a
+run finishes unless `delete_checkpoints_on_exit=False` is set in the run
+configuration, so enable checkpoint retention or export the model before the
+run is cleaned up.
 
-So packaging a NeuralBench-trained EEGNet reduces to: **produce that
-`state_dict`, drop it next to the solver as `weights.pt`, and zip.**
+## Create the ZIP
 
-## Steps
+From a clone of the public
+[`2026-competition`](https://github.com/neural-interfaces26/2026-competition)
+repository, choose the wrapper matching the model trained by the start kit:
 
-1. **Train EEGNet in NeuralBench** with the track's start kit, e.g.
-   ```bash
-   neuralbench eeg motor_imagery --dataset dreyer2023 -m eegnet   # drop --debug for a full run
-   ```
-   and note where NeuralBench writes the checkpoint.
+| Track | NeuralBench model | Submission wrapper |
+|---|---|---|
+| 01 - EEG-to-Image | EEGNet | `tracks/image_decoding/submission_templates/neuralbench_eegnet_submission.py` |
+| 02 - BCI Decoding | EEGNet | `tracks/bci_decoding/submission_templates/neuralbench_eegnet_submission.py` |
+| 03 - Sleep Onset | EEGNet | `tracks/sleep_onset/submission_templates/neuralbench_eegnet_submission.py` |
+| 04 - EMG-to-Pose | VEMG2Pose | `tracks/emg_pose/submission_templates/neuralbench_vemg2pose_submission.py` |
 
-2. **Match the architecture.** The competition solver builds
-   `EEGNet(n_chans=…, n_outputs=…, n_times=…)` from `meta`, with braindecode's
-   default `F1`/`D`/`kernel_length`/… If NeuralBench's `configs/<track>/eegnet.yaml`
-   overrides any of those, mirror them in the solver's `load_model`, or
-   `load_state_dict` will fail on shape mismatch.
+For the matching start-kit architecture, copy the template unchanged. Rename
+it to `submission.py`, add your checkpoint as `weights.pt`, and zip exactly
+those two files:
 
-3. **Extract the braindecode `state_dict`** and save it as `weights.pt`. A
-   NeuralBench checkpoint wraps the module (NeuralTrain config / trainer), so
-   the EEGNet tensors sit under a prefix — strip it so the keys match
-   `braindecode.models.EEGNet().state_dict()`:
-   ```python
-   import torch
-   ckpt = torch.load("neuralbench_eegnet.ckpt", map_location="cpu")
-   sd = ckpt.get("state_dict", ckpt)
+```bash
+mkdir my_submission
+cp tracks/<track>/submission_templates/<template> my_submission/submission.py
+cp /path/to/your/checkpoint my_submission/weights.pt
+zip -j my_submission.zip my_submission/submission.py my_submission/weights.pt
+```
 
-   # ⚠️ VERIFY this prefix against your checkpoint: print(list(sd)[:10])
-   PREFIX = "model."
-   net = {k[len(PREFIX):]: v for k, v in sd.items() if k.startswith(PREFIX)}
-   torch.save(net, "weights.pt")
-   ```
+Open the ZIP before uploading. `submission.py` and `weights.pt` must be at its
+root, not inside a directory. Upload the ZIP through **My Submissions** on the
+corresponding Codabench track.
 
-4. **Assemble the submission.** Copy the track's EEGNet solver to
-   `submission.py`, put `weights.pt` next to it, and confirm `load_model`
-   reads `meta["submission_dir"] / "weights.pt"`.
+## Optional: replay inference locally with Benchopt
 
-5. **Test locally before uploading — inference-only** (no training config; that
-   is how Codabench evaluates). `COMPET_SUBMISSION_DIR` points the solver at your
-   folder so it loads *your* `weights.pt` — it is the local stand-in for the
-   read-only folder Codabench mounts from your ZIP (set for you on the platform;
-   without it the solver reads `tracks/<track>/outputs/<name>/` instead). A
-   fixed-size checkpoint will not fit `Simulated`, so use the real data:
-   ```bash
-   benchopt prepare tracks/<track> -d "<real data source>"
-   COMPET_SUBMISSION_DIR="$PWD/my_submission" \
-       benchopt run tracks/<track> -d "<real data source>" -s EEGNet
-   ```
+Benchopt is optional in this path. After assembling `my_submission`, you may
+use it to run the packaged model locally against the competition contract and
+real public track data before uploading. This is an inference-only check: it
+does not call `fit`, retrain the NeuralBench model, or package the ZIP.
 
-6. **Zip and upload** `submission.py` + `weights.pt` at the root of the ZIP,
-   through **My Submissions**.
+From the repository root:
 
-## Caveats / open items
+```bash
+benchopt prepare tracks/<track> -d "<real data source>"
+COMPET_SUBMISSION_DIR="$PWD/my_submission" \
+  benchopt run tracks/<track> -d "<real data source>" \
+  -s "$PWD/my_submission/submission.py"
+```
 
-- **Key mapping (step 3) is unverified.** Confirm the prefix and that every
-  `braindecode.models.EEGNet` parameter is present after stripping.
-- **Track 01 is special:** `EEGNet-CLIP` wraps EEGNet with a retrieval head, so
-  its `state_dict` is *not* a bare EEGNet — a NeuralBench retrieval EEGNet must
-  match `eegnet_clip.py`'s architecture, not plain EEGNet.
-- **Hyperparameters must match** NeuralBench's `configs/<track>/eegnet.yaml`.
-- **REVE / foundation models are not covered** — they carry a channel adapter +
-  probe (+ optional LoRA) from the `DownstreamWrapper`, which the current
-  solvers do not reconstruct. That is a separate "bridge solver" task.
+Use the real data source matching the checkpoint because these trained models
+have fixed input dimensions and may not fit the smaller `Simulated` dataset.
+Passing this check is useful but does not replace the official Codabench run.
 
-Once the EEGNet path is verified end-to-end, fold a trimmed version into
-[`participate.md`](participate.md) (Practice 3).
+## Why use the dedicated wrapper?
+
+The wrapper reconstructs the same architecture and applies the task-specific
+output contract:
+
+- Track 01 returns DINOv2-space image embeddings.
+- Track 02 converts EEGNet logits to class indices.
+- Track 03 returns the NeuralBench output directly in seconds. It must not use
+  the separate Benchopt baseline's normalized-target conversion.
+- Track 04 reconstructs VEMG2Pose, supplies its temporal left context, returns
+  `(batch, joints, time)`, and keeps predictions in radians. Codabench converts
+  only the final aggregate error to degrees for the leaderboard.
+
+These inference-only wrappers deliberately omit `fit` and `save_model`.
+Codabench never trains a submission. The separate Benchopt training and
+automatic-packaging route documented in the Submission Guide remains
+available, but it is not part of this worked example.
+
+## Scope
+
+These wrappers are specific to the start-kit architectures above. If you
+change an architecture or its preprocessing in NeuralBench, update the copied
+`submission.py` to reproduce those choices. Foundation models and downstream
+adapters such as REVE, probes, and LoRA require their corresponding inference
+architecture and are not covered here.

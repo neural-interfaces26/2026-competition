@@ -338,12 +338,11 @@ of this page.
 
 ### Optional practice 3: Reproduce the NeuralBench start kit
 
-The EEGNet solver files currently provided for Tracks 01–03 show how an
-architecture and its inference preprocessing are exposed through the
-`Solver` contract. Track 04 still needs the equivalent wrapper for its
-NeuralBench reference model. The official trained checkpoints are not
-currently stored in this repository. Until they are published, an untrained
-or dummy checkpoint can test the worker, but it is not a reference baseline.
+The repository provides dedicated inference wrappers for the NeuralBench
+reference models: EEGNet for Tracks 01–03 and VEMG2Pose for Track 04. Each
+wrapper accepts a retained NeuralBench `best.ckpt`, a NeuralBench-exported
+state dictionary, or a plain model state dictionary. The trained checkpoints
+are not stored in this repository.
 
 To reproduce the baseline yourself, follow the corresponding NeuralBench
 guide. Each guide provides the task, public data pipeline, preprocessing, and
@@ -356,12 +355,15 @@ reference model:
 | 03 - Sleep Onset  | [Open the Track 03 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)  |
 | 04 - EMG-to-Pose  | [Open the Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)  |
 
-NeuralBench trains the model. Codabench can evaluate the result only after its
-architecture and inference preprocessing are exposed through the `Solver`
-contract and its trained weights are packaged in the ZIP.
+NeuralBench trains the model. Codabench can evaluate it after the matching
+inference wrapper and trained checkpoint are packaged in the ZIP. Follow the
+[NeuralBench-to-Codabench packaging guide](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/package_from_neuralbench.md)
+to create that ZIP directly. Benchopt is not required for this packaging step.
 
-1. Follow the track guide and reproduce the baseline on permitted data.
-2. Package its `submission.py` and trained weights.
+1. Follow the track guide, reproduce the baseline on permitted data, and keep
+   or export the best trained checkpoint.
+2. Copy the track's dedicated wrapper to `submission.py`, add the checkpoint
+   as `weights.pt`, and ZIP those two files as described in the packaging guide.
 3. Upload the ZIP through **My Submissions** and confirm that it finishes and
    receives a score.
 
