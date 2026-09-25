@@ -1,0 +1,8 @@
+# Starter — a zero-download smoke test. Runs the dummy floor solver on the
+# Simulated data, inference only: confirms the benchmark and your environment
+# work before you download data or train. No `benchopt prepare` needed.
+#   benchopt run tracks/bci_decoding --config tracks/bci_decoding/starter.yml
+dataset:
+  - Simulated
+solver:
+  - Constant

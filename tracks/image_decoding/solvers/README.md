@@ -9,17 +9,18 @@ Four references, each a benchopt solver *and* a valid submission:
 | `torch_linear.py` | `Torch-Linear` | the same model in PyTorch, with its own Adam loop in `fit` |
 | `eegnet_clip.py` | `EEGNet-CLIP` | braindecode EEGNet trained with a CLIP retrieval loss, end-to-end |
 
-Run them like any solver, or compare against yours:
+Run them like any solver from `tracks/image_decoding` folder, or compare against yours:
 
 ```bash
 # Inference only on simulated
-benchopt run tracks/image_decoding -d Simulated -s MeanEmbedding -s Mean-Ridge
+benchopt run --config starter.yml -s MeanEmbedding -s Mean-Ridge
+
 # Training a model with name MyModel
-benchopt run tracks/image_decoding -s MyModel -o "Image-decoding[training=True]"
+benchopt run --config training.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`
-also work.
+also work, as well as paths to a submission compatible python file.
 
 Training through benchopt writes each trained submission to its own folder
 `outputs/<Solver.name>/` (`submission.py` + weights) — re-run the solver to

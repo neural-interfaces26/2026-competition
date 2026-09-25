@@ -218,21 +218,31 @@ generated starting-kit archive by `tools/make_starting_kit.py`. The generator
 includes trained weights only when they already exist under the track's
 `outputs/` directory; otherwise it warns that the example is untrained.
 
-Track 03 currently provides the most complete progression:
+Every track ships the same four-rung progression, from an upload-ready floor to
+a trained neural network. Copy the rung closest to what you want and adapt it:
 
-| Baseline | Solver | What it shows |
-|---|---|---|
-| `Median` | `median_baseline.py` | the contract with no weights and no training |
-| `Mean-Ridge` | `mean_ridge.py` | a scikit-learn model, weights as a joblib dump |
-| `Torch-Linear` | `torch_linear.py` | the same model in PyTorch, with its own `fit` loop |
-| `EEGNet` | `eegnet_reg.py` | the NeuralBench-compatible architecture and inference wrapper; trained weights are published separately |
+| Rung | What it shows | 01 · Image | 02 · BCI | 03 · Sleep | 04 · EMG |
+|---|---|---|---|---|---|
+| Constant floor | the contract with no weights and no training | `mean_embedding.py` | `constant.py` | `median_baseline.py` | `mean_pose.py` |
+| scikit-learn linear | a linear model, weights saved as a joblib dump | `mean_ridge.py` | `mean_logreg.py` | `mean_ridge.py` | `ridge_pose.py` |
+| Torch linear | the same idea in PyTorch, with its own `fit` / `save_model` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` |
+| EEGNet | a NeuralBench-compatible architecture and inference wrapper, trained end-to-end | `eegnet_clip.py` | `eegnet.py` | `eegnet_reg.py` | `eegnet_pose.py` |
+
+**Which path should you train with?** Your own architecture — or any
+non-NeuralBench model — trains and packages best with the **Benchopt starting
+kit** (Practice 2): you define it in `submission.py` as plain PyTorch. A
+**NeuralBench-native model** — the built-in task-specific and foundation models,
+or one you register in NeuralTrain — trains with **NeuralBench** (Practice 3);
+browse the per-track kits at the [NeuralBench challenge hub](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/index.html),
+then package the result. Either way the upload is the same self-contained
+`submission.py` + weights.
 
 ### Practice 1: Check the platform with a constant baseline
 
 Start with the dependency-light floor for your track:
 
 - Track 01: `mean_embedding.py`
-- Track 02: `mean_logreg.py`
+- Track 02: `constant.py`
 - Track 03: `median_baseline.py`
 - Track 04: `mean_pose.py`
 
@@ -258,7 +268,27 @@ Codabench never calls `fit` or `save_model` — the server is
 inference-only — so they cost you nothing at evaluation time. If you
 train and package another way, omit both.
 
-Use these track and objective names:
+First, a one-command check that your setup works — the dummy baseline on the
+`Simulated` data, no download:
+
+```bash
+benchopt run tracks/<track> --config tracks/<track>/starter.yml
+```
+
+Then train for real. Each track ships a **training config** —
+`tracks/<track>/training.yml` — that pins the public warm-up dataset and turns
+training on. Copy a baseline into `solvers/`, rename its `Solver` to `MyModel`,
+then prepare the data and train it into a ready-to-upload submission through that
+config:
+
+```bash
+benchopt prepare tracks/<track> --config tracks/<track>/training.yml
+benchopt run     tracks/<track> --config tracks/<track>/training.yml -s MyModel
+```
+
+`-s MyModel` overrides the config's baseline solver; drop it to train the
+baseline itself. The config hides the dataset and `training=True` flags — if you
+ever need the names by hand:
 
 | Track | `<track>`        | `<objective>`    |
 | ----- | ---------------- | ---------------- |
@@ -267,10 +297,31 @@ Use these track and objective names:
 | 03    | `sleep_onset`    | `Sleep-onset`    |
 | 04    | `emg_pose`       | `EMG-pose`       |
 
+**Train on different data.** The config uses each track's default public study.
+To train on another study — or your own data — override the dataset with `-d`
+(it replaces the config's dataset); these are the same datasets named in the
+[participant guide](https://neural-interfaces26.github.io/participant-guide.html):
+
+| Track | `-d` data source | What it is |
+| ----- | ---------------- | ---------- |
+| 01 | `"Image[study=gifford2022large]"` | THINGS-EEG2 (Gifford2022Large) — public proxy, **default** |
+| 01 | `"Image[study=grootswagers2022human]"`, `"…[study=xu2024alljoined]"`, `"…[study=xu2025alljoined]"` | alternative public studies |
+| 02 | `"BCI[study=dreyer2023]"` | Dreyer2023Large — the **warm-up evaluation** study, **default** |
+| 02 | `"BCI[study=stieger2021]"` | Stieger2021Continuous — additional 4-class public proxy |
+| 02 | `"BCI[study=tangermann2012]"` | BNCI2014_001 — small, for real-data smoke tests |
+| 03 | `"Sleep-EDF"` | Sleep-EDF (Kemp2000Analysis) |
+| 04 | `"Salter2024Emg2pose"` | public EMG2Pose |
+| any | `Simulated` | tiny synthetic set — contract check only, no download |
+| any | `path/to/my_dataset.py` | your own benchopt Dataset, loaded straight from the file |
+
 ```bash
-benchopt prepare tracks/<track>   # prepare the data
-benchopt run tracks/<track> -s MyModel -o "<objective>[training=True]"
+benchopt prepare tracks/<track> -d "<data source>"
+benchopt run     tracks/<track> -d "<data source>" -s MyModel -o "<objective>[training=True]"
 ```
+
+`-d Simulated` needs no download and is the fastest contract check, but a model
+trained on its small dimensions will not transfer to the real task — train on a
+real study before packaging a submission.
 
 For a solver implementing `save_model`, the training run writes a
 ready-to-upload submission folder (`submission.py` plus its weights). Zip its

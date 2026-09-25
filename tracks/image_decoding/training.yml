@@ -1,0 +1,13 @@
+# Training config — train a model on the public warm-up data and write a
+# ready-to-upload submission. It pins the dataset and turns training on, so you
+# only choose the solver. Two steps from the repo root (add `-s MyModel` to the
+# run to train your own solver instead of the baseline):
+#   benchopt prepare tracks/image_decoding --config tracks/image_decoding/training.yml
+#   benchopt run     tracks/image_decoding --config tracks/image_decoding/training.yml
+objective:
+  - Image-decoding[training=True]
+dataset:
+  - Image[study=gifford2022large]
+solver:
+  - Torch-Linear
+seed: 42
