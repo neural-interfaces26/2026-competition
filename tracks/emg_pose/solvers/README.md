@@ -17,7 +17,7 @@ Run them like any solver, or compare against yours:
 
 ```bash
 benchopt run tracks/emg_pose -d Simulated -s MeanPose -s Ridge
-benchopt run tracks/emg_pose --config tracks/emg_pose/starter.yml -s MyModel
+benchopt run tracks/emg_pose --config tracks/emg_pose/training.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`

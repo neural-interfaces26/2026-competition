@@ -13,7 +13,7 @@ Run them like any solver, or compare against yours:
 
 ```bash
 benchopt run tracks/sleep_onset -d Simulated -s Median -s Mean-Ridge
-benchopt run tracks/sleep_onset --config tracks/sleep_onset/starter.yml -s MyModel
+benchopt run tracks/sleep_onset --config tracks/sleep_onset/training.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`

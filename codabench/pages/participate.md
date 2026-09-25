@@ -268,14 +268,22 @@ Codabench never calls `fit` or `save_model` — the server is
 inference-only — so they cost you nothing at evaluation time. If you
 train and package another way, omit both.
 
-Each track ships a **starter config** — `tracks/<track>/starter.yml` — that pins
-the public warm-up dataset and turns training on. Copy a baseline into
-`solvers/`, rename its `Solver` to `MyModel`, then prepare the data and train it
-into a ready-to-upload submission through that config:
+First, a one-command check that your setup works — the dummy baseline on the
+`Simulated` data, no download:
 
 ```bash
-benchopt prepare tracks/<track> --config tracks/<track>/starter.yml
-benchopt run     tracks/<track> --config tracks/<track>/starter.yml -s MyModel
+benchopt run tracks/<track> --config tracks/<track>/starter.yml
+```
+
+Then train for real. Each track ships a **training config** —
+`tracks/<track>/training.yml` — that pins the public warm-up dataset and turns
+training on. Copy a baseline into `solvers/`, rename its `Solver` to `MyModel`,
+then prepare the data and train it into a ready-to-upload submission through that
+config:
+
+```bash
+benchopt prepare tracks/<track> --config tracks/<track>/training.yml
+benchopt run     tracks/<track> --config tracks/<track>/training.yml -s MyModel
 ```
 
 `-s MyModel` overrides the config's baseline solver; drop it to train the

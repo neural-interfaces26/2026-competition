@@ -1,11 +1,8 @@
-# Starter config — train the linear baseline on the public warm-up data and
-# write a ready-to-upload submission. Two steps from the repo root:
-#   benchopt prepare tracks/bci_decoding --config tracks/bci_decoding/starter.yml
-#   benchopt run     tracks/bci_decoding --config tracks/bci_decoding/starter.yml
-objective:
-  - BCI-decoding[training=True]
+# Starter — a zero-download smoke test. Runs the dummy floor solver on the
+# Simulated data, inference only: confirms the benchmark and your environment
+# work before you download data or train. No `benchopt prepare` needed.
+#   benchopt run tracks/bci_decoding --config tracks/bci_decoding/starter.yml
 dataset:
-  - BCI[study=dreyer2023]
+  - Simulated
 solver:
-  - Torch-Linear
-seed: 42
+  - Constant

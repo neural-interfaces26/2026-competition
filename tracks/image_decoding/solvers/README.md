@@ -13,7 +13,7 @@ Run them like any solver, or compare against yours:
 
 ```bash
 benchopt run tracks/image_decoding -d Simulated -s MeanEmbedding -s Mean-Ridge
-benchopt run tracks/image_decoding --config tracks/image_decoding/starter.yml -s MyModel
+benchopt run tracks/image_decoding --config tracks/image_decoding/training.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`

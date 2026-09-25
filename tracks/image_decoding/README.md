@@ -27,12 +27,19 @@ your architecture — see the [participant guide](https://neural-interfaces26.gi
 ### Benchopt — run experiments & package (this repo)
 
 The track is a [benchopt](https://benchopt.github.io) benchmark — the same code
-Codabench runs. Prepare the data and train the linear baseline into a
-ready-to-upload submission with the starter config:
+Codabench runs. First, a zero-download check that everything works — the dummy
+baseline on the Simulated data (no `prepare` needed):
 
 ```bash
-benchopt prepare tracks/image_decoding --config tracks/image_decoding/starter.yml
-benchopt run     tracks/image_decoding --config tracks/image_decoding/starter.yml
+benchopt run tracks/image_decoding --config tracks/image_decoding/starter.yml
+```
+
+Then prepare the real data and train the linear baseline into a ready-to-upload
+submission with the training config:
+
+```bash
+benchopt prepare tracks/image_decoding --config tracks/image_decoding/training.yml
+benchopt run     tracks/image_decoding --config tracks/image_decoding/training.yml
 ```
 
 Baselines (each a solver **and** a valid submission) live in
@@ -84,12 +91,12 @@ A submission is one `submission.py` with `class Solver(CompetSolver)`:
 embeddings in the target space.
 
 Fastest loop — copy a baseline from `solvers/`, rename it `MyModel`, edit
-`load_model` / `fit`, then reuse the starter config (it pins the dataset and
+`load_model` / `fit`, then reuse the training config (it pins the dataset and
 `training=True`; `-s` overrides its baseline solver, so that flag is all you
 change — the data is already prepared from the step above):
 
 ```bash
-benchopt run tracks/image_decoding --config tracks/image_decoding/starter.yml -s MyModel
+benchopt run tracks/image_decoding --config tracks/image_decoding/training.yml -s MyModel
 ```
 
 **Train on different data.** The config pins the default study; override it with
