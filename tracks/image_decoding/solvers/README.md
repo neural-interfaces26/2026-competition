@@ -20,7 +20,7 @@ benchopt run --config training.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`
-also work, as well as pathes to a submission compatible python file.
+also work, as well as paths to a submission compatible python file.
 
 Training through benchopt writes each trained submission to its own folder
 `outputs/<Solver.name>/` (`submission.py` + weights) — re-run the solver to

@@ -13,15 +13,18 @@ The two linear baselines are *per-time-step* readouts: the Simulated EMG is an
 instantaneous linear mixture of the joint angles, so a linear map at each time
 step already recovers the pose above the noise floor.
 
-Run them like any solver, or compare against yours:
+Run them like any solver from `tracks/emg_pose` folder, or compare against yours:
 
 ```bash
-benchopt run tracks/emg_pose -d Simulated -s MeanPose -s Ridge
-benchopt run tracks/emg_pose --config tracks/emg_pose/training.yml -s MyModel
+# Inference only on simulated
+benchopt run --config starter.yml -s MeanPose -s Ridge
+
+# Training a model with name MyModel
+benchopt run --config training.yml -s MyModel
 ```
 
 Selectors are case-insensitive globs, so `-s "*linear*"` or `-s "eegnet*"`
-also work.
+also work, as well as paths to a submission compatible python file.
 
 Training through benchopt writes each trained submission to its own folder
 `outputs/<Solver.name>/` (`submission.py` + weights) — re-run the solver to
