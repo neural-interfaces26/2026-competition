@@ -33,10 +33,14 @@ class Dataset(BaseDataset):
 
     parameters = {
         "n_chans, n_times": [(4, 500)],
+        "n_train, n_test": [(300, 150)],
+        "sfreq": [100.0],
     }
 
     test_parameters = {
         "n_chans, n_times": [(2, 100)],
+        "n_train, n_test": [(20, 10)],
+        "sfreq": [100.0],
     }
 
     def _make_windows(self, rng, n, slope):
@@ -60,13 +64,13 @@ class Dataset(BaseDataset):
         device = get_device()
         ch_names = STANDARD_1020[:self.n_chans]
 
-        X_tr, y_tr = self._make_windows(rng, 300, slope)
-        X_te, y_te = self._make_windows(rng, 150, slope)
+        X_tr, y_tr = self._make_windows(rng, self.n_train, slope)
+        X_te, y_te = self._make_windows(rng, self.n_test, slope)
 
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
             test_loader=make_loader(X_te, y_te, device=device),
-            sfreq=100.0,
+            sfreq=self.sfreq,
             ch_names=ch_names,
             chs_info=chs_info_from_names(ch_names),
             n_chans=self.n_chans,
