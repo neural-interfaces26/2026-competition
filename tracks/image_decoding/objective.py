@@ -30,9 +30,11 @@ class Objective(BaseObjective):
 
     # CPU/GPU variants resolved by ``benchopt install [--gpu]``; the conda
     # metapackages pin the matching torch build (CI installs the cpu one).
+    # Install the full trio from one channel: mixing a conda torch with pip
+    # torchvision/torchaudio breaks compiled operators such as torchvision::nms.
     requirements = {
-        "cpu": ["scikit-learn", "pytorch-cpu"],
-        "gpu": ["scikit-learn", "pytorch-gpu"],
+        "cpu": ["scikit-learn", "pytorch-cpu", "torchvision", "torchaudio"],
+        "gpu": ["scikit-learn", "pytorch-gpu", "torchvision", "torchaudio"],
     }
 
     min_benchopt_version = "1.10.0"
