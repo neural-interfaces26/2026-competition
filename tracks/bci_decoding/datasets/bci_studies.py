@@ -39,7 +39,7 @@ class Dataset(BaseDataset):
 
     requirements = [
         "pip::neuralset", "pip::neuralfetch", "pip::neuralbench",
-        "pip::moabb", "pip::mne", "scikit-learn", "pip::torch",
+        "pip::moabb", "pip::mne", "scikit-learn",
     ]
 
     parameters = {
