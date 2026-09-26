@@ -31,8 +31,6 @@ import os
 from pathlib import Path
 
 os.environ["BENCHOPT_DEBUG"] = "true"
-# scikit-learn array-API dispatch needs scipy's, read at scipy import time.
-os.environ.setdefault("SCIPY_ARRAY_API", "1")
 
 import argparse  # noqa: E402
 import json  # noqa: E402
