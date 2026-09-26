@@ -26,8 +26,10 @@ tools/build_image.sh --push
 
 The debug command downloads no dataset. Its synthetic score is meaningless,
 but the exported model has the current warm-up dimensions and its ZIP can be
-uploaded to verify the complete submission path. Use `--all` for four tracks
-or `--skip-install` after the first dependency installation.
+uploaded to verify the complete submission path. Use `--all` for four tracks,
+`--model reve` for the three EEG tracks, or `--skip-install` after the first
+dependency installation. REVE's pretrained weights download once locally;
+workers use the staged Hugging Face cache.
 
 The first two commands produce ZIP files at the repository root. Generated
 archives, prepared data, caches, and benchmark outputs are not source files and

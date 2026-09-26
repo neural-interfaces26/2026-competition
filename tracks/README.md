@@ -51,7 +51,8 @@ python tools/debug_submission.py --track <track>
 
 This uses a tiny synthetic dataset with the real warm-up tensor dimensions.
 The resulting ZIP is structurally uploadable to Codabench, but its score has
-no scientific meaning.
+no scientific meaning. The default is EEGNet. For the three EEG tracks, add
+`--model reve` to exercise the frozen-REVE probe instead.
 
 Then install the real-data configuration, prepare its public dataset, and
 train the default linear baseline:

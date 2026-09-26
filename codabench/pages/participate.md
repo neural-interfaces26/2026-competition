@@ -237,6 +237,7 @@ a trained neural network. Copy the rung closest to what you want and adapt it:
 | scikit-learn linear | a linear model, weights saved as a joblib dump | `mean_ridge.py` | `mean_logreg.py` | `mean_ridge.py` | `ridge_pose.py` |
 | Torch linear | the same idea in PyTorch, with its own `fit` / `save_model` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` | `torch_linear.py` |
 | EEGNet | a NeuralBench-compatible architecture and inference wrapper, trained end-to-end | `eegnet_clip.py` | `eegnet.py` | `eegnet_reg.py` | `eegnet_pose.py` |
+| Frozen foundation probe | pretrained REVE with a fitted joblib head | `reve_probe.py` | `reve_probe.py` | `reve_probe.py` | not applicable |
 
 **Which path should you train with?** Choose by workflow, not architecture.
 NeuralBench offers neuro-specific tasks, preprocessing, adaptation, catalogue
@@ -288,8 +289,9 @@ ZIP:
 python tools/debug_submission.py --track <track>
 ```
 
-Use `--all` to build all four. These models validate the workflow only; their
-scores have no scientific meaning.
+Use `--all` to build all four, or add `--model reve` to build the three EEG
+tracks with a frozen REVE encoder. These models validate the workflow only;
+their scores have no scientific meaning.
 
 First, a one-command check that your setup works — the dummy baseline on the
 `Simulated` data, no download:
@@ -427,11 +429,14 @@ failed and no results file could be created.
 
 ## Optional: use a large pretrained EEG model
 
-`braindecode` ships pretrained models including BENDR, BIOT, CBraMod, and
-SignalJEPA. When a checkpoint is too large for the submission ZIP,
+`braindecode` ships pretrained models including REVE, BENDR, BIOT, CBraMod,
+and SignalJEPA. When a checkpoint is too large for the submission ZIP,
 `Model.from_pretrained(...)` can retrieve its published weights from the
-Hugging Face Hub. Prefer shipping weights when feasible because the download
-runs for every submission and counts against the one-hour evaluation limit.
+Hugging Face Hub. Models listed in the repository's
+[`staged_hf_models.txt`](https://github.com/neural-interfaces26/2026-competition/blob/main/tools/staged_hf_models.txt)
+are cached on competition workers. Other weights may download during each
+submission and count against the one-hour evaluation limit, so prefer shipping
+them when feasible.
 
 ---
 
