@@ -6,7 +6,7 @@
 
 # Before building a submission
 
-> To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the **strict Codabench submission contract**. Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the submission contract, including the required model architecture, trained weights, optional files, and validation workflow.
+> To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the **strict Codabench submission contract**. Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the Python inference contract, output shape, trained weights, optional files, and validation workflow. The same guide and its executable examples are public in the **[2026 competition repository](https://github.com/neural-interfaces26/2026-competition)**.
 
 ---
 
@@ -46,7 +46,7 @@ For each EEG epoch, Codabench L2-normalizes the predicted embedding and the froz
 
 ## Development, warm-up, and sealed data
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
+**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 01 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
 
 **Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **THINGS-EEG2** dataset. This evaluation subset matches the test set in the [Track 01 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html): timelines marked as test form the Codabench evaluation partition, while 20% of the training timelines are assigned to validation using random state 33. Codabench ranks each epoch against the unique target-image embeddings in that test partition and reports pooled Top-5 accuracy across all evaluation epochs. Unlike the sealed metric and NeuralBench's headline `test/full_retrieval/top5_acc_subject-agg`, this temporary proxy does not aggregate repeated presentations within subjects. Top-1 accuracy is reported separately.
 
@@ -56,7 +56,7 @@ THINGS-EEG2 also provides the **[reported public baseline scores](https://neural
 
 ## Track resources and next steps
 
-**[Explore the full Track 01 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-1)** · **[Use the optional NeuralBench start kit and public baselines →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-1)**
+**[Explore the full Track 01 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-1)** · **[Choose a repository workflow →](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md)** · **[Use the NeuralBench start kit and public baselines →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-1)**
 
 For packaging and uploads, use **Get Started → Submission Guide**. For current dates and submission limits, use **Phases**. For eligibility, data use, and the reproducibility audit, use **Terms**.
 

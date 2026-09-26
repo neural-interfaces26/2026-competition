@@ -6,7 +6,7 @@
 
 # Before building a submission
 
-> To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the **strict Codabench submission contract**. Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the submission contract, including the required model architecture, trained weights, optional files, and validation workflow.
+> To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the **strict Codabench submission contract**. Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the Python inference contract, output shape, trained weights, optional files, and validation workflow. The same guide and its executable examples are public in the **[2026 competition repository](https://github.com/neural-interfaces26/2026-competition)**.
 
 ---
 
@@ -48,7 +48,7 @@ W-bMAE is reported separately for **seen subjects** (new recordings from people 
 
 ## Development, warm-up, and sealed data
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
+**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 03 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
 
 **Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **Sleep-EDF Expanded** dataset. This evaluation subset matches the test set in the [Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html): using random state 33, 46 participants are assigned to training, 16 to validation, and 16 to the test partition used for Codabench evaluation. This temporary proxy reports unweighted bMAE and plain MAE. The official W-bMAE and seen/unseen macro-average apply to the sealed Muse evaluation.
 
@@ -60,7 +60,7 @@ Sleep-EDF is both the default dataset in the **[Track 03 NeuralBench start kit](
 
 ## Track resources and next steps
 
-**[Explore the full Track 03 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-3)** · **[Use the optional NeuralBench start kit and public baselines →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-3)**
+**[Explore the full Track 03 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-3)** · **[Choose a repository workflow →](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md)** · **[Use the NeuralBench start kit and public baselines →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-3)**
 
 For packaging and uploads, use **Get Started → Submission Guide**. For current dates and submission limits, use **Phases**. For eligibility, data use, and the reproducibility audit, use **Terms**.
 
