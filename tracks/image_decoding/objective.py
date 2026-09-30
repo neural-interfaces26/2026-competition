@@ -7,7 +7,10 @@ embedding space, e.g. DINOv2). Each test window's prediction is ranked
 against the candidate pool (the unique target embeddings of the test split)
 by cosine similarity.
 
-Ranking metric: **top-5 accuracy** (top-1 reported alongside).
+Ranking metric: **top-5 accuracy** (top-1 reported alongside), pooled over all
+test windows. The ``*_agg`` variants first average the predictions of the
+repeated presentations of each target image, then retrieve one query per
+target (aggregating repetitions, like neuralbench's subject-agg metric).
 Data flows as lazy dataloaders — see ``benchmark_utils/data.py``; targets ``y``
 are the float embeddings ``(B, D)`` of the viewed images.
 """
@@ -85,9 +88,19 @@ class Objective(BaseObjective):
         )
         scores = _normalize(y_pred) @ _normalize(candidates).T  # (N, M)
 
+        # Per-target retrieval: average each candidate's predictions over its
+        # repeated presentations, then rank the M averaged queries against the
+        # pool (aggregates repetitions, like neuralbench's subject-agg metric).
+        pred_agg = np.stack([y_pred[target_idx == i].mean(axis=0)
+                             for i in range(len(candidates))])   # (M, D)
+        scores_agg = _normalize(pred_agg) @ _normalize(candidates).T  # (M, M)
+        agg_idx = np.arange(len(candidates))
+
         return dict(
             top5_acc=topk_accuracy(scores, target_idx, k=5),
             top1_acc=topk_accuracy(scores, target_idx, k=1),
+            top5_acc_agg=topk_accuracy(scores_agg, agg_idx, k=5),
+            top1_acc_agg=topk_accuracy(scores_agg, agg_idx, k=1),
             n_candidates=int(len(candidates)),
         )
 
