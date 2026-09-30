@@ -90,12 +90,12 @@ leaderboards:
         key: top1_acc
         index: 1
         sorting: desc
-      - title: Top-5 accuracy (agg)
-        key: top5_acc_agg
+      - title: Top-5 accuracy (per-subject)
+        key: top5_acc_subject_agg
         index: 2
         sorting: desc
-      - title: Top-1 accuracy (agg)
-        key: top1_acc_agg
+      - title: Top-1 accuracy (per-subject)
+        key: top1_acc_subject_agg
         index: 3
         sorting: desc
       - title: Duration (s)
