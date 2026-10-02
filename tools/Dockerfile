@@ -26,6 +26,11 @@ FROM python:3.12-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# git: requirements.txt installs the neuroai data stack from the monorepo
+# (git+https), which the slim base cannot clone without it.
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
 # The torch trio from the official PyTorch wheel index with an explicit CUDA
 # channel: PyPI's default silently tracks the newest CUDA (cu13 today), which
 # needs very recent drivers; cu126 runs on any R525+ driver. All three come

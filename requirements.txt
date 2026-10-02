@@ -12,12 +12,16 @@ scikit-learn
 # purpose (participants install whatever suits their machine); the docker
 # image pins the CUDA wheel channel instead (tools/Dockerfile TORCH_CHANNEL).
 torch
-# Data stack for the real tasks (Simulated needs none of these). Pinned for
-# reproducibility; 0.3.x adds the emg/pose task, the image-dataset overlays
-# (xu2025alljoined, ...) and get_default_dataloaders.
-neuralset==0.3.1
-neuralfetch==0.3.1
-neuralbench==0.3.1
+# Data stack for the real tasks (Simulated needs none of these). Tracking the
+# neuroai monorepo competition branch while upstream lands fixes. The four packages
+# are one uv workspace with pinned inter-deps (~=0.3.1), so all four must come
+# from git: pinning only neuralbench would let pip resolve its sub-deps from
+# PyPI and mix released with dev. Swap @competition for a commit SHA once the fixes
+# settle, to get a reproducible image again.
+neuralset @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuralset-repo
+neuralfetch @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuralfetch-repo
+neuraltrain @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuraltrain-repo
+neuralbench @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuralbench-repo
 exca==0.5.29
 moabb
 mne
