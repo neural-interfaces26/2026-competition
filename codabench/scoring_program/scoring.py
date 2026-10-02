@@ -49,7 +49,9 @@ def main(prediction_dir, output_dir):
 
     output_dir.mkdir(parents=True, exist_ok=True)
     (output_dir / "scores.json").write_text(json.dumps(scores))
-    print(json.dumps(scores, indent=2))
+    # Log that scoring ran, but never the values: the scoring stdout is visible
+    # in the Codabench log, and the scores must not leak (sealed phase).
+    print(f"[scoring] wrote {len(scores)} scores to scores.json: {sorted(scores)}")
 
 
 if __name__ == "__main__":
