@@ -47,7 +47,8 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 # construction. Bake that small file into the image so inference does not
 # depend on a runtime network request.
 ENV REVE_POSITIONS_PATH=/compet/reve_positions
-RUN python -c "from braindecode.models.reve import RevePositionBank; RevePositionBank()"
+RUN mkdir -p "$REVE_POSITIONS_PATH" && \
+    python -c "from braindecode.models.reve import RevePositionBank; RevePositionBank()"
 
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 

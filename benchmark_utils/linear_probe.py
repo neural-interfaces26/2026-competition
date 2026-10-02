@@ -103,7 +103,9 @@ class LinearProbe:
 
     def __init__(self, encoder, estimator=None, mode="epoched"):
         if mode not in ("epoched", "dense"):
-            raise ValueError(f"mode must be 'epoched' or 'dense', got {mode!r}")
+            raise ValueError(
+                f"mode must be 'epoched' or 'dense', got {mode!r}"
+            )
         self.encoder = encoder
         self.mode = mode
         self.head = make_pipeline(

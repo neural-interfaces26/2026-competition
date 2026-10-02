@@ -184,7 +184,7 @@ def parse_args() -> argparse.Namespace:
     choice.add_argument("--all", action="store_true")
     parser.add_argument(
         "--model", choices=("eegnet", "reve"), default="eegnet",
-        help="worked model to train (default: eegnet; REVE supports EEG tracks)",
+        help="model to train (default: eegnet; REVE supports EEG tracks)",
     )
     parser.add_argument(
         "--output-dir", type=Path,
