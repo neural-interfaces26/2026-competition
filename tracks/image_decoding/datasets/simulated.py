@@ -33,12 +33,16 @@ class Dataset(BaseDataset):
         "n_chans, n_times": [(8, 120)],
         "n_images": [20],
         "n_outputs": [32],
+        "n_train, n_test": [(300, 120)],
+        "sfreq": [100.0],
     }
 
     test_parameters = {
         "n_chans, n_times": [(4, 60)],
         "n_images": [8],
         "n_outputs": [16],
+        "n_train, n_test": [(20, 10)],
+        "sfreq": [100.0],
     }
 
     def _make_windows(self, rng, n, templates, embeddings):
@@ -62,15 +66,22 @@ class Dataset(BaseDataset):
         embeddings = rng.standard_normal((self.n_images, self.n_outputs))
         device = get_device()
         ch_names = STANDARD_1020[:self.n_chans]
+        ch_names += [
+            f"EEG{i:03d}" for i in range(len(ch_names), self.n_chans)
+        ]
 
-        X_tr, y_tr = self._make_windows(rng, 300, templates, embeddings)
-        X_te, y_te = self._make_windows(rng, 120, templates, embeddings)
+        X_tr, y_tr = self._make_windows(
+            rng, self.n_train, templates, embeddings
+        )
+        X_te, y_te = self._make_windows(
+            rng, self.n_test, templates, embeddings
+        )
 
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
             test_loader=make_loader(X_te, y_te, device=device),
             n_outputs=self.n_outputs,
-            sfreq=100.0,
+            sfreq=self.sfreq,
             ch_names=ch_names,
             chs_info=chs_info_from_names(ch_names),
             n_chans=self.n_chans,

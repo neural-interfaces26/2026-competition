@@ -1,61 +1,35 @@
-# Track 02 — BCI decoding
+# Track 02: BCI Decoding
 
-Cued mental-command classification from short EEG windows — one label per
-window, decoded reliably across sessions and days.
+Classify cued mental commands from short EEG windows across recording sessions
+and days.
 
-- **Input:** torch batch `X` `(B, C, T)`, already on `meta["device"]`.
-- **Output:** `predict(X) -> (B,)` — one predicted class index per window.
-- **Ranking metric:** balanced accuracy (plain accuracy reported alongside).
-- **Objective:** `BCI-decoding` · output size `meta["n_classes"]`.
+## Model contract
 
-## Data
+- **Input:** torch tensor `(B, C, T)` on `meta["device"]`.
+- **Output:** `predict(X) -> (B,)`, one integer class index per window, with
+  `meta["n_classes"]` possible classes.
+- **Metric implemented here:** balanced accuracy, with plain accuracy reported
+  alongside.
+- **Benchopt objective:** `BCI-decoding`.
 
-Pick what you train on with `-d` (one-time `benchopt prepare` download):
+See the Codabench **Track description** for the active phase data and official
+ranking specification.
 
-| `-d` selector | What it is |
+## Public data choices
+
+| Benchopt `-d` selector | Data |
 |---|---|
-| `BCI[study=dreyer2023]` | Dreyer2023Large — the **warm-up evaluation** study, **default** |
-| `BCI[study=stieger2021]` | Stieger2021Continuous — additional 4-class public proxy |
-| `BCI[study=tangermann2012]` | BNCI2014_001 — small, for real-data smoke tests |
-| `Simulated` | tiny synthetic set — contract check only, no download |
+| `BCI[study=dreyer2023]` | Dreyer2023Large, the default warm-up study |
+| `BCI[study=stieger2021]` | Stieger2021Continuous, an additional public proxy |
+| `BCI[study=tangermann2012]` | BNCI2014_001, a smaller real-data check |
+| `Simulated` | tiny synthetic contract check, with no download |
 
-## Two starting kits
+## Worked examples
 
-Both paths finish with the same upload: a `submission.py` + weights. Pick by
-your architecture — see the [participant guide](https://neural-interfaces26.github.io/participant-guide.html).
+### NeuralBench start kit
 
-### Benchopt — run experiments & package (this repo)
-
-The track is a [benchopt](https://benchopt.github.io) benchmark — the same code
-Codabench runs. First, a zero-download check that everything works — the dummy
-baseline on the Simulated data (no `prepare` needed):
-
-```bash
-benchopt run tracks/bci_decoding --config tracks/bci_decoding/starter.yml
-```
-
-Then prepare the real data and train the linear baseline into a ready-to-upload
-submission with the training config:
-
-```bash
-benchopt prepare tracks/bci_decoding --config tracks/bci_decoding/training.yml
-benchopt run     tracks/bci_decoding --config tracks/bci_decoding/training.yml
-```
-
-Baselines (each a solver **and** a valid submission) live in
-[`solvers/`](solvers/) — full details in [`solvers/README.md`](solvers/README.md):
-
-| Solver | What it shows |
-|---|---|
-| `Constant` | the contract with no weights and no training (chance floor) |
-| `MeanLogReg` | scikit-learn: mean-over-time features + logistic regression |
-| `Torch-Linear` | the same model in PyTorch, with its own Adam loop in `fit` |
-| `EEGNet` | braindecode EEGNet, trained end-to-end |
-
-### NeuralBench — tasks, datasets & reference baselines
-
-[NeuralBench](https://facebookresearch.github.io/neuroai/neuralbench/) defines
-the task, public splits, and reference baselines. Reproduce the start kit:
+Use NeuralBench to explore the neurophysiology task, preprocessing, public
+split, and reference model pipeline:
 
 ```bash
 pip install neuralbench 'moabb>=1.7.1'
@@ -64,45 +38,47 @@ neuralbench eeg motor_imagery --dataset dreyer2023 --prepare
 neuralbench eeg motor_imagery --dataset dreyer2023 -m eegnet --debug
 ```
 
-Reference results on Stieger 2021 (`Stieger2021Continuous`) — development data,
-**not** Codabench warm-up scores; warm-up currently evaluates on Dreyer 2023:
+Reference development results on Stieger 2021, not the current Dreyer 2023
+Codabench warm-up evaluation:
 
 | Baseline | Balanced accuracy |
 |---|---|
 | Chance | 24.81 ± 1.03 |
 | EEGNet | 58.58 ± 0.34 |
-| REVE (frozen probe) | 68.04 ± 0.73 |
+| REVE frozen probe | 68.04 ± 0.73 |
 
-Full guide: [Track 02 on NeuralBench ↗](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html).
+[Open the Track 02 NeuralBench guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html).
+After training its EEGNet, use the shared
+[NeuralBench-to-Codabench bridge](../README.md#package-a-neuralbench-checkpoint).
 
-## Develop your own model
+### Benchopt competition kit
 
-A submission is one `submission.py` with `class Solver(CompetSolver)`:
+Use the shared [Benchopt workflow](../README.md#develop-and-package-with-benchopt)
+with `<track> = bci_decoding`. `training.yml` selects Dreyer 2023 and exports
+the `Torch-Linear` submission.
 
-- **`load_model(meta) -> model`** (required) — build your architecture, load the
-  shipped weights from `meta["submission_dir"]`, return a model exposing
-  `predict(X)` (in eval mode, on `meta["device"]`).
-- `fit(model, train_loader)` (optional) — train locally; Codabench never calls it.
-- `save_model(model, path)` (optional) — write weights; a training run then
-  packages `outputs/<Solver.name>/` (`submission.py` + weights), ready to zip.
+Editable solvers live in [`solvers/`](solvers/):
 
-`meta` provides `n_chans`, `n_times`, `sfreq`, `ch_names`, `chs_info`,
-`n_classes`, and `device`. `predict(X)` must return `(B,)` integer class labels.
+| Solver | Purpose |
+|---|---|
+| `Constant` | uploadable constant floor |
+| `MeanLogReg` | scikit-learn linear baseline with joblib weights |
+| `Torch-Linear` | PyTorch linear baseline with `fit` and `save_model` |
+| `EEGNet` | end-to-end Braindecode EEGNet |
 
-Fastest loop — copy a baseline from `solvers/`, rename it `MyModel`, edit
-`load_model` / `fit`, then reuse the training config (it pins the dataset and
-`training=True`; `-s` overrides its baseline solver, so that flag is all you
-change — the data is already prepared from the step above):
+## Adapt your own model
+
+The track metadata adds `n_classes` to the shared submission metadata. Your
+model must return one integer class index per window.
+
+Override the training config's dataset with another selector from the table
+above or a custom Benchopt dataset file:
 
 ```bash
-benchopt run tracks/bci_decoding --config tracks/bci_decoding/training.yml -s MyModel
+benchopt run tracks/bci_decoding \
+  --config tracks/bci_decoding/training.yml \
+  -d "BCI[study=stieger2021]" -s MyModel
 ```
 
-**Train on different data.** The config pins the default study; override it with
-`-d` to train elsewhere — another study, e.g. `-d "BCI[study=stieger2021]"`
-(see the Data table above), or your own data loaded straight from a file:
-`-d path/to/my_dataset.py`.
-
-Full submission contract, `meta` keys, and packaging:
-[`codabench/pages/participate.md`](../../codabench/pages/participate.md) and the
-repo [README](../../README.md#develop--train-your-model-with-benchopt).
+The [Submission Guide](../../codabench/pages/participate.md) defines the full
+contract and ZIP layout.

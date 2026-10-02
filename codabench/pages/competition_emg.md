@@ -6,7 +6,7 @@
 
 # Before building a submission
 
-> To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the **strict Codabench submission contract**. Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the submission contract, including the required model architecture, trained weights, optional files, and validation workflow.
+> To be evaluated successfully and appear on the leaderboard, every uploaded model must follow the **strict Codabench submission contract**. Before preparing and uploading your model, open **Get Started → Submission Guide** in the menu on the left. It defines the Python inference contract, output shape and unit, trained weights, optional files, and validation workflow. The same guide and its executable examples are public in the **[2026 competition repository](https://github.com/neural-interfaces26/2026-competition)**.
 
 ---
 
@@ -46,7 +46,7 @@ Codabench computes the absolute angular difference in radians between every pred
 
 ## Development, warm-up, and sealed data
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms.
+**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 04 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
 
 **Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **EMG2Pose** dataset. This evaluation subset matches the test set in the [Track 04 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html): rows marked `generalization = user_stage` form the Codabench evaluation partition and contain unseen combinations of users and movement stages represented elsewhere in the public data. Warm-up uses the same mean absolute angular error as the sealed phase, averaged across all examples, joints, and time points. Models predict radians; Codabench multiplies the resulting MAE by `57.29578` to report degrees, matching the conversion from NeuralBench's `test/mae`.
 
@@ -56,7 +56,7 @@ EMG2Pose also underlies the **[reported NeuroPose baseline scores](https://neura
 
 ## Track resources and next steps
 
-**[Explore the full Track 04 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-4)** · **[Use the optional NeuralBench start kit and public baseline →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-4)**
+**[Explore the full Track 04 description on the main website →](https://neural-interfaces26.github.io/tracks.html#track-4)** · **[Choose a repository workflow →](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md)** · **[Use the NeuralBench start kit and public baseline →](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html)** · **[Review prizes and conditions →](https://neural-interfaces26.github.io/prizes.html#award-track-4)**
 
 For packaging and uploads, use **Get Started → Submission Guide**. For current dates and submission limits, use **Phases**. For eligibility, data use, and the reproducibility audit, use **Terms**.
 
