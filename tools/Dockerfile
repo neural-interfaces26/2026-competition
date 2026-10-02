@@ -47,6 +47,14 @@ RUN pip install -U pip && pip install --no-cache-dir \
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# REVE's pretrained weights are staged with the phase data, but its separate
+# electrode-position bank normally downloads into the container home on first
+# construction. Bake that small file into the image so inference does not
+# depend on a runtime network request.
+ENV REVE_POSITIONS_PATH=/compet/reve_positions
+RUN mkdir -p "$REVE_POSITIONS_PATH" && \
+    python -c "from braindecode.models.reve import RevePositionBank; RevePositionBank()"
+
 COPY tools/neuralbench_config.json /compet/neuralbench_config.json
 
 # The programs, for running the platform's evaluation locally.

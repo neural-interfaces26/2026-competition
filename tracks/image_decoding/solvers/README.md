@@ -1,6 +1,6 @@
 # Track 01 baselines
 
-Four references, each a benchopt solver *and* a valid submission:
+Five references, each a benchopt solver *and* a valid submission:
 
 | Solver | Name | What it shows |
 |---|---|---|
@@ -8,6 +8,7 @@ Four references, each a benchopt solver *and* a valid submission:
 | `mean_ridge.py` | `Mean-Ridge` | a scikit-learn model; `save_model` writes a joblib dump |
 | `torch_linear.py` | `Torch-Linear` | the same model in PyTorch, with its own Adam loop in `fit` |
 | `eegnet_clip.py` | `EEGNet-CLIP` | braindecode EEGNet trained with a CLIP retrieval loss, end-to-end |
+| `reve_probe.py` | `REVE` | frozen pretrained REVE plus a multi-output ridge head saved with joblib |
 
 Run them like any solver from `tracks/image_decoding` folder, or compare against yours:
 

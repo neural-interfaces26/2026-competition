@@ -5,6 +5,7 @@
 Produces ``starting_kit_<track>.zip`` at the repo root::
 
     README.md            the repo tour
+    tracks/README.md     the shared development and packaging workflows
     tracks/<track>/      the benchmark, benchmark_utils dereferenced
     examples/*.zip       each baseline, ready to upload as a submission
 
@@ -60,6 +61,7 @@ def build(track):
     out = ROOT_DIR / f"starting_kit_{track}.zip"
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as kit:
         kit.write(ROOT_DIR / "README.md", "README.md")
+        kit.write(ROOT_DIR / "tracks" / "README.md", "tracks/README.md")
         for f in sorted(_walk(src)):
             if not f.is_file() or f.suffix in (".zip", ".pyc"):
                 continue

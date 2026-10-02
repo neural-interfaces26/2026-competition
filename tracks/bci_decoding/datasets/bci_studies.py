@@ -44,7 +44,7 @@ class Dataset(BaseDataset):
         "pip::neuralfetch @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuralfetch-repo",
         "pip::neuraltrain @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuraltrain-repo",
         "pip::neuralbench @ git+https://github.com/lionel-yneuro/neuroai-competition.git@competition#subdirectory=neuralbench-repo",
-        "pip::moabb", "pip::mne", "scikit-learn", "pip::torch",
+        "pip::moabb", "pip::mne", "scikit-learn",
     ]
 
     parameters = {

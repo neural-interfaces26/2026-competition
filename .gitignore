@@ -15,5 +15,6 @@ bundle_*.zip
 solution/**/*.npz
 worktrees/
 .venv-margaret/
+debug_submissions/
 tracks/*/solvers/*.npz
 .claude/
