@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Train, validate, and package a tiny uploadable debug submission.
+"""Train, validate, and package an uploadable synthetic debug submission.
 
 The signals and targets are synthetic, but their tensor dimensions match the
 current Codabench warm-up contract. The resulting score is meaningless; the
@@ -22,38 +22,66 @@ import zipfile
 TRACKS = {
     "image_decoding": {
         "objective": "Image-decoding",
-        "solver": "EEGNet-CLIP",
         "dataset": (
             "Simulated[n_chans=63,n_times=120,n_images=8,n_outputs=1536,"
             "n_train=12,n_test=8,sfreq=120]"
         ),
-        "label": "track01_eegnet_clip_debug",
+        "models": {
+            "eegnet": {
+                "solver": "EEGNet-CLIP", "artifact": "weights.pt",
+                "label": "track01_eegnet_clip_debug",
+            },
+            "reve": {
+                "solver": "REVE", "artifact": "weights.joblib",
+                "label": "track01_reve_debug",
+            },
+        },
     },
     "bci_decoding": {
         "objective": "BCI-decoding",
-        "solver": "EEGNet",
         "dataset": (
             "Simulated[n_chans=27,n_times=480,n_classes=2,"
             "n_train=16,n_test=8,sfreq=120]"
         ),
-        "label": "track02_eegnet_debug",
+        "models": {
+            "eegnet": {
+                "solver": "EEGNet", "artifact": "weights.pt",
+                "label": "track02_eegnet_debug",
+            },
+            "reve": {
+                "solver": "REVE", "artifact": "weights.joblib",
+                "label": "track02_reve_debug",
+            },
+        },
     },
     "sleep_onset": {
         "objective": "Sleep-onset",
-        "solver": "EEGNet",
         "dataset": (
             "Simulated[n_chans=2,n_times=600,n_train=16,n_test=8,sfreq=120]"
         ),
-        "label": "track03_eegnet_debug",
+        "models": {
+            "eegnet": {
+                "solver": "EEGNet", "artifact": "weights.pt",
+                "label": "track03_eegnet_debug",
+            },
+            "reve": {
+                "solver": "REVE", "artifact": "weights.joblib",
+                "label": "track03_reve_debug",
+            },
+        },
     },
     "emg_pose": {
         "objective": "EMG-pose",
-        "solver": "EEGNet",
         "dataset": (
             "Simulated[n_chans=16,n_joints=20,n_times=10000,"
             "n_train=4,n_test=2,sfreq=2000]"
         ),
-        "label": "track04_eegnet_debug",
+        "models": {
+            "eegnet": {
+                "solver": "EEGNet", "artifact": "weights.pt",
+                "label": "track04_eegnet_debug",
+            },
+        },
     },
 }
 
@@ -68,24 +96,28 @@ def package_track(
     benchopt: str,
     track: str,
     destination: Path,
+    model: str,
     install: bool,
     gpu: bool,
 ) -> Path:
     cfg = TRACKS[track]
+    model_cfg = cfg["models"].get(model)
+    if model_cfg is None:
+        raise ValueError(f"{model} is not available for {track}")
     benchmark = repo / "tracks" / track
 
     if install:
         command = [
             benchopt, "install", str(benchmark),
-            "-d", "Simulated", "-s", cfg["solver"], "-y",
+            "-d", "Simulated", "-s", model_cfg["solver"], "-y",
         ]
         if gpu:
             command.append("--gpu")
         run(command)
 
     destination.mkdir(parents=True, exist_ok=True)
-    final_dir = destination / cfg["label"]
-    final_zip = destination / f"{cfg['label']}.zip"
+    final_dir = destination / model_cfg["label"]
+    final_zip = destination / f"{model_cfg['label']}.zip"
     if final_dir.exists() or final_zip.exists():
         raise FileExistsError(
             f"{final_dir} or {final_zip} already exists; remove or rename it"
@@ -107,17 +139,18 @@ def package_track(
         run(
             common + [
                 "-o", f"{cfg['objective']}[training=True]",
-                "-s", cfg["solver"],
+                "-s", model_cfg["solver"],
                 "--output", str(tmp_path / "training.parquet"),
             ],
             env=env,
         )
 
         submission = package / "submission.py"
-        weights = package / "weights.pt"
+        weights = package / model_cfg["artifact"]
         if not submission.is_file() or not weights.is_file():
             raise RuntimeError(
-                "Benchopt did not export submission.py and weights.pt"
+                "Benchopt did not export submission.py and "
+                f"{model_cfg['artifact']}"
             )
 
         # Reload the exported files in inference-only mode with the same real
@@ -150,6 +183,10 @@ def parse_args() -> argparse.Namespace:
     choice.add_argument("--track", choices=TRACKS)
     choice.add_argument("--all", action="store_true")
     parser.add_argument(
+        "--model", choices=("eegnet", "reve"), default="eegnet",
+        help="model to train (default: eegnet; REVE supports EEG tracks)",
+    )
+    parser.add_argument(
         "--output-dir", type=Path,
         help="destination (default: <repo>/debug_submissions)",
     )
@@ -179,9 +216,15 @@ def main() -> int:
         )
 
     selected = list(TRACKS) if args.all else [args.track]
+    selected = [
+        track for track in selected if args.model in TRACKS[track]["models"]
+    ]
+    if not selected:
+        raise SystemExit(f"{args.model} is not available for {args.track}")
     for track in selected:
         package_track(
             repo, benchopt, track, destination,
+            model=args.model,
             install=not args.skip_install, gpu=args.gpu,
         )
     return 0

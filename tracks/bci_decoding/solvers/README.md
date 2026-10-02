@@ -1,6 +1,6 @@
 # Track 02 baselines
 
-Four references, each a benchopt solver *and* a valid submission:
+Five references, each a benchopt solver *and* a valid submission:
 
 | Solver | Name | What it shows |
 |---|---|---|
@@ -8,6 +8,7 @@ Four references, each a benchopt solver *and* a valid submission:
 | `mean_logreg.py` | `MeanLogReg` | a scikit-learn model: mean-over-time features + logistic regression |
 | `torch_linear.py` | `Torch-Linear` | the same model in PyTorch, with its own Adam loop in `fit` |
 | `eegnet.py` | `EEGNet` | braindecode EEGNet, trained end-to-end |
+| `reve_probe.py` | `REVE` | frozen pretrained REVE plus a ridge-classifier head saved with joblib |
 
 Run them like any solver from `tracks/bci_decoding` folder, or compare against yours:
 

@@ -14,15 +14,16 @@ and ``benchopt test``.
 import numpy as np
 from benchopt import BaseDataset
 
-from benchmark_utils.data import chs_info_from_names, get_device, make_loader
+from benchmark_utils.data import (
+    STANDARD_EEG_CHANNELS,
+    chs_info_from_names,
+    get_device,
+    make_loader,
+)
 
 CAP_S = 600.0
 
-# Standard 10-20 electrode names (see bci_decoding's Simulated).
-STANDARD_1020 = [
-    "Fp1", "Fp2", "F7", "F3", "Fz", "F4", "F8", "T7", "C3", "Cz",
-    "C4", "T8", "P7", "P3", "Pz", "P4", "P8", "O1", "O2",
-]
+SLEEP_EDF_CHANNELS = ("Fpz-Cz", "Pz-Oz")
 
 
 class Dataset(BaseDataset):
@@ -62,7 +63,10 @@ class Dataset(BaseDataset):
         # Per-channel drift direction; scaled above the noise floor.
         slope = rng.standard_normal(self.n_chans) * 4.0
         device = get_device()
-        ch_names = STANDARD_1020[:self.n_chans]
+        available = SLEEP_EDF_CHANNELS + STANDARD_EEG_CHANNELS
+        if self.n_chans > len(available):
+            raise ValueError("simulated EEG channel count is too large")
+        ch_names = list(available[:self.n_chans])
 
         X_tr, y_tr = self._make_windows(rng, self.n_train, slope)
         X_te, y_te = self._make_windows(rng, self.n_test, slope)

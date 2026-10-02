@@ -65,6 +65,7 @@ Editable solvers live in [`solvers/`](solvers/):
 | `Mean-Ridge` | scikit-learn linear baseline with joblib weights |
 | `Torch-Linear` | PyTorch linear baseline with `fit` and `save_model` |
 | `EEGNet-CLIP` | end-to-end EEGNet with a retrieval loss |
+| `REVE` | frozen pretrained REVE encoder with a fitted ridge head |
 
 ## Adapt your own model
 
