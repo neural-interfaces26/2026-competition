@@ -6,40 +6,28 @@ Answers to recurring scientific questions, mostly from Discord, about Track 04. 
 
 ### What changes between the warm-up and sealed phases?
 
-| | Warm-up | Sealed final |
-|---|---|---|
-| **Evaluation data** | Public [EMG2Pose `user_stage` test split](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html#split-and-model-selection), selected by the [warm-up phase config](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/phases/warmup/emg_pose/config.yaml) | Private [2026 Meta Reality Labs evaluation cohort](https://neural-interfaces26.github.io/tracks.html#dataset-track-4) |
-| **Generalization tested** | Unseen combinations of users and movement stages that are each represented elsewhere in the public data | New users, new movement stages, and unseen user-stage combinations |
-| **Ranking metric** | Mean absolute angular error, computed from radian predictions and reported in degrees | The same metric and unit conversion |
-| **Role** | Public development proxy | Final competition ranking, as defined in the [competition timeline](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/timeline.md) |
+|                           | Warm-up                                                                                                                                                                                                                                                                                                                                                 | Sealed final                                                                                                                                                       |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Evaluation data**       | Public [EMG2Pose `user_stage` test split](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html#split-and-model-selection), selected by the [warm-up phase config](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/phases/warmup/emg_pose/config.yaml) | Private [2026 Meta Reality Labs evaluation cohort](https://neural-interfaces26.github.io/tracks.html#dataset-track-4)                                              |
+| **Generalization tested** | Unseen combinations of users and movement stages that are each represented elsewhere in the public data                                                                                                                                                                                                                                                 | New users, new movement stages, and unseen user-stage combinations                                                                                                 |
+| **Ranking metric**        | Mean absolute angular error, computed from radian predictions and reported in degrees                                                                                                                                                                                                                                                                   | The same metric and unit conversion                                                                                                                                |
+| **Role**                  | Public development proxy                                                                                                                                                                                                                                                                                                                                | Final competition ranking, as defined in the [competition timeline](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/timeline.md) |
 
 Warm-up scores are indicative only. Although both phases use the same prediction and metric contract, their datasets and generalization shifts differ, so their scores are not directly comparable.
-
-### Does warm-up test entirely unseen users?
-
-No. Warm-up uses the public EMG2Pose `user_stage` test split. Its users and movement stages occur elsewhere in the public data, but their specific combinations are held out. The sealed phase adds entirely new users and movement stages.
 
 ### Will participants receive any data from the sealed cohort?
 
 No. The raw recordings, pose trajectories, participant metadata, and labels are not released or directly accessible. During evaluation, the submitted model receives only task-formatted EMG tensor batches.
 
-### Will more public Track 04 data be released before the sealed phase?
-
-No additional public Track 04 release is currently announced. Public EMG2Pose remains the direct development counterpart of the hidden cohort. Participants may also use eligible external data as explained below.
-
 ## Data and preprocessing
 
 ### What is the sealed evaluation dataset?
 
-It is a separate **2026 Meta Reality Labs cohort** recorded under the same protocol as public EMG2Pose, pairing 16-channel wrist sEMG at 2 kHz with 20 UmeTrack hand-joint angles. It is not a hidden split of the public dataset. The [website dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4) gives the disclosed acquisition facts, while the [NeuralBench Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html) documents the public task and split.
-
-### Which sealed-set details are not disclosed?
-
-Only the published input, output, and preprocessing contract. The exact cohort composition, movement-stage composition, and evaluation ordering are not part of the model contract. Use the metadata supplied at evaluation time rather than hard-coding dataset counts or batch composition.
+It is a private **2026 Meta Reality Labs cohort** used only for final evaluation, not a hidden split of public EMG2Pose. The recordings, labels, and participant metadata are not released. Participants only need the published model-facing contract: batches of 16-channel wrist sEMG as input and trajectories for 20 hand-joint angles in radians as output. Exact cohort size, recording count, movement-stage composition, and evaluation order are intentionally not disclosed. See the [website dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4) for the public description and the [NeuralBench Track 04 guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html) for the public EMG2Pose task.
 
 ### Is preprocessing the same in warm-up and sealed evaluation?
 
-Yes. Sealed evaluation follows the same task pipeline as warm-up: raw 16-channel sEMG at **2 kHz**, without filtering, notch filtering, baseline correction, scaling, or clipping. Evaluation uses non-overlapping **5-second windows**, and windows containing invalid inverse-kinematics target frames are excluded. The exact settings are public in the **[NeuralBench task config](https://github.com/facebookresearch/neuroai/blob/main/neuralbench-repo/neuralbench/tasks/emg/pose/config.yaml)**. The competition invokes that pipeline through its public **[dataset adapter](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/emg_pose/datasets/emg2pose.py)**.
+Yes. The competition pipeline applies **no signal preprocessing** in either phase: no filtering, notch filtering, baseline correction, scaling, or clipping. It segments the 16-channel, 2 kHz sEMG into contiguous, non-overlapping **5-second windows**. Incomplete windows and windows containing invalid inverse-kinematics target frames are excluded. The exact public settings are defined in the **[NeuralBench task config](https://github.com/facebookresearch/neuroai/blob/main/neuralbench-repo/neuralbench/tasks/emg/pose/config.yaml)** and invoked through the competition's **[dataset adapter](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/emg_pose/datasets/emg2pose.py)**.
 
 ### May we use NinaPro or other public EMG datasets?
 
@@ -53,7 +41,7 @@ Use `meta["n_chans"]`, `meta["n_times"]`, `meta["sfreq"]`, and `meta["n_joints"]
 
 ### What must the model predict?
 
-For an input batch `X` of shape `(B, C, T)`, `predict(X)` must return continuous joint-angle trajectories with shape `(B, n_joints, T')`, where `n_joints = 20`. Predictions must be in **radians**. `T'` may equal the input length or be coarser.
+For an input batch `X` of shape `(B, 16, T)`, where `B` is the batch size and `T` is the number of input samples, `predict(X)` must return continuous joint-angle trajectories with shape `(B, 20, T_out)` in **radians**. `T_out` is the number of predicted time points. It may equal `T` for one prediction per input sample, or be smaller for a coarser output timeline. Before scoring, Codabench nearest-neighbor resamples the prediction to the target length `T`.
 
 ### Should submissions return radians or degrees?
 
