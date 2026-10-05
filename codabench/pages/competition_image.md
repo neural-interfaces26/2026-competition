@@ -20,6 +20,8 @@
 
 > **Sealed-phase specification.** The description, task contract, and ranking metric below define the final sealed phase. Warm-up uses a closely matched Top-5 retrieval proxy on public THINGS-EEG2 data. Its candidate set and aggregation are detailed below.
 
+For focused answers about the sealed cohort, preprocessing, batching, and retrieval aggregation, read the **[Track 01 Scientific FAQ](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/scientific_faq_image.md)**.
+
 _Identify a viewed natural image from a single EEG response._
 
 Given one multichannel EEG epoch recorded during natural-image viewing, predict a **1536-dimensional DINOv2-giant image embedding**. Codabench compares that prediction with the frozen embeddings of the candidate image gallery. The sealed split contains participants and images absent from training, testing cross-participant and cross-stimulus transfer rather than memorization of a fixed catalogue.
@@ -42,7 +44,7 @@ Given one multichannel EEG epoch recorded during natural-image viewing, predict 
 
 > **Top-5 retrieval accuracy. Higher is better.**
 
-For each EEG epoch, Codabench L2-normalizes the predicted embedding and the frozen DINOv2-giant embeddings in its held-out candidate gallery, then ranks their cosine similarities. A query is correct when the viewed image is among the five highest-ranked candidates. Predictions for repeated presentations of the same image are aggregated within each subject before retrieval, then the subject-level results are averaged so that every subject contributes equally. Top-1 accuracy is reported separately but does not determine the ranking.
+For each participant and target image, Codabench first averages the predicted embeddings across repeated presentations. It then L2-normalizes the resulting embedding and the frozen DINOv2-giant embeddings in the held-out candidate gallery before ranking their cosine similarities. A query is correct when the viewed image is among the five highest-ranked candidates. Top-5 accuracy is computed over the resulting participant-image queries. Top-1 accuracy is reported separately but does not determine the ranking.
 
 ## Development, warm-up, and sealed data
 
