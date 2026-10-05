@@ -20,6 +20,8 @@
 
 > **Sealed-phase specification.** The description, task contract, and ranking metric below define the final sealed phase. Warm-up uses the same prediction and metric contract on public EMG2Pose data. Phase-specific data are detailed below.
 
+For focused answers about the sealed cohort, preprocessing, evaluation split, permitted data, and radian-to-degree reporting, read the **[Track 04 Scientific FAQ](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/scientific_faq_emg.md)**.
+
 _Predict continuous hand motion from electrical activity recorded at the wrist._
 
 Given a window of **16-channel wrist surface EMG**, predict continuous trajectories for **20 UmeTrack hand-joint angles**. **Models must return radians; Codabench converts the resulting MAE to degrees for the leaderboard.** The sealed evaluation covers users and movement stages absent from training, plus unseen combinations of users and stages. This tests transfer across anatomy, wristband placement, and movement context.

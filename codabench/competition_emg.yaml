@@ -25,6 +25,8 @@ terms: pages/terms.md
 pages:
   - title: Track description
     file: pages/competition_emg.md
+  - title: Scientific FAQ
+    file: pages/scientific_faq_emg.md
   - title: Registration Guide
     file: pages/registration.md
   - title: Submission Guide
