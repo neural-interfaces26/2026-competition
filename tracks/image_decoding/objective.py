@@ -18,8 +18,8 @@ are the float embeddings ``(B, D)`` of the viewed images.
 import numpy as np
 from benchopt import BaseObjective
 
-from benchmark_utils.data import to_numpy
-from benchmark_utils.metrics import topk_accuracy
+from benchmark_utils.data import subject_ids, to_numpy
+from benchmark_utils.metrics import group_means, topk_accuracy
 
 
 def _normalize(v):
@@ -81,9 +81,7 @@ class Objective(BaseObjective):
             pred = to_numpy(model.predict(X))
             y_pred.append(pred)
             y_true.append(to_numpy(y))
-            sid = info.get("subject_id", info.get("record_id"))
-            subject.append(np.zeros(len(pred), dtype=np.int64)
-                           if sid is None else to_numpy(sid).ravel())
+            subject.append(subject_ids(info, len(pred)))
         y_true = np.concatenate(y_true)          # (N, D)
         y_pred = np.concatenate(y_pred)          # (N, D)
         subject = np.concatenate(subject)        # (N,)
@@ -99,11 +97,9 @@ class Objective(BaseObjective):
         # the predictions of the repeated presentations of each image *within a
         # subject*, then pool those (subject, image) queries and rank them
         # against the gallery.
-        keys, inv = np.unique(np.stack([subject, target_idx], axis=1),
-                              axis=0, return_inverse=True)
-        pred_sa = np.zeros((len(keys), y_pred.shape[1]))
-        np.add.at(pred_sa, inv, y_pred)
-        pred_sa /= np.bincount(inv, minlength=len(keys))[:, None]
+        keys, pred_sa = group_means(
+            y_pred, np.stack([subject, target_idx.reshape(-1)], axis=1)
+        )
         sa_idx = keys[:, 1]  # gallery (image) index of each query
         scores_sa = _normalize(pred_sa) @ _normalize(candidates).T
 

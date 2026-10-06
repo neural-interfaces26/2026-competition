@@ -10,6 +10,8 @@ EMG.
   where `n_joints = meta["n_joints"]`.
 - **Metric implemented here:** mean angular MAE over joints and time. Codabench
   converts only the final aggregate score to degrees for the leaderboard.
+  Reported alongside, as NeuralBench logs them: the mean and standard
+  deviation of the per-subject MAE, the RMSE and the R2.
 - **Benchopt objective:** `EMG-pose`.
 
 Return radians, not degrees. See the Codabench **Track description** for the

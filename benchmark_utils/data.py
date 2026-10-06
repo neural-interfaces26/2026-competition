@@ -11,7 +11,8 @@ yields ``(X, y, info)`` batches:
              targets ``float32``.
 - ``info`` : dict with ``record_id`` and ``onset`` (sample index of the
              window start in its source recording) so metrics can trace a
-             window back to its recording.
+             window back to its recording; the NeuralBench loaders carry
+             ``subject_id`` instead (see :func:`subject_ids`).
 
 Tensors stay as **torch tensors** end-to-end (so torch models receive tensors
 directly); conversion to numpy happens only at the scikit-learn boundaries
@@ -46,6 +47,19 @@ def to_numpy(x):
     if isinstance(x, torch.Tensor):
         return x.detach().cpu().numpy()
     return np.asarray(x)
+
+
+def subject_ids(info, n):
+    """Subject id of each of the ``n`` windows of a batch, from its ``info``.
+
+    The NeuralBench loaders carry ``subject_id``; the in-memory windows of
+    the Simulated datasets carry ``record_id``, which then stands in for the
+    subject. Without either, all windows share one id.
+    """
+    sid = info.get("subject_id", info.get("record_id"))
+    if sid is None:
+        return np.zeros(n, dtype=np.int64)
+    return to_numpy(sid).reshape(-1)
 
 
 def get_device():

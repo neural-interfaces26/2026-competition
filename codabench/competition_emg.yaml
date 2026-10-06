@@ -86,7 +86,15 @@ leaderboards:
         key: angular_mae
         index: 0
         sorting: asc
+      - title: Angular MAE, per-subject mean (deg)
+        key: angular_mae_subject_mean
+        index: 1
+        sorting: asc
+      - title: Angular MAE, per-subject SD (deg)
+        key: angular_mae_subject_std
+        index: 2
+        sorting: asc
       - title: Duration (s)
         key: duration
-        index: 1
+        index: 3
         sorting: asc
