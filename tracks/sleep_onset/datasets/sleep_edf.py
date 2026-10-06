@@ -31,7 +31,13 @@ class Dataset(BaseDataset):
     name = "Sleep-EDF"
 
     requirements = [
-        "pip::neuralset", "pip::neuralfetch", "pip::neuralbench",
+        # neuroai stack from the monorepo main branch (dev fixes); all four
+        # are git-pinned so pip does not mix released sub-deps (see
+        # requirements.txt).
+        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralset-repo",  # noqa: E501
+        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralfetch-repo",  # noqa: E501
+        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuraltrain-repo",  # noqa: E501
+        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralbench-repo",  # noqa: E501
         "pip::mne", "scikit-learn",
     ]
 
