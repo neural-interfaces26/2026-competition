@@ -24,10 +24,14 @@ class Dataset(BaseDataset):
     parameters = {
         # 16-ch wrist EMG -> 20 joint angles, as in the real task.
         "n_chans, n_joints, n_times": [(16, 20, 400)],
+        "n_train, n_test": [(100, 50)],
+        "sfreq": [200.0],
     }
 
     test_parameters = {
         "n_chans, n_joints, n_times": [(4, 5, 80)],
+        "n_train, n_test": [(10, 5)],
+        "sfreq": [200.0],
     }
 
     def _make_windows(self, rng, n, mixing):
@@ -54,14 +58,14 @@ class Dataset(BaseDataset):
         mixing = rng.standard_normal((self.n_chans, self.n_joints)) * 0.3
         device = get_device()
 
-        X_tr, y_tr = self._make_windows(rng, 100, mixing)
-        X_te, y_te = self._make_windows(rng, 50, mixing)
+        X_tr, y_tr = self._make_windows(rng, self.n_train, mixing)
+        X_te, y_te = self._make_windows(rng, self.n_test, mixing)
 
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
             test_loader=make_loader(X_te, y_te, device=device),
             n_joints=self.n_joints,
-            sfreq=200.0,
+            sfreq=self.sfreq,
             ch_names=None,
             chs_info=None,
             n_chans=self.n_chans,

@@ -47,11 +47,12 @@ class Dataset(BaseDataset):
 
     requirements = [
         # neuroai stack from the monorepo main branch (dev fixes); all four
-        # git-pinned so pip does not mix released sub-deps (see requirements.txt).
-        "pip::neuralset @ git+https://github.com/hubertjb/neuroai.git@main#subdirectory=challenge-datasets-stream",
-        "pip::neuralfetch @ git+https://github.com/hubertjb/neuroai.git@main#subdirectory=challenge-datasets-stream",
-        "pip::neuraltrain @ git+https://github.com/hubertjb/neuroai.git@main#subdirectory=challenge-datasets-stream",
-        "pip::neuralbench @ git+https://github.com/hubertjb/neuroai.git@main#subdirectory=challenge-datasets-stream",
+        # are git-pinned so pip does not mix released sub-deps (see
+        # requirements.txt).
+        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralset-repo",  # noqa: E501
+        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralfetch-repo",  # noqa: E501
+        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuraltrain-repo",  # noqa: E501
+        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralbench-repo",  # noqa: E501
         "pip::mne", "pip::transformers", "scikit-learn",
     ]
 

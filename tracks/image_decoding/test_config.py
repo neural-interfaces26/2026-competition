@@ -25,7 +25,7 @@ def check_test_dataset_get_data(dataset_class):
 
 def check_test_solver_install(solver_class):
     """Hook to skip solver install test cases in benchopt tests."""
-    if "eegnet" in solver_class.name.lower():
+    if any(k in solver_class.name.lower() for k in ("eegnet", "reve")):
         # pip braindecode pulls a CUDA torchaudio that cannot load against
         # the CPU torch of the CI env; exercised on the cluster instead.
         pytest.skip("braindecode/torchaudio stack unavailable on CI runners")
@@ -33,5 +33,9 @@ def check_test_solver_install(solver_class):
 
 def check_test_solver_run(solver_class, test_dataset_name, tmp_path):
     """Hook to skip solver test cases in benchopt tests."""
+    if "reve" in solver_class.name.lower():
+        # REVE needs a >=1s window and its pretrained-weights download — too
+        # heavy for CI; exercised on a compute node instead.
+        pytest.skip("REVE probe runs on the cluster, not CI")
     # Test-trained weights go to a throwaway dir, not the real outputs/.
     os.environ["COMPET_SUBMISSION_DIR"] = str(tmp_path)

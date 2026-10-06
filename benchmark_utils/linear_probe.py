@@ -1,38 +1,36 @@
-"""Temporal-embedding encoder protocol + linear probe.
+"""Frozen-encoder linear probe with a scikit-learn head.
 
-Utility for **frozen-encoder baselines** (e.g. a REVE probe): a frozen
-*encoder* maps a batch of windows to a **temporal embedding**::
+Shared infrastructure for frozen-encoder baselines (the per-track REVE
+probes). A frozen *encoder* maps a batch of windows to a temporal embedding::
 
     encode(X: (B, C, T)) -> (B, T', D)
 
 i.e. one ``D``-dim vector per output time position ``T'`` (no pooling). The
-encoder receives **torch tensors** (so braindecode foundation models run
-directly), and thanks to scikit-learn's **array API** support the torch
-features are passed straight to the linear head — no numpy round-trip, data
-stays on-device. One encoder style serves both regimes:
+encoder returns **torch tensors** (so braindecode foundation models run
+directly). Mean-pooled features cross once to CPU/NumPy at the scikit-learn
+boundary. This keeps the exported joblib head portable across CPU and GPU
+machines and works with ordinary scikit-learn estimators.
 
-- ``epoched`` : mean-pool over ``T'`` → one label per window.
+One probe style serves both regimes:
+
+- ``epoched`` : mean-pool over ``T'`` → one target per window.
 - ``dense``   : keep every position; the head maps ``(B, T', D) -> (B, T',
-                K+1)``; predictions are upsampled back to the raw ``T``.
+                *)``; predictions are upsampled back to the raw ``T``.
 
-The encoder is frozen and never sees the labels.
+The encoder is frozen and never sees the labels. Solvers define their own
+encoder (e.g. a pretrained REVE) and reuse :class:`Encoder` /
+:class:`LinearProbe` from here.
 """
 
-import os
-# scikit-learn array-API dispatch requires scipy's array-API support, which
-# is gated behind this env var and must be set before scipy is imported.
-os.environ.setdefault("SCIPY_ARRAY_API", "1")
+from abc import ABC, abstractmethod
 
-from abc import ABC, abstractmethod  # noqa: E402
+import numpy as np
+import torch
+from sklearn.linear_model import RidgeClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
-import numpy as np  # noqa: E402
-import torch  # noqa: E402
-from sklearn import config_context  # noqa: E402
-from sklearn.linear_model import LogisticRegression  # noqa: E402
-from sklearn.pipeline import make_pipeline  # noqa: E402
-from sklearn.preprocessing import StandardScaler  # noqa: E402
-
-from benchmark_utils.data import to_numpy  # noqa: E402
+from benchmark_utils.data import resample_labels, to_numpy
 
 
 class Encoder(ABC):
@@ -49,12 +47,11 @@ class Encoder(ABC):
 
 
 class RandomProjectionEncoder(Encoder):
-    """Dependency-light default/fallback encoder (torch only).
+    """Dependency-light temporal encoder for probe contract tests.
 
-    Splits each window into ``T // patch_len`` non-overlapping time patches
-    and random-projects each flattened ``(C * patch_len)`` patch to ``D``
-    dims, mimicking a real EEG foundation model's per-patch tokenisation so
-    the linear-probe path runs without pretrained weights.
+    This is an explicit test utility, not a silent fallback for a missing
+    foundation model. It splits a window into patches and projects each patch
+    into a deterministic embedding.
     """
 
     def __init__(self, n_chans, patch_len=20, d=64, seed=0):
@@ -62,7 +59,7 @@ class RandomProjectionEncoder(Encoder):
         self.patch_len = patch_len
         self.d = d
         self._gen = torch.Generator().manual_seed(seed)
-        self._proj = None  # built lazily once the patch size is known
+        self._proj = None
 
     def _projection(self, in_dim):
         if self._proj is None or self._proj.shape[0] != in_dim:
@@ -73,85 +70,74 @@ class RandomProjectionEncoder(Encoder):
 
     def encode(self, X):
         X = torch.as_tensor(X, dtype=torch.float32)
-        if X.ndim == 2:  # (C, T) -> (1, C, T)
+        if X.ndim == 2:
             X = X[None]
-        B, C, T = X.shape
-        n_patches = max(T // self.patch_len, 1)
+        batch, n_chans, n_times = X.shape
+        n_patches = max(n_times // self.patch_len, 1)
         usable = n_patches * self.patch_len
-        # (B, C, n_patches, patch_len) -> (B, n_patches, C * patch_len)
-        patches = X[:, :, :usable].reshape(B, C, n_patches, self.patch_len)
-        patches = patches.permute(0, 2, 1, 3).reshape(B, n_patches, -1)
-        proj = self._projection(patches.shape[-1]).to(patches.device)
-        return patches @ proj  # (B, T', D)
-
-
-def _resample(seq, new_len):
-    """Nearest-neighbour resample a torch label sequence on the last axis."""
-    length = seq.shape[-1]
-    if length == new_len:
-        return seq
-    idx = torch.floor(
-        torch.arange(new_len, device=seq.device) * (length / new_len)
-    ).long().clamp(0, length - 1)
-    return seq[..., idx]
+        patches = X[:, :, :usable].reshape(
+            batch, n_chans, n_patches, self.patch_len
+        )
+        patches = patches.permute(0, 2, 1, 3).reshape(
+            batch, n_patches, -1
+        )
+        return patches @ self._projection(patches.shape[-1]).to(X.device)
 
 
 class LinearProbe:
-    """Frozen encoder + per-position scikit-learn linear head (array API).
+    """Frozen encoder + scikit-learn linear head.
 
     Parameters
     ----------
     encoder : Encoder
         Frozen feature extractor (``encode(X) -> (B, T', D)``).
+    estimator : scikit-learn estimator, optional
+        The linear head, wrapped in a ``StandardScaler`` pipeline. Defaults
+        to ``RidgeClassifier``; pass ``Ridge()`` for scalar or multi-output
+        regression.
     mode : {"epoched", "dense"}
-        ``epoched`` pools over ``T'`` and predicts one label per window;
+        ``epoched`` pools over ``T'`` and predicts one target per window;
         ``dense`` fits the head over every position and predicts a per-step
         sequence (upsampled to the input length on ``predict``).
     """
 
-    def __init__(self, encoder, mode="epoched"):
+    def __init__(self, encoder, estimator=None, mode="epoched"):
+        if mode not in ("epoched", "dense"):
+            raise ValueError(
+                f"mode must be 'epoched' or 'dense', got {mode!r}"
+            )
         self.encoder = encoder
         self.mode = mode
         self.head = make_pipeline(
             StandardScaler(),
-            LogisticRegression(max_iter=1000),
+            estimator if estimator is not None else RidgeClassifier(),
         )
 
     def fit(self, train_loader):
         feats, targets = [], []
         for X, y, _info in train_loader:
             emb = torch.as_tensor(self.encoder.encode(X))  # (B, T', D)
+            if emb.ndim != 3:
+                raise ValueError(
+                    "encoder must return (B, T', D), got "
+                    f"shape {tuple(emb.shape)}"
+                )
             if self.mode == "epoched":
-                feats.append(emb.mean(dim=1))            # (B, D)
-                targets.append(y)                        # (B,)
+                feats.append(to_numpy(emb.mean(dim=1)))  # (B, D)
+                targets.append(to_numpy(y))              # (B,) or (B, K)
             else:  # dense
-                y_ds = _resample(y, emb.shape[1])        # (B, T')
-                feats.append(emb.reshape(-1, emb.shape[-1]))
-                targets.append(y_ds.reshape(-1))
-        X_feat = torch.cat(feats)
-        y_all = torch.cat(targets)
-        # Prefer scikit-learn array-API dispatch (keeps the torch tensors
-        # on-device, no numpy copy); fall back to numpy if the env doesn't
-        # have scipy's array-API support enabled.
-        try:
-            with config_context(array_api_dispatch=True):
-                self.head.fit(X_feat, y_all)
-            self._array_api = True
-        except (RuntimeError, ValueError):
-            self.head.fit(to_numpy(X_feat), to_numpy(y_all))
-            self._array_api = False
+                y_ds = resample_labels(y, emb.shape[1])  # (B, T')
+                feats.append(to_numpy(emb.reshape(-1, emb.shape[-1])))
+                targets.append(to_numpy(y_ds.reshape(-1)))
+        self.head.fit(np.concatenate(feats), np.concatenate(targets))
         return self
-
-    def _head_predict(self, X_feat):
-        if self._array_api:
-            with config_context(array_api_dispatch=True):
-                return torch.as_tensor(self.head.predict(X_feat))
-        return torch.as_tensor(to_numpy(self.head.predict(to_numpy(X_feat))))
 
     def predict(self, X):
         emb = torch.as_tensor(self.encoder.encode(X))    # (B, T', D)
         if self.mode == "epoched":
-            return self._head_predict(emb.mean(dim=1))   # (B,)
-        B, t_prime, D = emb.shape
-        pred = self._head_predict(emb.reshape(-1, D)).reshape(B, t_prime)
-        return _resample(pred, X.shape[-1])              # (B, T_in)
+            return self.head.predict(to_numpy(emb.mean(dim=1)))
+        batch, t_prime, dim = emb.shape
+        pred = self.head.predict(
+            to_numpy(emb.reshape(-1, dim))
+        ).reshape(batch, t_prime)
+        return resample_labels(pred, X.shape[-1])        # (B, T_in)
