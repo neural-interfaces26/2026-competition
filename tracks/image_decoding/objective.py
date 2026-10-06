@@ -102,7 +102,7 @@ class Objective(BaseObjective):
         pred_sa = np.zeros((len(keys), y_pred.shape[1]))
         np.add.at(pred_sa, inv, y_pred)
         pred_sa /= np.bincount(inv, minlength=len(keys))[:, None]
-        sa_idx = keys[:, 1]                      # image (gallery) index per query
+        sa_idx = keys[:, 1]  # gallery (image) index of each query
         scores_sa = _normalize(pred_sa) @ _normalize(candidates).T
 
         return dict(
