@@ -7,8 +7,12 @@ return the joint-angle sequences ``predict(X) -> (B, n_joints, T)`` in
 target's ``T``).
 
 Ranking metric: **mean angular MAE** (degrees), averaged over joints and
-time. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``; targets
-``y`` are float ``(B, n_joints, T)`` angle sequences.
+time. Reported alongside, as NeuralBench's ``emg/pose`` task logs them: the
+mean and sample standard deviation of the per-subject MAE (the emg2pose paper
+averages within each user first), the RMSE (all three in degrees) and the R2
+averaged over joints. Data flows as lazy dataloaders — see
+``benchmark_utils/data.py``; targets ``y`` are float ``(B, n_joints, T)``
+angle sequences.
 
 .. note:: Two datasets ship: ``Salter2024Emg2pose`` — the official corpus via
    the neuralbench ``emg/pose`` task — and the zero-dependency ``Simulated``
@@ -18,7 +22,8 @@ time. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``; target
 import numpy as np
 from benchopt import BaseObjective
 
-from benchmark_utils.data import resample_labels, to_numpy
+from benchmark_utils.data import resample_labels, subject_ids, to_numpy
+from benchmark_utils.metrics import SequenceRegressionScores
 
 
 class Objective(BaseObjective):
@@ -71,17 +76,25 @@ class Objective(BaseObjective):
         )
 
     def evaluate_result(self, model):
-        abs_err, count = 0.0, 0
-        for X, y, _info in self.test_loader:
+        scores = SequenceRegressionScores()
+        for X, y, info in self.test_loader:
             pred = to_numpy(model.predict(X))     # (B, J, T')
             y = to_numpy(y)                       # (B, J, T)
             pred = resample_labels(pred, y.shape[-1])
-            abs_err += np.abs(pred - y).sum()
-            count += y.size
+            scores.update(pred, y, subject_ids(info, len(y)))
+        scores = scores.compute()
 
         # NeuralBench and EMG2Pose train and infer in radians. The competition
-        # reports that same angular error in degrees.
-        return dict(angular_mae=float(abs_err / count * 180.0 / np.pi))
+        # reports the same angular errors in degrees.
+        deg = 180.0 / np.pi
+        return dict(
+            angular_mae=scores["mae"] * deg,
+            angular_mae_subject_mean=scores["mae_group_mean"] * deg,
+            angular_mae_subject_std=scores["mae_group_std"] * deg,
+            angular_rmse=scores["rmse"] * deg,
+            r2_score=scores["r2"],
+            n_subjects=scores["n_groups"],
+        )
 
     def get_one_result(self):
         # A trivial constant model, used by ``benchopt test`` to validate the

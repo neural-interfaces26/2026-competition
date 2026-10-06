@@ -12,3 +12,5 @@ no_timeout: true
 scoring:
   columns:
     angular_mae: objective_angular_mae
+    angular_mae_subject_mean: objective_angular_mae_subject_mean
+    angular_mae_subject_std: objective_angular_mae_subject_std
