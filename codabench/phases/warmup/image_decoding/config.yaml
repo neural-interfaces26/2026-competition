@@ -14,3 +14,5 @@ scoring:
   columns:
     top5_acc: objective_top5_acc
     top1_acc: objective_top1_acc
+    top5_acc_subject_agg: objective_top5_acc_subject_agg
+    top1_acc_subject_agg: objective_top1_acc_subject_agg
