@@ -26,13 +26,12 @@ class Dataset(BaseDataset):
     name = "Salter2024Emg2pose"
 
     requirements = [
-        # neuroai stack from the monorepo main branch (dev fixes); all four
-        # are git-pinned so pip does not mix released sub-deps (see
-        # requirements.txt).
-        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralset-repo",  # noqa: E501
-        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralfetch-repo",  # noqa: E501
-        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuraltrain-repo",  # noqa: E501
-        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@main#subdirectory=neuralbench-repo",  # noqa: E501
+        # neuroai stack from neuroai pull request 300 (see requirements.txt);
+        # all four are git-pinned so pip does not mix released sub-deps.
+        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralset-repo",  # noqa: E501
+        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralfetch-repo",  # noqa: E501
+        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuraltrain-repo",  # noqa: E501
+        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralbench-repo",  # noqa: E501
         "pip::mne", "scikit-learn",
     ]
 
