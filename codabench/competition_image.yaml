@@ -81,6 +81,7 @@ phases:
 leaderboards:
   - title: Results
     key: main
+    submission_rule: Force_Best
     columns:
       - title: Top-5 accuracy
         key: top5_acc
