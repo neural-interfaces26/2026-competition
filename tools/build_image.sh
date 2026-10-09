@@ -11,7 +11,8 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-REGISTRY=${REGISTRY:-tommoral}
+REGISTRY=${REGISTRY:-lionelyneuro}
+DOCKER_DEFAULT_PLATFORM=linux/amd64
 TAG=v2 PUSH=0
 while [[ $# -gt 0 ]]; do
     case $1 in
