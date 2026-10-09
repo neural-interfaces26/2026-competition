@@ -17,7 +17,12 @@ Differences with running neuralbench itself:
   torch batches moved onto ``device``, see ``benchmark_utils.data``), so
   nothing downstream is tied to neuralset/neuralbench types;
 - ``subset="test"`` restricts the pipeline to the test split (see
-  :func:`build_test_only_filter`) so workers can stage evaluation data only.
+  :func:`build_test_only_filter`) so workers can stage evaluation data only;
+- the test loader keeps neuralbench's order and batch size (recordings in
+  order, each in time order; one window per batch for the stream tasks),
+  and each window's ``info`` tells its recording, its start in it and its
+  stream (``data.stream_by``), which streamed evaluation needs (see
+  ``benchmark_utils.streaming``).
 
 Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
@@ -211,13 +216,26 @@ class _NBWindows(torch.utils.data.Dataset):
     """Adapt a prepared neuralset ``SegmentDataset`` split to ``(X, y, info)``.
 
     ``seg_ds[i]`` yields a neuralset ``Batch`` whose ``data`` holds the
-    ``neuro`` signal, the ``target`` and the ``subject_id``; this wrapper
-    converts them to the competition contract (plain torch tensors).
+    ``neuro`` signal, the ``target``, the ``subject_id`` and, for a task
+    that sets ``data.stream_by``, the ``stream_id``; this wrapper converts
+    them to the competition contract (plain torch tensors). ``info`` gives
+    each window's ``subject_id``, ``record_id`` (its recording),
+    ``onset`` (its start in that recording, in seconds) and ``stream_id``
+    (the task's stream, else its recording), so evaluation can follow
+    session and run boundaries and time order.
     """
 
     def __init__(self, seg_ds, target_transform=None):
         self.seg_ds = seg_ds
         self.target_transform = target_transform
+        # Recording and start of every window, from the segments alone (no
+        # signal is read). Recordings are numbered in order of appearance.
+        records = {}
+        self.record_id = np.array(
+            [records.setdefault(seg.timeline, len(records))
+             for seg in seg_ds.segments], dtype=np.int64)
+        self.onset = np.array([seg.start for seg in seg_ds.segments],
+                              dtype=np.float64)
 
     def __len__(self):
         return len(self.seg_ds)
@@ -234,17 +252,30 @@ class _NBWindows(torch.utils.data.Dataset):
             y = self.target_transform(y)
         y = y.to(torch.float32 if y.is_floating_point() else torch.long)
         subject = data.get("subject_id")
-        info = {"subject_id": int(np.asarray(to_numpy(subject)).reshape(-1)[0])
-                if subject is not None else -1}
+        stream = data.get("stream_id")
+        info = {
+            "subject_id": _first(subject) if subject is not None else -1,
+            "record_id": int(self.record_id[i]),
+            "onset": float(self.onset[i]),
+            "stream_id": (_first(stream) if stream is not None
+                          else int(self.record_id[i])),
+        }
         return X, y, info
+
+
+def _first(value):
+    """The single integer of an extracted ``(1,)``-shaped label."""
+    return int(np.asarray(to_numpy(value)).reshape(-1)[0])
 
 
 def _make_loaders(loaders, device, target_transform):
     """Rebuild the competition loaders from the neuralbench ones.
 
-    Keeps neuralbench's per-split datasets and train sampler (e.g. the
-    ``RegressionBinSampler``) but swaps the collate for the competition one
-    (plain tensors moved onto ``device``).
+    Keeps neuralbench's per-split datasets, batch sizes and train sampler
+    (e.g. the ``RegressionBinSampler``) but swaps the collate for the
+    competition one (plain tensors moved onto ``device``). Validation and
+    test windows stay in neuralbench's order, which streamed evaluation
+    relies on: never shuffle them.
     """
     from torch.utils.data import DataLoader, default_collate
 

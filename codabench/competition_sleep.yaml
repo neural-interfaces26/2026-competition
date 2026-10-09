@@ -3,9 +3,11 @@ title: "Neural Interfaces 2026 — Track 3: Sleep Onset"
 description: >
   Predict the latency (seconds) to the first N2 sleep epoch from short
   EEG windows. Submissions ship a trained model (code + weights); the platform
-  runs inference-only. The public warm-up proxy reports bMAE. The sealed phase
-  ranks by weighted binned MAE (W-bMAE), macro-averaged across seen- and
-  unseen-subject evaluation groups. Powered by benchopt + neuralbench.
+  runs inference-only, one recording at a time. The warm-up ranks by
+  weighted binned MAE (W-bMAE) per recording, averaged over the public Muse
+  test recordings. The sealed phase ranks by W-bMAE macro-averaged across
+  seen- and unseen-subject evaluation groups. Powered by benchopt +
+  neuralbench.
 image: logo.jpg
 registration_auto_approve: False
 contact_email: neurips2026-eeg-emg-competition@googlegroups.com
@@ -83,15 +85,19 @@ leaderboards:
   - title: Results
     key: main
     columns:
+      - title: W-bMAE (s), recording mean
+        key: wbmae_recording_mean
+        index: 0
+        sorting: asc
       - title: bMAE (s)
         key: bmae
-        index: 0
+        index: 1
         sorting: asc
       - title: MAE (s)
         key: mae
-        index: 1
+        index: 2
         sorting: asc
       - title: Duration (s)
         key: duration
-        index: 2
+        index: 3
         sorting: asc

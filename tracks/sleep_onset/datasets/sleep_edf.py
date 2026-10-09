@@ -1,11 +1,15 @@
-"""Sleep-onset task on Sleep-EDF (Kemp2000Analysis), the public proxy.
+"""Sleep-onset task on Sleep-EDF (Kemp2000Analysis), a public proxy.
 
-Wraps the official neuralbench ``eeg/sleep_onset`` task config — see
-``benchmark_utils.nb_task``: non-overlapping 5-s windows over the pre-N2
-part of each night, target = seconds to the first N2 epoch (capped
-at 600 s, ``SleepOnsetTargetExtractor``), subject-level train/val/test
-split, and a ``RegressionBinSampler`` balancing the train batches across
-latency bins.
+Wraps neuralbench's streamed Track 3 task, ``eeg/_sleep_onset_stream`` with
+its ``kemp2000analysis`` variant — see ``benchmark_utils.nb_task``:
+non-overlapping 5-s windows over the last 20 minutes before N2 of each
+night, the signal at its native rate, unfiltered, in microvolts, target =
+seconds to the first N2 epoch (capped at 600 s,
+``SleepOnsetTargetExtractor``), subject-level train/val/test split, and a
+``RegressionBinSampler`` balancing the train batches across latency bins.
+Each validation and test recording is one stream
+(``data.stream_by: [timeline]``) and starts at a random time before N2, so
+the time since it began says little about the target.
 
 Requires a one-time full-study download (~78 subjects — large; prefer running
 ``benchopt prepare`` on a compute node). The zero-dependency ``Simulated``
@@ -25,18 +29,21 @@ import neuralbench  # noqa: F401
 from benchmark_utils.data import get_device
 from benchmark_utils.nb_task import download_study, load_task, require_prepared
 
+TASK = "_sleep_onset_stream"
+OVERLAY = "kemp2000analysis"
+
 
 class Dataset(BaseDataset):
 
     name = "Sleep-EDF"
 
     requirements = [
-        # neuroai stack from neuroai pull request 300 (see requirements.txt);
+        # neuroai stack from neuroai pull request 301 (see requirements.txt);
         # all four are git-pinned so pip does not mix released sub-deps.
-        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralset-repo",  # noqa: E501
-        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralfetch-repo",  # noqa: E501
-        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuraltrain-repo",  # noqa: E501
-        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralbench-repo",  # noqa: E501
+        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralset-repo",  # noqa: E501
+        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralfetch-repo",  # noqa: E501
+        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuraltrain-repo",  # noqa: E501
+        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralbench-repo",  # noqa: E501
         "pip::mne", "scikit-learn",
     ]
 
@@ -61,7 +68,7 @@ class Dataset(BaseDataset):
         # extraction (filtering, segmenting, targets) caches next to the
         # data, so runs only touch warm caches. All steps are idempotent.
         self._seed_from_s3()
-        download_study("eeg", "sleep_onset", self._data_dir())
+        download_study("eeg", TASK, self._data_dir(), dataset=OVERLAY)
         self._load()
 
     def _seed_from_s3(self):
@@ -90,8 +97,9 @@ class Dataset(BaseDataset):
 
     def _load(self, device="cpu"):
         return load_task(
-            "eeg", "sleep_onset",
+            "eeg", TASK,
             data_dir=self._data_dir(),
+            dataset=OVERLAY,
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
@@ -102,7 +110,7 @@ class Dataset(BaseDataset):
     def get_data(self):
         # Load already-prepared data only; downloading + extracting is the
         # explicit ``prepare`` step (``benchopt prepare`` / ``--prepare``).
-        require_prepared("eeg", "sleep_onset", self._data_dir())
+        require_prepared("eeg", TASK, self._data_dir(), dataset=OVERLAY)
         loaders, meta = self._load(device=get_device())
         return dict(
             # subset="test" stages the evaluation split only: no train

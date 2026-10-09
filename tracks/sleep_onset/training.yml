@@ -7,7 +7,7 @@
 objective:
   - Sleep-onset[training=True]
 dataset:
-  - Sleep-EDF
+  - Interaxon2026Muse
 solver:
   - Torch-Linear
 seed: 42

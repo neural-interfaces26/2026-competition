@@ -8,8 +8,14 @@ and days.
 - **Input:** torch tensor `(B, C, T)` on `meta["device"]`.
 - **Output:** `predict(X) -> (B,)`, one integer class index per window, with
   `meta["n_classes"]` possible classes.
-- **Metric implemented here:** balanced accuracy, with plain accuracy reported
-  alongside.
+- **Evaluation:** causal and streamed. Windows reach `predict` one at a time
+  (`B = 1`), each session of each participant in recording order, and every
+  session starts from a `copy.deepcopy` of your model whose optional
+  `reset_state()` is called first: a model can adapt within a session but
+  carries nothing over to the next one.
+- **Metric implemented here:** balanced accuracy within each subject, session
+  and context cell, averaged over cells; balanced accuracy pooled over all
+  windows and plain accuracy are reported alongside.
 - **Benchopt objective:** `BCI-decoding`.
 
 See the Codabench **Track description** for the active phase data and official
@@ -20,9 +26,12 @@ ranking specification.
 | Benchopt `-d` selector | Data |
 |---|---|
 | `BCI[study=dreyer2023]` | Dreyer2023Large, the default warm-up study |
-| `BCI[study=stieger2021]` | Stieger2021Continuous, an additional public proxy |
 | `BCI[study=tangermann2012]` | BNCI2014_001, a smaller real-data check |
 | `Simulated` | tiny synthetic contract check, with no download |
+
+Both real selectors run NeuralBench's streamed Track 02 task,
+`eeg _motor_imagery_stream`, on its `dreyer2023` and `tangermann2012`
+variants.
 
 ## Worked examples
 
@@ -33,10 +42,14 @@ split, and reference model pipeline:
 
 ```bash
 pip install neuralbench 'moabb>=1.7.1'
-neuralbench eeg motor_imagery --dataset dreyer2023 --download
-neuralbench eeg motor_imagery --dataset dreyer2023 --prepare
-neuralbench eeg motor_imagery --dataset dreyer2023 -m eegnet --debug
+neuralbench eeg _motor_imagery_stream --dataset dreyer2023 --download
+neuralbench eeg _motor_imagery_stream --dataset dreyer2023 --prepare
+neuralbench eeg _motor_imagery_stream --dataset dreyer2023 -m eegnet --debug
 ```
+
+Until the next NeuralBench release on PyPI includes the streamed task,
+install NeuralBench from the revision pinned in
+[`requirements.txt`](../../requirements.txt).
 
 Reference development results on Stieger 2021, not the current Dreyer 2023
 Codabench warm-up evaluation:
@@ -78,7 +91,7 @@ above or a custom Benchopt dataset file:
 ```bash
 benchopt run tracks/bci_decoding \
   --config tracks/bci_decoding/training.yml \
-  -d "BCI[study=stieger2021]" -s MyModel
+  -d "BCI[study=tangermann2012]" -s MyModel
 ```
 
 The [Submission Guide](../../codabench/pages/participate.md) defines the full

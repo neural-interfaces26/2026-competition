@@ -13,17 +13,17 @@ scikit-learn
 # image pins the CUDA wheel channel instead (tools/Dockerfile TORCH_CHANNEL).
 torch
 # Data stack for the real tasks (Simulated needs none of these). Tracking
-# neuroai pull request 300 (the challenge datasets and stream tasks; it
-# already merges pull request 299 and main) until it lands on main. The four
+# neuroai pull request 301 (the Track 2 and 3 stream protocol, on top of main,
+# which holds pull requests 299 and 300) until it lands on main. The four
 # packages are one uv workspace with pinned inter-deps (~=0.3.1), so all four
 # must come from git: pinning only neuralbench would let pip resolve its
 # sub-deps from PyPI and mix released with dev. Swap the ref for @main once
 # the pull request is merged, then for a commit SHA or a release, to get a
 # reproducible image again.
-neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralset-repo
-neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralfetch-repo
-neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuraltrain-repo
-neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralbench-repo
+neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralset-repo
+neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralfetch-repo
+neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuraltrain-repo
+neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralbench-repo
 exca==0.5.29
 moabb
 mne
@@ -31,3 +31,5 @@ mne
 braindecode
 # Sleep-EDF's prepare() shells out to it for PhysioNet's S3 mirror.
 awscli
+# The Muse data's prepare() downloads it from NEMAR through NeuralFetch.
+nemar-py>=0.3.1

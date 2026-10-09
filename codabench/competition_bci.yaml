@@ -3,8 +3,8 @@ title: "Neural Interfaces 2026 — Track 2: BCI Decoding"
 description: >
   Decode cued mental commands (motor imagery) from short EEG windows.
   Submissions ship a trained model (code + weights); the platform runs
-  inference-only on the held-out split and ranks by balanced accuracy.
-  Powered by benchopt + neuralbench.
+  inference-only on the held-out split, one session at a time, and ranks by
+  balanced accuracy averaged over cells. Powered by benchopt + neuralbench.
 image: logo.jpg
 registration_auto_approve: False
 contact_email: neurips2026-eeg-emg-competition@googlegroups.com
@@ -82,15 +82,19 @@ leaderboards:
   - title: Results
     key: main
     columns:
-      - title: Balanced accuracy
-        key: balanced_accuracy
+      - title: Balanced accuracy, cell mean
+        key: balanced_accuracy_cell_mean
         index: 0
+        sorting: desc
+      - title: Balanced accuracy, pooled
+        key: balanced_accuracy
+        index: 1
         sorting: desc
       - title: Accuracy
         key: accuracy
-        index: 1
+        index: 2
         sorting: desc
       - title: Duration (s)
         key: duration
-        index: 2
+        index: 3
         sorting: asc

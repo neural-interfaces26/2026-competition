@@ -150,6 +150,14 @@ A fixed-size architecture normally uses `meta["n_chans"]` and
 After `Solver.load_model(meta)` returns your model, Codabench calls that
 required model's `predict(X)` method for every evaluation batch.
 
+**Tracks 02 and 03 stream their evaluation.** Windows reach `predict` one at
+a time (`B = 1`), in recording order: in Track 02 one session of one
+participant after the other, in Track 03 one recording after the other. Each
+of these streams starts from a fresh `copy.deepcopy` of the model returned by
+`load_model`, whose optional `reset_state()` method is called first. A model
+can adapt within a stream, but carries nothing over to the next one; it must
+therefore support `copy.deepcopy`.
+
 `X` is a PyTorch tensor already on `meta["device"]`, with shape `(B, C, T)`:
 
 - `B`: batch size
@@ -334,9 +342,9 @@ To train on another study — or your own data — override the dataset with `-d
 | 01 | `"Image[study=gifford2022large]"` | THINGS-EEG2 (Gifford2022Large) — public proxy, **default** |
 | 01 | `"Image[study=grootswagers2022human]"`, `"…[study=xu2024alljoined]"`, `"…[study=xu2025alljoined]"` | alternative public studies |
 | 02 | `"BCI[study=dreyer2023]"` | Dreyer2023Large — the **warm-up evaluation** study, **default** |
-| 02 | `"BCI[study=stieger2021]"` | Stieger2021Continuous — additional 4-class public proxy |
 | 02 | `"BCI[study=tangermann2012]"` | BNCI2014_001 — small, for real-data smoke tests |
-| 03 | `"Sleep-EDF"` | Sleep-EDF (Kemp2000Analysis) |
+| 03 | `"Interaxon2026Muse"` | public Muse data — the **warm-up evaluation** set, **default** |
+| 03 | `"Sleep-EDF"` | Sleep-EDF (Kemp2000Analysis) — public proxy |
 | 04 | `"Salter2024Emg2pose"` | public EMG2Pose |
 | any | `Simulated` | tiny synthetic set — contract check only, no download |
 | any | `path/to/my_dataset.py` | your own benchopt Dataset, loaded straight from the file |

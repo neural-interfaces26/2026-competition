@@ -5,21 +5,33 @@ short EEG window, capped at 600 s. A submission's model receives torch
 batches ``(B, C, T)`` and must return one predicted latency per window
 (``predict(X) -> (B,)`` floats, in seconds).
 
-For the warmup phase, the current Sleep-EDF warm-up proxy reports **binned
-MAE** (bMAE), computed inside time-to-onset bins ``[0, 40, 90, 300, 600]`` s,
-plus plain MAE. For the sealed phase, the official sealed Muse evaluation
-instead ranks weighted binned MAE (W-bMAE), macro-averaged across seen- and
-unseen-subject groups. That scorer will ship with the final Muse evaluation
-data. Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
+Evaluation is causal and streamed (``benchmark_utils/streaming.py``): each
+recording is predicted one window at a time (``B = 1``), forward in time,
+and every recording starts from a fresh copy of the model whose optional
+``reset_state()`` is called first.
+
+Ranking metric: **W-bMAE per recording, averaged over recordings** (the
+Muse warm-up score, NeuralBench's ``wbmae_stream_mean``). Within a
+recording, the MAE is computed inside each true time-to-onset range
+``[0, 40)``, ``[40, 90)``, ``[90, 300)`` and ``[300, 600]`` s, and the
+non-empty ranges are averaged with severity weights 10, 5, 3 and 1. The
+unweighted binned MAE (bMAE) and the plain MAE, both over all windows, are
+reported alongside. The sealed phase's seen/unseen macro-average ships with
+the sealed evaluation data. Data flows as lazy dataloaders — see
+``benchmark_utils/data.py``.
 """
+
+import functools
 
 import numpy as np
 from benchopt import BaseObjective
 
-from benchmark_utils.data import to_numpy
-from benchmark_utils.metrics import binned_mae
+from benchmark_utils.metrics import binned_mae, group_scores
+from benchmark_utils.streaming import predict_streams
 
 BIN_EDGES = (0.0, 40.0, 90.0, 300.0, 600.0)
+# Severity weights of the four ranges, closest to sleep onset first.
+BIN_WEIGHTS = (10.0, 5.0, 3.0, 1.0)
 
 
 class Objective(BaseObjective):
@@ -71,16 +83,22 @@ class Objective(BaseObjective):
         )
 
     def evaluate_result(self, model):
-        y_true, y_pred = [], []
-        for X, y, _info in self.test_loader:
-            y_pred.append(to_numpy(model.predict(X)).ravel())
-            y_true.append(to_numpy(y).ravel())
-        y_true = np.concatenate(y_true)
-        y_pred = np.concatenate(y_pred)
+        y_true, y_pred, info = predict_streams(model, self.test_loader)
+        y_true, y_pred = y_true.reshape(-1), y_pred.reshape(-1)
+        if len(y_pred) != len(info["stream_id"]):
+            raise ValueError("predict(X) must return one latency per window.")
+
+        # Each stream is one recording.
+        wbmae = functools.partial(binned_mae, bin_edges=BIN_EDGES,
+                                  bin_weights=BIN_WEIGHTS)
+        per_recording = group_scores(wbmae, y_true, y_pred,
+                                     info["stream_id"])
 
         return dict(
+            wbmae_recording_mean=float(per_recording.mean()),
             bmae=binned_mae(y_true, y_pred, BIN_EDGES),
             mae=float(np.abs(y_pred - y_true).mean()),
+            n_recordings=len(per_recording),
         )
 
     def get_one_result(self):

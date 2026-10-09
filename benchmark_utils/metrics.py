@@ -7,28 +7,86 @@ stack; semantics mirror the official neuralbench metrics.
 import numpy as np
 
 
-def binned_mae(y_true, y_pred, bin_edges=(0.0, 40.0, 90.0, 300.0, 600.0)):
+def binned_mae(y_true, y_pred, bin_edges=(0.0, 40.0, 90.0, 300.0, 600.0),
+               bin_weights=None):
     """Mean absolute error binned by ground-truth value (neuralbench bMAE).
 
-    Targets are partitioned into ``len(bin_edges) - 1`` bins; the MAE is
-    computed inside each bin and the reported value is the unweighted mean
-    over non-empty bins. Bins follow ``[lo, hi)`` except the last one, which
-    includes its upper boundary (so a cap value lands in the last bin);
-    out-of-range targets are ignored.
+    Targets are partitioned into ``len(bin_edges) - 1`` bins and the MAE is
+    computed inside each bin. The reported value is the mean of the per-bin
+    MAEs over the non-empty bins, weighted by ``bin_weights`` when given
+    (W-bMAE): ``sum(w * mae) / sum(w)`` over the non-empty bins, as
+    neuralbench's ``BinnedMAE``. Bins follow ``[lo, hi)`` except the last
+    one, which includes its upper boundary (so a cap value lands in the last
+    bin); out-of-range targets are ignored.
     """
     y_true = np.asarray(y_true, dtype=np.float64).ravel()
     y_pred = np.asarray(y_pred, dtype=np.float64).ravel()
     edges = np.asarray(bin_edges, dtype=np.float64)
+    n_bins = len(edges) - 1
+    weights = (np.ones(n_bins) if bin_weights is None
+               else np.asarray(bin_weights, dtype=np.float64))
+    if weights.shape != (n_bins,) or np.any(weights <= 0):
+        raise ValueError(f"bin_weights must hold {n_bins} positive values, "
+                         f"one per bin; got {bin_weights!r}")
 
     err = np.abs(y_pred - y_true)
     # right-open bins, with the last bin including its upper edge
     idx = np.digitize(y_true, edges[1:-1], right=False)
     in_range = (y_true >= edges[0]) & (y_true <= edges[-1])
 
-    maes = [err[in_range & (idx == b)].mean()
-            for b in range(len(edges) - 1)
-            if np.any(in_range & (idx == b))]
-    return float(np.mean(maes)) if maes else float("nan")
+    nonempty = [b for b in range(n_bins) if np.any(in_range & (idx == b))]
+    if not nonempty:
+        return float("nan")
+    maes = np.array([err[in_range & (idx == b)].mean() for b in nonempty])
+    w = weights[nonempty]
+    return float((w * maes).sum() / w.sum())
+
+
+def balanced_accuracy(y_true, y_pred):
+    """Balanced accuracy as neuralbench logs it: mean recall over classes.
+
+    The classes are those present in ``y_true`` or ``y_pred``, as in
+    torchmetrics' multiclass ``Accuracy(average="macro")``: a class that is
+    predicted but absent from the targets counts with a recall of 0, where
+    scikit-learn's ``balanced_accuracy_score`` leaves it out. The two agree
+    whenever every predicted class occurs in the targets.
+    """
+    y_true = np.asarray(y_true).ravel()
+    y_pred = np.asarray(y_pred).ravel()
+    classes = np.union1d(y_true, y_pred)
+    if not len(classes):
+        return float("nan")
+    recalls = [np.mean(y_pred[y_true == c] == c) if np.any(y_true == c)
+               else 0.0 for c in classes]
+    return float(np.mean(recalls))
+
+
+def group_scores(metric, y_true, y_pred, groups):
+    """Score each group of rows on its own (neuralbench's ``GroupedMetric``).
+
+    Parameters
+    ----------
+    metric : callable
+        ``metric(y_true, y_pred) -> float``, applied to each group's rows.
+    y_true, y_pred : arrays, shape ``(N, ...)``
+    groups : array, shape ``(N,)`` or ``(N, K)``
+        Group key, or tuple of keys, of each row.
+
+    Returns
+    -------
+    scores : array, shape ``(G,)``
+        One score per distinct key, in sorted key order. Their mean is
+        ``GroupedMetric(reduction="mean")``: every group counts equally,
+        however many rows it holds.
+    """
+    y_true, y_pred = np.asarray(y_true), np.asarray(y_pred)
+    if not len(y_true):
+        return np.array([])
+    keys = np.asarray(groups).reshape(len(y_true), -1)
+    _, inverse = np.unique(keys, axis=0, return_inverse=True)
+    inverse = inverse.reshape(-1)
+    return np.array([metric(y_true[inverse == g], y_pred[inverse == g])
+                     for g in range(inverse.max() + 1)])
 
 
 def topk_accuracy(scores, target_idx, k=5):

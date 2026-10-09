@@ -70,10 +70,19 @@ class Dataset(BaseDataset):
 
         X_tr, y_tr = self._make_windows(rng, self.n_train, slope)
         X_te, y_te = self._make_windows(rng, self.n_test, slope)
+        # Test windows in recordings, streamed as the real task scores them
+        # (see benchmark_utils/streaming.py): a few recordings, each in time
+        # order, i.e. with its latency to N2 shrinking.
+        n_records = min(5, self.n_test)
+        record_id = np.arange(self.n_test) * n_records // self.n_test
+        order = np.lexsort((-y_te, record_id))
+        X_te, y_te = X_te[order], y_te[order]
+        onset = np.arange(self.n_test) - np.searchsorted(record_id, record_id)
 
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
-            test_loader=make_loader(X_te, y_te, device=device),
+            test_loader=make_loader(X_te, y_te, record_id=record_id,
+                                    onset=onset, device=device),
             sfreq=self.sfreq,
             ch_names=ch_names,
             chs_info=chs_info_from_names(ch_names),

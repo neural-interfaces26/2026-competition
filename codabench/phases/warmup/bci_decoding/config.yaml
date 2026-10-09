@@ -11,5 +11,6 @@ seed: 42
 no_timeout: true
 scoring:
   columns:
+    balanced_accuracy_cell_mean: objective_balanced_accuracy_cell_mean
     balanced_accuracy: objective_balanced_accuracy
     accuracy: objective_accuracy
