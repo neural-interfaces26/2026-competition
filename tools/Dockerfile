@@ -27,12 +27,12 @@ FROM python:3.12-slim
 ENV DEBIAN_FRONTEND=noninteractive
 
 # The torch trio from the official PyTorch wheel index with an explicit CUDA
-# channel: PyPI's default silently tracks the newest CUDA (cu13 today), which
-# needs very recent drivers; cu126 runs on any R525+ driver. All three come
-# from the same index so their C++ ops match (a PyPI torchvision against a
-# channel torch fails at import with `torchvision::nms does not exist`).
+# channel: cu130 includes kernels for the G7 Blackwell GPUs (sm_120) and
+# requires a compatible NVIDIA 580+ host driver. All three come from the same
+# index so their C++ ops match (a PyPI torchvision against a channel torch
+# fails at import with `torchvision::nms does not exist`).
 # Installed first so the portable pins in requirements.txt are satisfied.
-ARG TORCH_CHANNEL=cu126
+ARG TORCH_CHANNEL=cu130
 RUN pip install -U pip && pip install --no-cache-dir \
     torch torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/${TORCH_CHANNEL}
