@@ -12,7 +12,6 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 REGISTRY=${REGISTRY:-lionelyneuro}
-DOCKER_DEFAULT_PLATFORM=linux/amd64
 TAG=v2 PUSH=0
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -24,5 +23,5 @@ done
 
 image="$REGISTRY/neural-compet:$TAG"
 echo "=== $image ==="
-docker build -f tools/Dockerfile -t "$image" .
+docker build --platform linux/amd64 -f tools/Dockerfile -t "$image"
 [[ $PUSH == 1 ]] && docker push "$image"
