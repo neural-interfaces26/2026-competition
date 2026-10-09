@@ -40,7 +40,7 @@ TRACKS = {
     "bci_decoding": {
         "objective": "BCI-decoding",
         "dataset": (
-            "Simulated[n_chans=27,n_times=480,n_classes=2,"
+            "Simulated[n_chans=41,n_times=480,n_classes=3,"
             "n_train=16,n_test=8,sfreq=120]"
         ),
         "models": {

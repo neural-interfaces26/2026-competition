@@ -23,7 +23,8 @@ from benchmark_utils.data import (
 
 CAP_S = 600.0
 
-SLEEP_EDF_CHANNELS = ("Fpz-Cz", "Pz-Oz")
+# The Muse headband's four channels, the warm-up data's.
+MUSE_CHANNELS = ("TP9", "AF7", "AF8", "TP10")
 
 
 class Dataset(BaseDataset):
@@ -63,7 +64,8 @@ class Dataset(BaseDataset):
         # Per-channel drift direction; scaled above the noise floor.
         slope = rng.standard_normal(self.n_chans) * 4.0
         device = get_device()
-        available = SLEEP_EDF_CHANNELS + STANDARD_EEG_CHANNELS
+        available = MUSE_CHANNELS + tuple(
+            c for c in STANDARD_EEG_CHANNELS if c not in MUSE_CHANNELS)
         if self.n_chans > len(available):
             raise ValueError("simulated EEG channel count is too large")
         ch_names = list(available[:self.n_chans])

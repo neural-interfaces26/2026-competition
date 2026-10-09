@@ -34,7 +34,10 @@ active phase specification.
 
 Both real selectors run NeuralBench's streamed Track 03 task,
 `eeg _sleep_onset_stream`, on its default (Muse) and `kemp2000analysis`
-variants.
+variants. Each window is 5 s long, at the recording's own rate,
+unfiltered, in microvolts with no scaling or clamping. On Muse a window
+holds the four channels TP9, AF7, AF8 and TP10 at 128 Hz, and the windows
+tile each recording from its start to its first N2 epoch.
 
 ## Worked examples
 
@@ -44,7 +47,7 @@ Use NeuralBench to explore the neurophysiology task, preprocessing, public
 split, and reference model pipeline:
 
 ```bash
-pip install neuralbench
+pip install neuralbench 'nemar-py>=0.3.1'
 neuralbench eeg _sleep_onset_stream --download
 neuralbench eeg _sleep_onset_stream --prepare
 neuralbench eeg _sleep_onset_stream -m eegnet --debug

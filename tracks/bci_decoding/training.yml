@@ -7,7 +7,7 @@
 objective:
   - BCI-decoding[training=True]
 dataset:
-  - BCI[study=dreyer2023]
+  - BCI[study=dreyer2026proteus]
 solver:
   - Torch-Linear
 seed: 42

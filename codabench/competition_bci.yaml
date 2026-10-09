@@ -1,7 +1,7 @@
 version: 2
 title: "Neural Interfaces 2026 — Track 2: BCI Decoding"
 description: >
-  Decode cued mental commands (motor imagery) from short EEG windows.
+  Decode cued mental commands from short EEG windows.
   Submissions ship a trained model (code + weights); the platform runs
   inference-only on the held-out split, one session at a time, and ranks by
   balanced accuracy averaged over cells. Powered by benchopt + neuralbench.

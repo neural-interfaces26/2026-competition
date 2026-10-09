@@ -87,6 +87,13 @@ for Codabench inference. Benchopt is not required for training or packaging
 this route. These wrappers are inference-only and intentionally omit
 `fit` and `save_model`.
 
+For Tracks 02 and 03, train on the streamed tasks,
+`neuralbench eeg _motor_imagery_stream` and
+`neuralbench eeg _sleep_onset_stream`: their preprocessing is the one
+Codabench feeds the model. The batch `motor_imagery` and `sleep_onset` tasks
+scale and clamp each recording instead, so their checkpoints would see
+differently scaled inputs on Codabench.
+
 Retain or export the best checkpoint before NeuralBench cleans up the run.
 Set `delete_checkpoints_on_exit=False` in the run configuration if you want
 NeuralBench to keep its temporary best checkpoint.

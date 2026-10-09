@@ -107,3 +107,12 @@ def test_contract_errors():
     loader = [(torch.zeros(1, 2, 3), torch.zeros(1), {"record_id": [0]})]
     with pytest.raises(KeyError, match="stream_id"):
         predict_streams(CountingModel(), loader)
+
+
+def test_loader_info_carries_the_context():
+    loader = make_loader(np.zeros((3, 2, 3)), np.arange(3), batch_size=3,
+                         stream_id=[0, 0, 1], context_id=[4, 5, 4])
+    _, _, info = predict_streams(CountingModel(), loader)
+    np.testing.assert_array_equal(info["context_id"], [4, 5, 4])
+    _, _, info = next(iter(make_loader(np.zeros((2, 2, 3)), np.arange(2))))
+    assert "context_id" not in info

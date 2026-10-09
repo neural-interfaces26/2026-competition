@@ -11,11 +11,13 @@ fresh copy of the model whose optional ``reset_state()`` is called first.
 
 Ranking metric: **balanced accuracy averaged over cells**. It is computed
 within each subject x session x context cell, then averaged over cells, so
-every cell counts equally regardless of its number of windows. A dataset
-whose windows carry no ``context_id`` in their ``info`` has one context per
-session, which makes it NeuralBench's ``bal_acc_stream_mean``. Balanced
-accuracy pooled over all windows and plain accuracy are reported alongside.
-Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
+every cell counts equally regardless of its number of windows. On PROTEUS
+the context is the interface of a run (Graz or BrainHero), given by the
+dataset as each window's ``info["context_id"]``; a dataset without one has
+one context per session. Reported alongside: balanced accuracy averaged
+over sessions alone (NeuralBench's ``bal_acc_stream_mean``), balanced
+accuracy pooled over all windows, and plain accuracy. Data flows as lazy
+dataloaders — see ``benchmark_utils/data.py``.
 """
 
 import numpy as np
@@ -84,9 +86,12 @@ class Objective(BaseObjective):
         context = info.get("context_id", np.zeros(len(y_true), np.int64))
         cells = np.stack([info["stream_id"], context], axis=1)
         cell_scores = group_scores(balanced_accuracy, y_true, y_pred, cells)
+        session_scores = group_scores(balanced_accuracy, y_true, y_pred,
+                                      info["stream_id"])
 
         return dict(
             balanced_accuracy_cell_mean=float(cell_scores.mean()),
+            balanced_accuracy_session_mean=float(session_scores.mean()),
             balanced_accuracy=balanced_accuracy(y_true, y_pred),
             accuracy=float(np.mean(y_true == y_pred)),
             n_classes=self.n_classes,

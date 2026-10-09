@@ -1,15 +1,27 @@
 """BCI-decoding studies through NeuralBench's streamed Track 2 task.
 
 Wraps the neuralbench ``eeg/_motor_imagery_stream`` task config — see
-``benchmark_utils.nb_task``: 4-s stimulus windows, one-hot labels, the signal
-resampled to 120 Hz and filtered but not scaled (microvolts), and a test
-split streamed one session of one participant at a time
-(``data.stream_by: [subject, session]``), its runs in recording order. The
-``study`` parameter picks the dataset variant:
+``benchmark_utils.nb_task``: one 4-s window per cue (from 1 s after the cue
+on PROTEUS, from the cue on the two proxies), one-hot labels, the signal
+notch-filtered at 50 and 60 Hz and band-pass filtered at 0.1-75 Hz at its
+recorded rate, then resampled to 120 Hz, in microvolts with no scaling or
+clamping, and a test split streamed one session of one participant at a
+time (``data.stream_by: [subject, session]``), its runs in recording order.
+The ``study`` parameter picks the dataset variant:
 
-- ``dreyer2023``     : Dreyer2023Large — the warm-up evaluation study
-                       (2-class, predefined train/test subjects); the default.
-- ``tangermann2012`` : BNCI2014_001 — small, handy for real-data smoke tests.
+- ``dreyer2026proteus`` : Dreyer2026Proteus — the PROTEUS training release
+                          (NEMAR nm000290 v1.0.0: 41 EEG channels, three
+                          cued commands, Graz and BrainHero interfaces), the
+                          task default and the warm-up evaluation study, on
+                          the task's subject-level split; the default.
+- ``dreyer2023``        : Dreyer2023Large — a two-class public proxy
+                          (predefined train/test subjects).
+- ``tangermann2012``    : BNCI2014_001 — small, handy for real-data smoke
+                          tests.
+
+On PROTEUS, each window's ``info`` also gives its context, the interface of
+its run (Graz or BrainHero), which the objective scores separately within
+each session.
 
 Requires a one-time download (``benchopt prepare``); the zero-dependency
 ``Simulated`` dataset covers no-network smoke testing.
@@ -28,11 +40,35 @@ from benchmark_utils.nb_task import download_study, load_task, require_prepared
 
 TASK = "_motor_imagery_stream"
 
-# Dataset variant: an overlay yaml in the task's ``datasets/`` folder.
+# Dataset variant: an overlay yaml in the task's ``datasets/`` folder
+# (None = the task default).
 _OVERLAYS = {
+    "dreyer2026proteus": None,
     "dreyer2023": "dreyer2023",
     "tangermann2012": "tangermann2012",
 }
+
+# PROTEUS runs by BIDS task -> the interface they used, the context of the
+# subject x session x context cells. Baseline runs hold no cue, so no window.
+_PROTEUS_INTERFACES = {
+    "AcquisitionBH": "BrainHero",
+    "OnlineRawBH": "BrainHero",
+    "AcquisitionGraz": "Graz",
+    "OnlineRawGraz": "Graz",
+}
+
+
+def _proteus_interface(trigger):
+    """Interface (Graz or BrainHero) of the run a PROTEUS window comes from."""
+    task = trigger.get("task")
+    if task not in _PROTEUS_INTERFACES:
+        raise ValueError(f"PROTEUS run with unknown task {task!r}: its "
+                         "interface, the window's context, is unknown.")
+    return _PROTEUS_INTERFACES[task]
+
+
+# Context of each window, for the studies that define one.
+_CONTEXTS = {"dreyer2026proteus": _proteus_interface}
 
 
 class Dataset(BaseDataset):
@@ -46,11 +82,13 @@ class Dataset(BaseDataset):
         "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralfetch-repo",  # noqa: E501
         "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuraltrain-repo",  # noqa: E501
         "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralbench-repo",  # noqa: E501
-        "pip::moabb", "pip::mne", "scikit-learn",
+        # The PROTEUS release downloads from NEMAR through NeuralFetch; the
+        # two proxies through MOABB.
+        "pip::nemar-py>=0.3.1", "pip::moabb", "pip::mne", "scikit-learn",
     ]
 
     parameters = {
-        "study": ["dreyer2023"],
+        "study": ["dreyer2026proteus"],
         "batch_size": [64],
         # Dataloader workers; 0 extracts windows in-process, which is what
         # shared CI/platform runners want. Raise it from the phase config
@@ -97,6 +135,7 @@ class Dataset(BaseDataset):
             subset=self.subset,
             # One-hot ``(K,)`` -> integer class label.
             target_transform=lambda y: y.argmax(-1),
+            context_of=_CONTEXTS.get(self.study),
         )
 
     def get_data(self):

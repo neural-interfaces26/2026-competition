@@ -341,7 +341,8 @@ To train on another study — or your own data — override the dataset with `-d
 | ----- | ---------------- | ---------- |
 | 01 | `"Image[study=gifford2022large]"` | THINGS-EEG2 (Gifford2022Large) — public proxy, **default** |
 | 01 | `"Image[study=grootswagers2022human]"`, `"…[study=xu2024alljoined]"`, `"…[study=xu2025alljoined]"` | alternative public studies |
-| 02 | `"BCI[study=dreyer2023]"` | Dreyer2023Large — the **warm-up evaluation** study, **default** |
+| 02 | `"BCI[study=dreyer2026proteus]"` | PROTEUS (Dreyer2026Proteus) — the **warm-up evaluation** study, **default** |
+| 02 | `"BCI[study=dreyer2023]"` | Dreyer2023Large — two-class public proxy |
 | 02 | `"BCI[study=tangermann2012]"` | BNCI2014_001 — small, for real-data smoke tests |
 | 03 | `"Interaxon2026Muse"` | public Muse data — the **warm-up evaluation** set, **default** |
 | 03 | `"Sleep-EDF"` | Sleep-EDF (Kemp2000Analysis) — public proxy |
