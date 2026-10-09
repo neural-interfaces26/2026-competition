@@ -2,11 +2,11 @@ import os
 
 import pytest
 
-# The real datasets' pip stack (neuralset/neuralbench) pins a CUDA torch
-# build — installing it exceeds the CI runners' disk, and the Muse and
-# Sleep-EDF downloads are too large for CI anyway. Use ``benchopt install``
-# locally / on a compute node instead.
-HEAVY_DATASETS = ("interaxon2026muse", "sleep-edf")
+# The real dataset's pip stack (neuralset/neuralbench) pins a CUDA torch
+# build — installing it exceeds the CI runners' disk, and the Muse download
+# is too large for CI anyway. Use ``benchopt install`` locally / on a
+# compute node instead.
+HEAVY_DATASETS = ("interaxon2026muse",)
 
 
 def check_test_dataset_install(dataset_class):

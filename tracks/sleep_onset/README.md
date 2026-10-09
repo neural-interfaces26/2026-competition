@@ -29,12 +29,11 @@ active phase specification.
 | Benchopt `-d` selector | Data |
 |---|---|
 | `Interaxon2026Muse` | public Muse data (NEMAR nm000287), the warm-up set |
-| `Sleep-EDF` | Sleep-EDF (`Kemp2000Analysis`), a public proxy |
 | `Simulated` | tiny synthetic contract check, with no download |
 
-Both real selectors run NeuralBench's streamed Track 03 task,
-`eeg _sleep_onset_stream`, on its default (Muse) and `kemp2000analysis`
-variants. Each window is 5 s long, at the recording's own rate,
+The real selector runs NeuralBench's streamed Track 03 task,
+`eeg _sleep_onset_stream`, on its default dataset (Muse). Each window is
+5 s long, at the recording's own rate,
 unfiltered, in microvolts with no scaling or clamping. On Muse a window
 holds the four channels TP9, AF7, AF8 and TP10 at 128 Hz, and the windows
 tile each recording from its start to its first N2 epoch.
@@ -56,14 +55,6 @@ neuralbench eeg _sleep_onset_stream -m eegnet --debug
 Until the next NeuralBench release on PyPI includes the streamed task,
 install NeuralBench from the revision pinned in
 [`requirements.txt`](../../requirements.txt).
-
-Reference development results on Sleep-EDF, not Codabench warm-up scores:
-
-| Baseline | bMAE (s) |
-|---|---|
-| Chance | 205.42 ± 0.01 |
-| EEGNet | 143.30 ± 0.40 |
-| REVE frozen probe | 134.89 ± 2.02 |
 
 [Open the Track 03 NeuralBench guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html).
 After training its EEGNet, use the shared

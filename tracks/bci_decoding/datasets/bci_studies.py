@@ -2,7 +2,7 @@
 
 Wraps the neuralbench ``eeg/_motor_imagery_stream`` task config — see
 ``benchmark_utils.nb_task``: one 4-s window per cue (from 1 s after the cue
-on PROTEUS, from the cue on the two proxies), one-hot labels, the signal
+on PROTEUS, from the cue on BNCI2014_001), one-hot labels, the signal
 notch-filtered at 50 and 60 Hz and band-pass filtered at 0.1-75 Hz at its
 recorded rate, then resampled to 120 Hz, in microvolts with no scaling or
 clamping, and a test split streamed one session of one participant at a
@@ -14,8 +14,6 @@ The ``study`` parameter picks the dataset variant:
                           cued commands, Graz and BrainHero interfaces), the
                           task default and the warm-up evaluation study, on
                           the task's subject-level split; the default.
-- ``dreyer2023``        : Dreyer2023Large — a two-class public proxy
-                          (predefined train/test subjects).
 - ``tangermann2012``    : BNCI2014_001 — small, handy for real-data smoke
                           tests.
 
@@ -44,7 +42,6 @@ TASK = "_motor_imagery_stream"
 # (None = the task default).
 _OVERLAYS = {
     "dreyer2026proteus": None,
-    "dreyer2023": "dreyer2023",
     "tangermann2012": "tangermann2012",
 }
 
@@ -82,8 +79,8 @@ class Dataset(BaseDataset):
         "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralfetch-repo",  # noqa: E501
         "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuraltrain-repo",  # noqa: E501
         "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralbench-repo",  # noqa: E501
-        # The PROTEUS release downloads from NEMAR through NeuralFetch; the
-        # two proxies through MOABB.
+        # The PROTEUS release downloads from NEMAR through NeuralFetch;
+        # BNCI2014_001 through MOABB.
         "pip::nemar-py>=0.3.1", "pip::moabb", "pip::mne", "scikit-learn",
     ]
 

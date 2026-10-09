@@ -28,13 +28,12 @@ ranking specification.
 | Benchopt `-d` selector | Data |
 |---|---|
 | `BCI[study=dreyer2026proteus]` | PROTEUS (NEMAR nm000290), the default warm-up study |
-| `BCI[study=dreyer2023]` | Dreyer2023Large, a two-class public proxy |
 | `BCI[study=tangermann2012]` | BNCI2014_001, a smaller real-data check |
 | `Simulated` | tiny synthetic contract check, with no download |
 
 The real selectors run NeuralBench's streamed Track 02 task,
-`eeg _motor_imagery_stream`, on its default (PROTEUS), `dreyer2023` and
-`tangermann2012` variants. Each window is 4 s long; the signal is
+`eeg _motor_imagery_stream`, on its default (PROTEUS) and `tangermann2012`
+variants. Each window is 4 s long; the signal is
 notch-filtered at 50 and 60 Hz and band-pass filtered at 0.1-75 Hz at its
 recorded rate, resampled to 120 Hz, and fed in microvolts with no scaling
 or clamping. On PROTEUS a window holds 41 EEG channels and starts 1 s after
