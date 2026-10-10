@@ -38,12 +38,11 @@ class Dataset(BaseDataset):
     name = "BCI"
 
     requirements = [
-        # neuroai stack from neuroai pull request 300 (see requirements.txt);
-        # all four are git-pinned so pip does not mix released sub-deps.
-        "pip::neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralset-repo",  # noqa: E501
-        "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralfetch-repo",  # noqa: E501
-        "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuraltrain-repo",  # noqa: E501
-        "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralbench-repo",  # noqa: E501
+        # neuroai release, pinned like requirements.txt.
+        "pip::neuralset==0.4.0",
+        "pip::neuralfetch==0.4.0",
+        "pip::neuraltrain==0.4.0",
+        "pip::neuralbench==0.4.0",
         "pip::moabb", "pip::mne", "scikit-learn",
     ]
 
