@@ -8,8 +8,16 @@ short EEG window.
 - **Input:** torch tensor `(B, C, T)` on `meta["device"]`.
 - **Output:** `predict(X) -> (B,)` float latencies in seconds, capped at 600,
   with `meta["n_outputs"] = 1`.
-- **Metric implemented here:** Sleep-EDF warm-up binned MAE over target bins
-  `[0, 40, 90, 300, 600]` seconds, with plain MAE reported alongside.
+- **Evaluation:** causal and streamed. Each recording reaches `predict` one
+  window at a time (`B = 1`), forward in time, and starts from a
+  `copy.deepcopy` of your model whose optional `reset_state()` is called
+  first: a model can adapt within a recording but carries nothing over to the
+  next one.
+- **Metric implemented here:** the Muse warm-up W-bMAE: within each
+  recording, the MAE inside the target ranges `[0, 40, 90, 300, 600]`
+  seconds, averaged over the non-empty ranges with severity weights 10, 5, 3
+  and 1, then averaged over recordings. The unweighted binned MAE and plain
+  MAE over all windows are reported alongside.
 - **Benchopt objective:** `Sleep-onset`.
 
 The final Muse evaluation uses severity-weighted binned MAE and a seen versus
@@ -20,8 +28,15 @@ active phase specification.
 
 | Benchopt `-d` selector | Data |
 |---|---|
-| `Sleep-EDF` | Sleep-EDF (`Kemp2000Analysis`), the current public proxy |
+| `Interaxon2026Muse` | public Muse data (NEMAR nm000287), the warm-up set |
 | `Simulated` | tiny synthetic contract check, with no download |
+
+The real selector runs NeuralBench's streamed Track 03 task,
+`eeg _sleep_onset_stream`, on its default dataset (Muse). Each window is
+5 s long, at the recording's own rate,
+unfiltered, in microvolts with no scaling or clamping. On Muse a window
+holds the four channels TP9, AF7, AF8 and TP10 at 128 Hz, and the windows
+tile each recording from its start to its first N2 epoch.
 
 ## Worked examples
 
@@ -31,19 +46,15 @@ Use NeuralBench to explore the neurophysiology task, preprocessing, public
 split, and reference model pipeline:
 
 ```bash
-pip install neuralbench
-neuralbench eeg sleep_onset --download
-neuralbench eeg sleep_onset --prepare
-neuralbench eeg sleep_onset -m eegnet --debug
+pip install neuralbench 'nemar-py>=0.3.1'
+neuralbench eeg _sleep_onset_stream --download
+neuralbench eeg _sleep_onset_stream --prepare
+neuralbench eeg _sleep_onset_stream -m eegnet --debug
 ```
 
-Reference development results on Sleep-EDF, not Codabench warm-up scores:
-
-| Baseline | bMAE (s) |
-|---|---|
-| Chance | 205.42 ± 0.01 |
-| EEGNet | 143.30 ± 0.40 |
-| REVE frozen probe | 134.89 ± 2.02 |
+Until the next NeuralBench release on PyPI includes the streamed task,
+install NeuralBench from the revision pinned in
+[`requirements.txt`](../../requirements.txt).
 
 [Open the Track 03 NeuralBench guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html).
 After training its EEGNet, use the shared
@@ -52,8 +63,8 @@ After training its EEGNet, use the shared
 ### Benchopt competition kit
 
 Use the shared [Benchopt workflow](../README.md#develop-and-package-with-benchopt)
-with `<track> = sleep_onset`. `training.yml` selects Sleep-EDF and exports the
-`Torch-Linear` submission.
+with `<track> = sleep_onset`. `training.yml` selects the Muse warm-up data
+and exports the `Torch-Linear` submission.
 
 Editable solvers live in [`solvers/`](solvers/):
 
@@ -70,7 +81,7 @@ Editable solvers live in [`solvers/`](solvers/):
 The track metadata adds `n_outputs = 1` to the shared submission metadata.
 Your model must return one float latency in seconds per window.
 
-To use a custom Benchopt dataset instead of the configured Sleep-EDF proxy:
+To use a custom Benchopt dataset instead of the configured Muse data:
 
 ```bash
 benchopt run tracks/sleep_onset \

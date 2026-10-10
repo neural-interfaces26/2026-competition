@@ -1,13 +1,20 @@
-"""EMG-to-pose task on Salter2024Emg2pose, the official corpus.
+"""Sleep-onset task on the public Muse data (Interaxon2026Muse), the warm-up.
 
-Wraps the neuralbench ``emg/pose`` task config — see
-``benchmark_utils.nb_task``: 5-s windows of 16-channel wrist surface EMG at
-2 kHz, target = 20 hand joint-angle trajectories (``EmgExtractor`` MISC
-picks), with the corpus' predefined train/val/test split.
+Wraps neuralbench's streamed Track 3 task, ``eeg/_sleep_onset_stream``,
+whose default dataset this is — see ``benchmark_utils.nb_task``: the Track 3
+training release (NEMAR nm000287 v1.0.0: 540 at-home recordings of four Muse
+channels at 128 Hz) cut into non-overlapping 5-s windows from the start of
+each recording up to its first N2 epoch, the signal at its native rate,
+unfiltered, in microvolts, target = seconds to the first N2 epoch (capped at
+600 s, ``SleepOnsetTargetExtractor``), and a ``RegressionBinSampler``
+balancing the train batches across latency bins. The supplied session split
+holds 500 training and 40 test recordings, every test participant also seen
+in training; 20% of the training participants are held out for validation.
+Each test recording is one stream (``data.stream_by: [timeline]``). Its 40
+test recordings are the Codabench warm-up evaluation set.
 
-Requires a one-time full-study download (``benchopt prepare`` — large; prefer
-a compute node). The zero-dependency ``Simulated`` dataset covers no-network
-smoke testing.
+Requires a one-time download (``benchopt prepare``, ~1.1 GB). The
+zero-dependency ``Simulated`` dataset covers no-network smoke testing.
 """
 
 from benchopt import BaseDataset
@@ -20,10 +27,12 @@ import neuralbench  # noqa: F401
 from benchmark_utils.data import get_device
 from benchmark_utils.nb_task import download_study, load_task, require_prepared
 
+TASK = "_sleep_onset_stream"
+
 
 class Dataset(BaseDataset):
 
-    name = "Salter2024Emg2pose"
+    name = "Interaxon2026Muse"
 
     requirements = [
         # neuroai stack from neuroai pull request 301 (see requirements.txt);
@@ -32,14 +41,16 @@ class Dataset(BaseDataset):
         "pip::neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralfetch-repo",  # noqa: E501
         "pip::neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuraltrain-repo",  # noqa: E501
         "pip::neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/301/head#subdirectory=neuralbench-repo",  # noqa: E501
-        "pip::mne", "scikit-learn",
+        # NeuralFetch downloads the Muse release from NEMAR through it.
+        "pip::nemar-py>=0.3.1", "pip::mne", "scikit-learn",
     ]
 
     parameters = {
         "batch_size": [64],
         # Dataloader workers; 0 extracts windows in-process, which is what
         # shared CI/platform runners want. Raise it from the phase config
-        # (``Salter2024Emg2pose[num_workers=4]``) on a worker with spare cores.
+        # (``Interaxon2026Muse[num_workers=4]``) on a worker with spare
+        # cores.
         "num_workers": [0],
         # "test" restricts the study to its test split (worker staging /
         # evaluation-only runs; incompatible with the objective's
@@ -52,9 +63,9 @@ class Dataset(BaseDataset):
 
     def prepare(self):
         # Download the study, then run the pipeline once: the extraction
-        # (filtering, segmenting, targets) caches next to the data, so runs
-        # only touch warm caches. Both steps are idempotent.
-        download_study("emg", "pose", self._data_dir())
+        # (segmenting, targets) caches next to the data, so runs only touch
+        # warm caches. Both steps are idempotent.
+        download_study("eeg", TASK, self._data_dir())
         self._load()
 
     def _data_dir(self):
@@ -64,43 +75,25 @@ class Dataset(BaseDataset):
 
     def _load(self, device="cpu"):
         return load_task(
-            "emg", "pose",
+            "eeg", TASK,
             data_dir=self._data_dir(),
             device=device,
             batch_size=self.batch_size,
             seed=self.get_seed(),
             num_workers=self.num_workers,
             subset=self.subset,
-            # Cache the pose-target extraction next to the data; without a
-            # folder its exca cache defaults to the container-local /tmp, which
-            # --rm drops, so the replay (and every submission) rebuilds it.
-            overrides={
-                "target.infra.cluster": None,
-                "target.infra.folder": str(self._data_dir() / "cache"),
-                "target.infra.permissions": None,
-                # Serialize the timeline build: concurrent
-                # workers append to the TimelineLoader cachedict while others
-                # read it, making exca's "non-last line" jsonl guard fail.
-                # Switch to inline Cached backend.
-                "study.source.timelines.infra.backend": "Cached",
-                "study.source.timelines.infra.folder": str(
-                    self._data_dir() / "cache"
-                ),
-            },
         )
 
     def get_data(self):
         # Load already-prepared data only; downloading + extracting is the
         # explicit ``prepare`` step (``benchopt prepare`` / ``--prepare``).
-        require_prepared("emg", "pose", self._data_dir())
+        require_prepared("eeg", TASK, self._data_dir())
         loaders, meta = self._load(device=get_device())
         return dict(
             # subset="test" stages the evaluation split only: no train
             # split to hand over, which is how a run learns it cannot train.
             train_loader=None if self.subset == "test" else loaders["train"],
             test_loader=loaders["test"],
-            # Target windows are (n_joints, T); the objective needs n_joints.
-            n_joints=int(meta["target_shape"][0]),
             **{k: v for k, v in meta.items()
                if k not in ("target_shape", "raw_target_shape")},
         )

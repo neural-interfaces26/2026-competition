@@ -17,7 +17,13 @@ Differences with running neuralbench itself:
   torch batches moved onto ``device``, see ``benchmark_utils.data``), so
   nothing downstream is tied to neuralset/neuralbench types;
 - ``subset="test"`` restricts the pipeline to the test split (see
-  :func:`build_test_only_filter`) so workers can stage evaluation data only.
+  :func:`build_test_only_filter`) so workers can stage evaluation data only;
+- the test loader keeps neuralbench's order and batch size (recordings in
+  order, each in time order; one window per batch for the stream tasks),
+  and each window's ``info`` tells its recording, its start in it, its
+  stream (``data.stream_by``) and, when the caller defines one, its context,
+  which streamed evaluation and its scores need (see
+  ``benchmark_utils.streaming``).
 
 Like the rest of the neuro stack, this module is import-heavy; import it
 only from ``datasets/`` modules (never from solvers).
@@ -211,13 +217,37 @@ class _NBWindows(torch.utils.data.Dataset):
     """Adapt a prepared neuralset ``SegmentDataset`` split to ``(X, y, info)``.
 
     ``seg_ds[i]`` yields a neuralset ``Batch`` whose ``data`` holds the
-    ``neuro`` signal, the ``target`` and the ``subject_id``; this wrapper
-    converts them to the competition contract (plain torch tensors).
+    ``neuro`` signal, the ``target``, the ``subject_id`` and, for a task
+    that sets ``data.stream_by``, the ``stream_id``; this wrapper converts
+    them to the competition contract (plain torch tensors). ``info`` gives
+    each window's ``subject_id``, ``record_id`` (its recording),
+    ``onset`` (its start in that recording, in seconds) and ``stream_id``
+    (the task's stream, else its recording), so evaluation can follow
+    session and run boundaries and time order. With ``context_of``, it
+    also gives each window's ``context_id``: ``context_of`` maps the fields
+    of a window's trigger event (``subject``, ``session``, ``task``,
+    ``run``, ...) to its context label.
     """
 
-    def __init__(self, seg_ds, target_transform=None):
+    def __init__(self, seg_ds, target_transform=None, context_of=None):
         self.seg_ds = seg_ds
         self.target_transform = target_transform
+        # Recording and start of every window, from the segments alone (no
+        # signal is read). Recordings and contexts are numbered in order of
+        # appearance.
+        records = {}
+        self.record_id = np.array(
+            [records.setdefault(seg.timeline, len(records))
+             for seg in seg_ds.segments], dtype=np.int64)
+        self.onset = np.array([seg.start for seg in seg_ds.segments],
+                              dtype=np.float64)
+        self.context_id = None
+        if context_of is not None:
+            contexts = {}
+            self.context_id = np.array(
+                [contexts.setdefault(context_of(seg.trigger.to_dict()),
+                                     len(contexts))
+                 for seg in seg_ds.segments], dtype=np.int64)
 
     def __len__(self):
         return len(self.seg_ds)
@@ -234,17 +264,32 @@ class _NBWindows(torch.utils.data.Dataset):
             y = self.target_transform(y)
         y = y.to(torch.float32 if y.is_floating_point() else torch.long)
         subject = data.get("subject_id")
-        info = {"subject_id": int(np.asarray(to_numpy(subject)).reshape(-1)[0])
-                if subject is not None else -1}
+        stream = data.get("stream_id")
+        info = {
+            "subject_id": _first(subject) if subject is not None else -1,
+            "record_id": int(self.record_id[i]),
+            "onset": float(self.onset[i]),
+            "stream_id": (_first(stream) if stream is not None
+                          else int(self.record_id[i])),
+        }
+        if self.context_id is not None:
+            info["context_id"] = int(self.context_id[i])
         return X, y, info
 
 
-def _make_loaders(loaders, device, target_transform):
+def _first(value):
+    """The single integer of an extracted ``(1,)``-shaped label."""
+    return int(np.asarray(to_numpy(value)).reshape(-1)[0])
+
+
+def _make_loaders(loaders, device, target_transform, context_of=None):
     """Rebuild the competition loaders from the neuralbench ones.
 
-    Keeps neuralbench's per-split datasets and train sampler (e.g. the
-    ``RegressionBinSampler``) but swaps the collate for the competition one
-    (plain tensors moved onto ``device``).
+    Keeps neuralbench's per-split datasets, batch sizes and train sampler
+    (e.g. the ``RegressionBinSampler``) but swaps the collate for the
+    competition one (plain tensors moved onto ``device``). Validation and
+    test windows stay in neuralbench's order, which streamed evaluation
+    relies on: never shuffle them.
     """
     from torch.utils.data import DataLoader, default_collate
 
@@ -254,7 +299,7 @@ def _make_loaders(loaders, device, target_transform):
 
     out = {}
     for split, loader in loaders.items():
-        ds = _NBWindows(loader.dataset, target_transform)
+        ds = _NBWindows(loader.dataset, target_transform, context_of)
         out[split] = DataLoader(
             ds, batch_size=loader.batch_size, collate_fn=collate,
             sampler=getattr(loader, "sampler", None)
@@ -267,7 +312,7 @@ def _make_loaders(loaders, device, target_transform):
 
 def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
               batch_size=64, seed=0, num_workers=0, overrides=None,
-              target_transform=None, subset="full"):
+              target_transform=None, context_of=None, subset="full"):
     """Build the competition loaders + meta from a neuralbench task config.
 
     Parameters
@@ -291,6 +336,9 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         the loader settings above.
     target_transform : callable or None
         Applied to each window's target (e.g. one-hot -> class index).
+    context_of : callable or None
+        Maps the fields of a window's trigger event (a dict) to its context
+        label, given as ``info["context_id"]`` (see :class:`_NBWindows`).
     subset : {"full", "test"}
         ``"test"`` restricts the study to its test split via a
         ``filter_stimuli`` override (:func:`build_test_only_filter`) —
@@ -326,7 +374,7 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         raise ValueError(f"subset must be 'full' or 'test', got {subset!r}")
 
     nb_loaders = Data(**cfg).prepare()
-    loaders = _make_loaders(nb_loaders, device, target_transform)
+    loaders = _make_loaders(nb_loaders, device, target_transform, context_of)
 
     # Peek one window (lazy) for shapes; channel names come from the prepared
     # neuro extractor's channel map.
@@ -336,8 +384,13 @@ def load_task(modality, task, *, data_dir, dataset=None, device="cpu",
         raw_y0 = raw_y0[0]
     ch_names = _channel_names(nb_loaders["test"].dataset)
     neuro = nb_loaders["test"].dataset.extractors["neuro"]
+    sfreq = neuro.frequency
+    if sfreq == "native":
+        # The signal keeps its recorded rate (e.g. Track 3's Muse data):
+        # read it off a window, its samples over its duration.
+        sfreq = X0.shape[-1] / float(cfg["duration"])
     meta = dict(
-        sfreq=float(neuro.frequency),
+        sfreq=float(sfreq),
         ch_names=ch_names,
         chs_info=chs_info_from_names(ch_names),
         n_chans=int(X0.shape[-2]),

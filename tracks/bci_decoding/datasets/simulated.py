@@ -64,10 +64,20 @@ class Dataset(BaseDataset):
 
         X_tr, y_tr = self._make_windows(rng, self.n_train, templates)
         X_te, y_te = self._make_windows(rng, self.n_test, templates)
+        # Test windows in streams as the real task scores them: a few
+        # sessions, each of two runs in recording order, one per context
+        # (as PROTEUS's Graz and BrainHero interfaces; see
+        # benchmark_utils/streaming.py).
+        n_runs = min(6, self.n_test)
+        record_id = np.arange(self.n_test) * n_runs // self.n_test
+        first = np.searchsorted(record_id, record_id)
+        onset = np.arange(self.n_test) - first
 
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
-            test_loader=make_loader(X_te, y_te, device=device),
+            test_loader=make_loader(X_te, y_te, record_id=record_id,
+                                    onset=onset, stream_id=record_id // 2,
+                                    context_id=record_id % 2, device=device),
             n_classes=self.n_classes,
             sfreq=self.sfreq,
             ch_names=ch_names,

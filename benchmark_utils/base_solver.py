@@ -9,7 +9,10 @@ neuralbench knowledge is required:
   any shipped weights from ``meta["submission_dir"]``) and place it on
   ``meta["device"]``. The model must expose ``predict(X)`` taking a torch
   batch ``(B, C, T)``; the output shape is track-specific (see each track's
-  objective docstring).
+  objective docstring). Tracks 02 and 03 stream their evaluation (see
+  ``benchmark_utils.streaming``): one window per ``predict`` call, in
+  recording order, each stream on a ``copy.deepcopy`` of the model whose
+  optional ``reset_state()`` is called first.
 - ``fit(self, model, train_loader)`` (optional, default no-op). **Opt-in
   training**: it only runs when the objective's ``training`` parameter is
   selected (``benchopt run ... -o "<objective>[training=True]"``) — this is

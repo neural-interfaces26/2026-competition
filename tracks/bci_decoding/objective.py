@@ -4,15 +4,27 @@ Cued mental-command classification from short EEG windows — *epoched*: one
 label per window. A submission's model receives torch batches ``(B, C, T)``
 and must return one predicted class per window (``predict(X) -> (B,)``).
 
-Ranking metric: **balanced accuracy** (plain accuracy reported alongside).
-Data flows as lazy dataloaders — see ``benchmark_utils/data.py``.
+Evaluation is causal and streamed (``benchmark_utils/streaming.py``): the
+windows of each session of each participant reach the model one at a time
+(``B = 1``), its runs in recording order, and every session starts from a
+fresh copy of the model whose optional ``reset_state()`` is called first.
+
+Ranking metric: **balanced accuracy averaged over cells**. It is computed
+within each subject x session x context cell, then averaged over cells, so
+every cell counts equally regardless of its number of windows. On PROTEUS
+the context is the interface of a run (Graz or BrainHero), given by the
+dataset as each window's ``info["context_id"]``; a dataset without one has
+one context per session. Reported alongside: balanced accuracy averaged
+over sessions alone (NeuralBench's ``bal_acc_stream_mean``), balanced
+accuracy pooled over all windows, and plain accuracy. Data flows as lazy
+dataloaders — see ``benchmark_utils/data.py``.
 """
 
 import numpy as np
 from benchopt import BaseObjective
-from sklearn.metrics import accuracy_score, balanced_accuracy_score
 
-from benchmark_utils.data import to_numpy
+from benchmark_utils.metrics import balanced_accuracy, group_scores
+from benchmark_utils.streaming import predict_streams
 
 
 class Objective(BaseObjective):
@@ -65,17 +77,25 @@ class Objective(BaseObjective):
         )
 
     def evaluate_result(self, model):
-        y_true, y_pred = [], []
-        for X, y, _info in self.test_loader:
-            y_pred.append(to_numpy(model.predict(X)))
-            y_true.append(to_numpy(y))
-        y_true = np.concatenate(y_true)
-        y_pred = np.concatenate(y_pred)
+        y_true, y_pred, info = predict_streams(model, self.test_loader)
+        y_true, y_pred = y_true.reshape(-1), y_pred.reshape(-1)
+        if len(y_pred) != len(info["stream_id"]):
+            raise ValueError("predict(X) must return one class per window.")
+
+        # A cell is a stream (one session of one participant) and a context.
+        context = info.get("context_id", np.zeros(len(y_true), np.int64))
+        cells = np.stack([info["stream_id"], context], axis=1)
+        cell_scores = group_scores(balanced_accuracy, y_true, y_pred, cells)
+        session_scores = group_scores(balanced_accuracy, y_true, y_pred,
+                                      info["stream_id"])
 
         return dict(
-            balanced_accuracy=balanced_accuracy_score(y_true, y_pred),
-            accuracy=accuracy_score(y_true, y_pred),
+            balanced_accuracy_cell_mean=float(cell_scores.mean()),
+            balanced_accuracy_session_mean=float(session_scores.mean()),
+            balanced_accuracy=balanced_accuracy(y_true, y_pred),
+            accuracy=float(np.mean(y_true == y_pred)),
             n_classes=self.n_classes,
+            n_cells=len(cell_scores),
         )
 
     def get_one_result(self):

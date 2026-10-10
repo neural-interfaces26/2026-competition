@@ -2,14 +2,17 @@
 # A native `benchopt run --config` file; the extra `scoring` key is read
 # by the scoring program (stripped by ingestion before the run).
 dataset:
-  # Public proxy, staged in /data by the worker provisioning from this file.
-  # subset=full: dreyer2023's PredefinedSplit leaves an empty train split under
-  # subset=test, which neuralbench's Data.prepare rejects; stage all and let it
-  # build the predefined splits. One dataset only: scoring reads the first row.
-  - BCI[study=dreyer2023,subset=full]
+  # Warm-up set: the test participants of the public PROTEUS training
+  # release (Dreyer2026Proteus, NEMAR nm000290) on the NeuralBench task's
+  # split, staged in /data by the worker provisioning from this file.
+  # subset=full: the split is computed at runtime (SklearnSplit), not
+  # predefined, so the whole study is staged. One dataset only: scoring reads
+  # the first row.
+  - BCI[study=dreyer2026proteus,subset=full]
 seed: 42
 no_timeout: true
 scoring:
   columns:
+    balanced_accuracy_cell_mean: objective_balanced_accuracy_cell_mean
     balanced_accuracy: objective_balanced_accuracy
     accuracy: objective_accuracy

@@ -3,10 +3,10 @@ import os
 import pytest
 
 # The real dataset's pip stack (neuralset/neuralbench) pins a CUDA torch
-# build — installing it exceeds the CI runners' disk, and the full Sleep-EDF
-# download is too large for CI anyway. Use ``benchopt install`` locally / on
-# a compute node instead.
-HEAVY_DATASETS = ("sleep-edf",)
+# build — installing it exceeds the CI runners' disk, and the Muse download
+# is too large for CI anyway. Use ``benchopt install`` locally / on a
+# compute node instead.
+HEAVY_DATASETS = ("interaxon2026muse",)
 
 
 def check_test_dataset_install(dataset_class):
@@ -18,7 +18,7 @@ def check_test_dataset_install(dataset_class):
 def check_test_dataset_get_data(dataset_class):
     """Hook to skip dataset test cases in benchopt tests."""
     if dataset_class.name.lower() in HEAVY_DATASETS:
-        pytest.skip("Sleep-EDF is too large for full download in CI")
+        pytest.skip("real-data download is too large for CI")
 
 
 def check_test_solver_install(solver_class):

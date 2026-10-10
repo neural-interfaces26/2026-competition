@@ -40,7 +40,7 @@ TRACKS = {
     "bci_decoding": {
         "objective": "BCI-decoding",
         "dataset": (
-            "Simulated[n_chans=27,n_times=480,n_classes=2,"
+            "Simulated[n_chans=41,n_times=480,n_classes=3,"
             "n_train=16,n_test=8,sfreq=120]"
         ),
         "models": {
@@ -57,7 +57,7 @@ TRACKS = {
     "sleep_onset": {
         "objective": "Sleep-onset",
         "dataset": (
-            "Simulated[n_chans=2,n_times=600,n_train=16,n_test=8,sfreq=120]"
+            "Simulated[n_chans=4,n_times=640,n_train=16,n_test=8,sfreq=128]"
         ),
         "models": {
             "eegnet": {

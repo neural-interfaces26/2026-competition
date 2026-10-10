@@ -9,10 +9,20 @@ yields ``(X, y, info)`` batches:
              regression target ``(B,)``, embedding ``(B, D)``, or per-step
              sequence ``(B, ..., T)``. Integer targets are ``long``, float
              targets ``float32``.
-- ``info`` : dict with ``record_id`` and ``onset`` (sample index of the
-             window start in its source recording) so metrics can trace a
-             window back to its recording; the NeuralBench loaders carry
-             ``subject_id`` instead (see :func:`subject_ids`).
+- ``info`` : per-window metadata, kept away from the model, so metrics
+             can trace a window back to where it was recorded:
+             ``record_id`` (its recording), ``onset`` (where it starts in
+             that recording: sample index for in-memory windows, seconds
+             for the NeuralBench loaders) and ``stream_id`` (its evaluation
+             stream, see ``benchmark_utils.streaming``; one per recording
+             unless the dataset groups them, e.g. per session). The
+             NeuralBench loaders also carry ``subject_id`` (see
+             :func:`subject_ids`), and datasets that score per context
+             (Track 02: the BCI interface of each run) a ``context_id``.
+
+Test loaders keep their windows in recording order (each recording in time
+order, the recordings of a stream together), which streamed evaluation
+relies on.
 
 Tensors stay as **torch tensors** end-to-end (so torch models receive tensors
 directly); conversion to numpy happens only at the scikit-learn boundaries
@@ -154,9 +164,14 @@ class ArrayWindows(Dataset):
         Source-recording id per window (defaults to all zeros).
     onset : array-like ``(N,)`` or None
         Window start sample in its recording (defaults to the index).
+    stream_id : array-like ``(N,)`` or None
+        Evaluation stream per window (defaults to ``record_id``).
+    context_id : array-like ``(N,)`` or None
+        Evaluation context per window; left out of ``info`` when None.
     """
 
-    def __init__(self, X, y, record_id=None, onset=None):
+    def __init__(self, X, y, record_id=None, onset=None, stream_id=None,
+                 context_id=None):
         self.X = torch.as_tensor(to_numpy(X), dtype=torch.float32)
         self.y = as_target(y)
         n = len(self.X)
@@ -168,6 +183,14 @@ class ArrayWindows(Dataset):
             np.arange(n, dtype=np.int64) if onset is None
             else np.asarray(onset, dtype=np.int64)
         )
+        self.stream_id = (
+            self.record_id if stream_id is None
+            else np.asarray(stream_id, dtype=np.int64)
+        )
+        self.context_id = (
+            None if context_id is None
+            else np.asarray(context_id, dtype=np.int64)
+        )
 
     def __len__(self):
         return len(self.X)
@@ -176,18 +199,22 @@ class ArrayWindows(Dataset):
         info = {
             "record_id": int(self.record_id[i]),
             "onset": int(self.onset[i]),
+            "stream_id": int(self.stream_id[i]),
         }
+        if self.context_id is not None:
+            info["context_id"] = int(self.context_id[i])
         return self.X[i], self.y[i], info
 
 
 def make_loader(X, y, batch_size=32, shuffle=False, record_id=None,
-                onset=None, device="cpu"):
+                onset=None, stream_id=None, context_id=None, device="cpu"):
     """Wrap arrays/tensors in ``ArrayWindows`` + a torch ``DataLoader``.
 
     The collate batches ``X``/``y`` into tensors (moved onto ``device``) and
     turns the ``info`` dict into a dict of tensors (kept on CPU).
     """
-    dataset = ArrayWindows(X, y, record_id=record_id, onset=onset)
+    dataset = ArrayWindows(X, y, record_id=record_id, onset=onset,
+                           stream_id=stream_id, context_id=context_id)
     return DataLoader(
         dataset, batch_size=batch_size, shuffle=shuffle,
         collate_fn=_move_collate(device),

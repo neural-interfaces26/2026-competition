@@ -23,7 +23,8 @@ from benchmark_utils.data import (
 
 CAP_S = 600.0
 
-SLEEP_EDF_CHANNELS = ("Fpz-Cz", "Pz-Oz")
+# The Muse headband's four channels, the warm-up data's.
+MUSE_CHANNELS = ("TP9", "AF7", "AF8", "TP10")
 
 
 class Dataset(BaseDataset):
@@ -63,17 +64,27 @@ class Dataset(BaseDataset):
         # Per-channel drift direction; scaled above the noise floor.
         slope = rng.standard_normal(self.n_chans) * 4.0
         device = get_device()
-        available = SLEEP_EDF_CHANNELS + STANDARD_EEG_CHANNELS
+        available = MUSE_CHANNELS + tuple(
+            c for c in STANDARD_EEG_CHANNELS if c not in MUSE_CHANNELS)
         if self.n_chans > len(available):
             raise ValueError("simulated EEG channel count is too large")
         ch_names = list(available[:self.n_chans])
 
         X_tr, y_tr = self._make_windows(rng, self.n_train, slope)
         X_te, y_te = self._make_windows(rng, self.n_test, slope)
+        # Test windows in recordings, streamed as the real task scores them
+        # (see benchmark_utils/streaming.py): a few recordings, each in time
+        # order, i.e. with its latency to N2 shrinking.
+        n_records = min(5, self.n_test)
+        record_id = np.arange(self.n_test) * n_records // self.n_test
+        order = np.lexsort((-y_te, record_id))
+        X_te, y_te = X_te[order], y_te[order]
+        onset = np.arange(self.n_test) - np.searchsorted(record_id, record_id)
 
         return dict(
             train_loader=make_loader(X_tr, y_tr, shuffle=True, device=device),
-            test_loader=make_loader(X_te, y_te, device=device),
+            test_loader=make_loader(X_te, y_te, record_id=record_id,
+                                    onset=onset, device=device),
             sfreq=self.sfreq,
             ch_names=ch_names,
             chs_info=chs_info_from_names(ch_names),

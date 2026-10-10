@@ -8,7 +8,8 @@ import pytest
 
 from benchmark_utils.data import subject_ids
 from benchmark_utils.metrics import (
-    SequenceRegressionScores, group_means, topk_accuracy,
+    SequenceRegressionScores, balanced_accuracy, binned_mae, group_means,
+    group_scores, topk_accuracy,
 )
 
 
@@ -118,3 +119,51 @@ def test_subject_ids():
     assert list(subject_ids({"record_id": np.array([1, 1]),
                              "onset": np.array([0, 5])}, 2)) == [1, 1]
     assert list(subject_ids({}, 3)) == [0, 0, 0]
+
+
+def test_binned_mae_weights():
+    edges = (0.0, 40.0, 90.0, 300.0, 600.0)
+    # One target per bin, errors 1, 2, 3, 4 s; the cap value is in range.
+    y_true = np.array([10.0, 50.0, 100.0, 600.0])
+    y_pred = y_true + np.array([1.0, -2.0, 3.0, -4.0])
+    assert binned_mae(y_true, y_pred, edges) == pytest.approx(2.5)
+    w = (10.0, 5.0, 3.0, 1.0)
+    expected = (10 * 1 + 5 * 2 + 3 * 3 + 1 * 4) / 19
+    assert binned_mae(y_true, y_pred, edges, w) == pytest.approx(expected)
+    # Only the non-empty bins weigh: the first two here.
+    assert binned_mae(y_true[:2], y_pred[:2], edges, w) == pytest.approx(
+        (10 * 1 + 5 * 2) / 15)
+    # Out-of-range targets are ignored; nothing in range gives NaN.
+    assert np.isnan(binned_mae([700.0], [0.0], edges, w))
+    with pytest.raises(ValueError, match="bin_weights"):
+        binned_mae(y_true, y_pred, edges, (1.0, 1.0))
+    with pytest.raises(ValueError, match="bin_weights"):
+        binned_mae(y_true, y_pred, edges, (1.0, 0.0, 1.0, 1.0))
+
+
+def test_balanced_accuracy():
+    # Every class present: the mean of the per-class recalls.
+    y_true = np.array([0, 0, 0, 0, 1, 1, 2, 2])
+    y_pred = np.array([0, 0, 1, 1, 1, 1, 2, 0])
+    assert balanced_accuracy(y_true, y_pred) == pytest.approx(
+        (0.5 + 1.0 + 0.5) / 3)
+    # A class predicted but absent from the targets counts as recall 0
+    # (torchmetrics), where scikit-learn would leave it out.
+    assert balanced_accuracy([0, 0, 1, 1], [0, 2, 1, 1]) == pytest.approx(
+        (0.5 + 1.0 + 0.0) / 3)
+    # A class absent from both is skipped.
+    assert balanced_accuracy([0, 1], [0, 1]) == 1.0
+
+
+def test_group_scores():
+    y_true = np.array([0, 1, 0, 1, 1, 0])
+    y_pred = np.array([0, 1, 1, 1, 1, 1])
+    groups = np.array([[7, 0], [7, 0], [3, 0], [3, 0], [3, 1], [3, 1]])
+    scores = group_scores(balanced_accuracy, y_true, y_pred, groups)
+    # Sorted keys: (3, 0), (3, 1), (7, 0).
+    np.testing.assert_allclose(scores, [0.5, 0.5, 1.0])
+    # One-dimensional keys, and every group counts equally.
+    scores = group_scores(lambda t, p: float(np.mean(t == p)),
+                          y_true, y_pred, [1, 1, 1, 1, 1, 2])
+    np.testing.assert_allclose(scores, [0.8, 0.0])
+    assert len(group_scores(balanced_accuracy, [], [], [])) == 0
