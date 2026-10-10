@@ -12,18 +12,13 @@ scikit-learn
 # purpose (participants install whatever suits their machine); the docker
 # image pins the CUDA wheel channel instead (tools/Dockerfile TORCH_CHANNEL).
 torch
-# Data stack for the real tasks (Simulated needs none of these). Tracking
-# neuroai pull request 300 (the challenge datasets and stream tasks; it
-# already merges pull request 299 and main) until it lands on main. The four
-# packages are one uv workspace with pinned inter-deps (~=0.3.1), so all four
-# must come from git: pinning only neuralbench would let pip resolve its
-# sub-deps from PyPI and mix released with dev. Swap the ref for @main once
-# the pull request is merged, then for a commit SHA or a release, to get a
-# reproducible image again.
-neuralset @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralset-repo
-neuralfetch @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralfetch-repo
-neuraltrain @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuraltrain-repo
-neuralbench @ git+https://github.com/facebookresearch/neuroai.git@refs/pull/300/head#subdirectory=neuralbench-repo
+# Data stack for the real tasks (Simulated needs none of these). The four
+# neuroai packages release in lockstep (neuralbench only pins its siblings to
+# ~=0.4.0), so all four are pinned exactly for a reproducible image.
+neuralset==0.4.0
+neuralfetch==0.4.0
+neuraltrain==0.4.0
+neuralbench==0.4.0
 exca==0.5.29
 moabb
 mne
