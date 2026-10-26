@@ -4,8 +4,11 @@
 
 Upload a **fully trained model as a ZIP** through the **My Submissions** tab.
 Codabench will mount the extracted files as read-only, run the model in inference
-mode, compute the track metric, and publish the score. It does not train
-your model.
+mode, compute the track metric, and publish the score. It does not run
+your training pipeline.
+
+For phase quotas, automatic leaderboard selection and sealed feedback, read
+the [Participation rules](terms.md). Dates are in the [Timeline](timeline.md).
 
 Your typical `my_submission.zip` contains:
 
@@ -27,8 +30,10 @@ Nothing is installed during evaluation, so `submission.py` may only import
 what the worker image already carries — `torch` and the rest of the stack
 pinned in
 [`requirements.txt`](https://github.com/neural-interfaces26/2026-competition/blob/main/requirements.txt).
-During `load_model` and `predict`, do not train, do not download competition
-data, and do not write into the submission directory.
+During `load_model` and `predict`, do not download competition data or write
+into the submission directory. Codabench never calls your training `fit`
+pipeline. Label-free test-time adaptation is allowed only as specified in
+your track's Scientific FAQ, including its state and data-access restrictions.
 
 **Submission storage limit.** Codabench gives each profile 15 GB of submission
 storage shared across all tracks and uploads; it is not a separate 15 GB limit
@@ -63,8 +68,8 @@ wrapper.
 
    Add `config.json` or any other non-Python artifact your model needs.
 
-4. **Check it locally first.** A failed upload still costs you one of the
-   day's submissions, and most failures are caught in seconds:
+4. **Check it locally first.** Most packaging errors can be caught locally
+   in seconds:
 
    ```bash
    COMPET_SUBMISSION_DIR="$PWD/my_submission" \
@@ -76,8 +81,9 @@ wrapper.
    what this does and does not cover.
 
 5. **Upload.** In **My Submissions**, select the active phase, upload the
-   ZIP, and wait for **Finished**. If it fails, start with the first error
-   in the ingestion log.
+   ZIP, and wait for **Finished**. During warm-up, use the first ingestion
+   error to debug a failure. Sealed execution logs are hidden: reproduce
+   failures locally instead.
 
 ---
 
@@ -198,9 +204,9 @@ class MyModel(torch.nn.Module):
 [Benchopt](https://benchopt.github.io) runs each public track benchmark and
 computes its metrics. Codabench manages uploads, workers, and leaderboards.
 
-Only the sealed evaluation data and labels are hidden. The submission
-contract remains stable, while the evaluation data and, for proxy warm-ups,
-the task or metric may differ by phase:
+Sealed evaluation data and labels are hidden, as are execution logs and
+output files. The submission contract remains stable, while the evaluation
+data and, for proxy warm-ups, the task or metric may differ by phase:
 
 |                                 | Warm-up phase                    | Sealed final phase                       |
 | ------------------------------- | -------------------------------- | ---------------------------------------- |
@@ -209,6 +215,7 @@ the task or metric may differ by phase:
 | Task and ranking metric         | public proxy; see Track description | final specification; see Track description |
 | `meta` keys and tensor contract | documented contract              | same contract, runtime values may differ |
 | Submission ZIP format           | same contract                     | same contract                            |
+| Execution logs and output files | available for debugging           | hidden from participants                 |
 
 Tracks 01–03 currently have phase-specific proxy details. Track 04 uses the
 same prediction task and metric in both phases, on different evaluation data.
@@ -424,12 +431,15 @@ against every EEGNet baseline the track ships.
 - the model imports a package that is not available in the worker image
 - the model or input is placed on the wrong device
 - `predict(X)` returns the wrong shape, type, or unit for the track
-- the submission tries to train, download data, or write into its read-only
-  directory during server evaluation
+- the submission downloads competition data, writes into its read-only
+  directory, or performs adaptation forbidden by the track's Scientific FAQ
+  during server evaluation
 
-If ingestion fails, start with the **first error in the log**. Later messages
-such as a missing `results.parquet` usually mean that inference already
-failed and no results file could be created.
+During warm-up or local testing, start with the **first error in the log**.
+Later messages such as a missing `results.parquet` usually mean that
+inference already failed and no results file could be created. Sealed logs
+are hidden; reproduce the problem locally using the documented input
+contract.
 
 ---
 

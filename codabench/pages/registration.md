@@ -1,6 +1,6 @@
 # Register in three steps
 
-**Every participant must complete these steps, whether entering individually or as part of a team. Registration remains open through October 24, 2026, during the warm-up phase.**
+**Every participant must complete these steps, whether entering individually or as part of a team. Registration is extended through Sunday, November 1, 2026 at 23:59 CET (UTC+01:00, Europe/Paris), during the extended warm-up phase.**
 
 1. Create a **[Codabench account](https://www.codabench.org/accounts/signup)** and sign in.
 2. Open **My Submissions** for every track you wish to enter: **[Track 01](https://www.codabench.org/competitions/17974/#/participate-tab)**, **[Track 02](https://www.codabench.org/competitions/17982/#/participate-tab)**, **[Track 03](https://www.codabench.org/competitions/17983/#/participate-tab)**, or **[Track 04](https://www.codabench.org/competitions/17984/#/participate-tab)**. On each page, accept the terms and conditions, then click **Register**. Your request will appear as **pending**.
