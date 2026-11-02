@@ -10,14 +10,13 @@ Each participant submits through their own Codabench account and has an individu
 
 ## Rule 3: How many submissions can I make?
 
-Both phases have separate quotas **per participant and per track**:
+The sealed quota is **per participant and per track**:
 
-- **Warm-up:** 5 submissions per participant per day per track, with **100 submissions total per participant per track**.
 - **Sealed:** 1 submission per participant per day per track, with **5 submissions total per participant per track**.
 
 The five-submission sealed cap limits repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
 
-Warm-up closes Sunday, November 1 at 23:59 CET (UTC+01:00). Sealed runs Thursday, November 5 at 00:01 through Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). No new submissions are accepted during the transition. See the [Timeline](timeline.md) for the full schedule.
+Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration remains open until Thursday, November 5 at 23:59 CET (UTC+01:00); follow the [Registration Guide](registration.md). Sealed runs Thursday, November 5 at 00:01 through Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). No new submissions are accepted during the transition. See the [Timeline](timeline.md) for the full schedule.
 
 ### What counts as a submission in my quota?
 
@@ -62,8 +61,14 @@ Participants retain the intellectual property rights they hold in their submitte
 
 ## Sealed-phase feedback
 
-Submission status and aggregate leaderboard scores remain visible. Execution logs, prediction files and scoring-step output are hidden during the sealed phase. Validate your ZIP locally and in warm-up beforehand; sealed logs are not available for debugging. See the [Submission Guide](participate.md) for local validation.
+Submission status and aggregate leaderboard scores remain visible. Execution logs, prediction files and scoring-step output are hidden during the sealed phase. Validate your ZIP locally before submitting; sealed logs are not available for debugging. See the [Submission Guide](participate.md) for local validation.
 
 ## Reference baseline performance
 
 Reference EEGNet and REVE scores for warm-up and sealed evaluation will be added in due time to the [baseline performance sections of the participant guide](https://neural-interfaces26.github.io/participant-guide.html#baselines), alongside the corresponding training procedures.
+
+## Completed warm-up · historical quota
+
+Warm-up ended November 1. Its separate allowance was 5 submissions per day and
+100 total per participant per track. Warm-up attempts do not use the sealed
+allowance, and warm-up scores do not count toward final ranking.
