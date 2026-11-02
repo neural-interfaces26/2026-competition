@@ -26,11 +26,13 @@ Given one multichannel EEG epoch recorded during natural-image viewing, predict 
   <img src="https://neural-interfaces26.github.io/exports/eeg-to-image.gif" alt="EEG response ranked against a gallery of candidate natural images" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
 </p>
 
+> **Prepare for the sealed montage.** The sealed input has **32 Emotiv channels**, compared with **63 channels in THINGS-EEG2**. [**Alljoined-1.6M**](https://nemar.org/dataset/nm000134) is the public reference for this recording setup. Validate your channel handling on it before submitting; see the [montage adaptation guidance](scientific_faq_image.md#how-should-i-adapt-a-model-trained-on-a-different-montage).
+
 ## Sealed-phase task contract
 
 |                          |                                                               |
 | ------------------------ | ------------------------------------------------------------- |
-| **Input**                | One multichannel EEG epoch                                    |
+| **Input**                | 32-channel Emotiv EEG, one second at 120 Hz: `(B, 32, 120)`      |
 | **Prediction**           | One 1536-dimensional DINOv2-giant embedding                   |
 | **Objective**            | Retrieve the viewed image from the complete candidate gallery |
 | **Generalization shift** | New participants and images                                   |
@@ -46,9 +48,11 @@ See the [Scientific FAQ scoring details](scientific_faq_image.md#prediction-and-
 
 ## Training data and sealed evaluation
 
-**Public training and baselines.** The official reference baselines use **THINGS-EEG2**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-1) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding).
+**Public training and baselines.** The reported reference baselines use **THINGS-EEG2**, with 63 EEG channels. These public scores describe the development task; they do not establish compatibility with the sealed montage. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-1) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding).
 
-**Sealed evaluation.** Codabench uses the private **2026 Alljoined cohort**, with new participants and target images absent from the public development data. Its EEG uses the 32-channel Emotiv montage, rather than the 63-channel THINGS-EEG2 montage. The one-second epoch, 120 Hz preparation and embedding-output contract remain the same. Build the model from the supplied channel metadata rather than hard-coding the public montage. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-1); evaluation examples and labels remain hidden.
+**Public acquisition reference.** [**Alljoined-1.6M (NEMAR nm000134)**](https://nemar.org/dataset/nm000134) documents the consumer-grade Emotiv recording setup and provides the closest public match to the sealed cohort. Use its [NeuralBench dataset configuration](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/image/datasets/xu2025alljoined.yaml) to prepare matching public inputs for training, adaptation and local validation. The Scientific FAQ defines the competition's preprocessing, model inputs and scoring.
+
+**Sealed evaluation.** Codabench uses the private **2026 Alljoined cohort**, with new participants and target images absent from the public development data. One-second epochs at 120 Hz and the 1536-dimensional embedding output are shared with the public task; the electrode montage changes. Evaluation examples and labels remain hidden. See the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-1).
 
 **Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_image.md) explains the transfer to sealed evaluation.
 

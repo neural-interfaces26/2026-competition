@@ -18,6 +18,17 @@ Update 1 warm-up reported subject-aggregated Top-5 and Top-1 alongside pooled
 diagnostics; sealed ranking uses subject-aggregated Top-5. Public warm-up
 scores do not count toward the final ranking.
 
+### Which public dataset describes the sealed recording setup?
+
+[**Alljoined-1.6M (NEMAR nm000134)**](https://nemar.org/dataset/nm000134) is the closest public
+acquisition reference: the same 32-channel Emotiv montage and natural-image
+protocol. Its source EEG is recorded at 256 Hz. Use its dataset documentation
+and [NeuralFetch reader](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralfetch-repo/neuralfetch/studies/xu2025alljoined.py) for recording details, and its
+[NeuralBench dataset configuration](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/image/datasets/xu2025alljoined.yaml) for public-data preparation.
+The model receives task-formatted 120 Hz epochs, not the raw 256 Hz recordings;
+the input and scoring contract is defined below. THINGS-EEG2 provides the
+reported public baseline task, with a different 63-channel montage.
+
 ### What is the sealed cohort, and will any of it be released?
 
 It is a separate cohort of 11 new participants, recorded at 256 Hz with the
@@ -39,8 +50,7 @@ Do not infer the sealed gallery from any public subset.
 ### Will more public Track 01 data be released?
 
 No additional Track 01 release is planned. Recommended sources include
-THINGS-EEG1, THINGS-EEG2, Alljoined-1, and Alljoined-1.6M; the latter is the
-closest public source to the sealed acquisition protocol. They are listed in
+THINGS-EEG1, THINGS-EEG2, Alljoined-1, and Alljoined-1.6M. They are listed in
 the [public dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets).
 
 ## Input and preprocessing
@@ -61,6 +71,24 @@ Construct the model from `meta["n_chans"]`, `meta["ch_names"]`,
 or batch size; evaluation batches may change size and may mix participants.
 No more specific guarantee about the EEG reference is made beyond the same
 acquisition protocol.
+
+### How should I adapt a model trained on a different montage?
+
+A checkpoint with channel-dependent weights trained for 63 electrodes is not
+automatically compatible with 32 electrodes. Constructing a 32-channel model
+from `meta` does **not** resize or convert its learned weights. Resampling the
+time axis does not solve an electrode-layout mismatch.
+
+Train or adapt fixed-montage models on public [Alljoined-1.6M](https://nemar.org/dataset/nm000134),
+or implement and validate an explicit channel-mapping method using permitted
+public data. Match electrodes by name and position, not by taking the first
+32 channels of THINGS-EEG2. Package any required mapping with the submission.
+
+For models supporting variable montages, use `meta["ch_names"]` in the supplied
+order to configure channel positions, and verify that pooling and the trained
+prediction head also accept the new montage. Validate the complete saved-model
+reload and `predict` path on public Alljoined inputs. Matching dimensions
+permits inference but does not guarantee transfer accuracy across devices.
 
 ### Is Track 01 sequential? May a model use batch statistics or retain state?
 
