@@ -6,18 +6,28 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 is the executable scoring reference. Packaging and upload instructions are in
 **Get Started → Submission Guide**.
 
-## Warm-up and sealed evaluation
+## Sealed evaluation
 
-### What changes between the two phases?
+### How does the sealed phase differ from the completed warm-up?
 
-| | Warm-up | Sealed final |
-|---|---|---|
-| **Evaluation data** | Public THINGS-EEG2 test partition selected by the [warm-up phase config](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/phases/warmup/image_decoding/config.yaml) | Private [2026 Alljoined cohort](https://neural-interfaces26.github.io/tracks.html#dataset-track-1) |
-| **Generalization** | New images for participants represented in public training data | New participants and new images |
-| **Ranking metric** | Pooled Top-5 retrieval, one query per epoch | Top-5 after averaging repetitions within each participant and image |
+Warm-up has ended. The official baseline training data remain **THINGS-EEG2**;
+sealed evaluation uses the private Alljoined cohort, with new participants
+and images and a **32-channel Emotiv montage instead of 63 channels**.
+Epoch timing, preparation and embedding outputs are unchanged. The completed
+Update 1 warm-up reported subject-aggregated Top-5 and Top-1 alongside pooled
+diagnostics; sealed ranking uses subject-aggregated Top-5. Public warm-up
+scores do not count toward the final ranking.
 
-Warm-up scores are indicative only and are not directly comparable with the
-sealed score.
+### Which public dataset describes the sealed recording setup?
+
+[**Alljoined-1.6M (NEMAR nm000134)**](https://nemar.org/dataset/nm000134) is the closest public
+acquisition reference: the same 32-channel Emotiv montage and natural-image
+protocol. Its source EEG is recorded at 256 Hz. Use its dataset documentation
+and [NeuralFetch reader](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralfetch-repo/neuralfetch/studies/xu2025alljoined.py) for recording details, and its
+[NeuralBench dataset configuration](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/image/datasets/xu2025alljoined.yaml) for public-data preparation.
+The model receives task-formatted 120 Hz epochs, not the raw 256 Hz recordings;
+the input and scoring contract is defined below. THINGS-EEG2 provides the
+reported public baseline task, with a different 63-channel montage.
 
 ### What is the sealed cohort, and will any of it be released?
 
@@ -40,16 +50,16 @@ Do not infer the sealed gallery from any public subset.
 ### Will more public Track 01 data be released?
 
 No additional Track 01 release is planned. Recommended sources include
-THINGS-EEG1, THINGS-EEG2, Alljoined-1, and Alljoined-1.6M; the latter is the
-closest public source to the sealed acquisition protocol. They are listed in
+THINGS-EEG1, THINGS-EEG2, Alljoined-1, and Alljoined-1.6M. They are listed in
 the [public dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets).
 
 ## Input and preprocessing
 
 ### What does the model receive?
 
-Warm-up uses the 63-channel THINGS-EEG2 montage. Sealed evaluation uses the
-32-channel Emotiv montage and channel names of Alljoined-1.6M. Both use
+Sealed evaluation uses the 32-channel Emotiv montage and channel names of
+Alljoined-1.6M, compared with 63 channels in the public THINGS-EEG2 baseline.
+Both use
 1-second epochs from **-0.2 to +0.8 seconds** around image onset, resampled to
 **120 Hz**, with the published NeuralBench image-task filtering, baseline
 correction, robust scaling, and clipping. The exact pipeline is defined by the
@@ -61,6 +71,24 @@ Construct the model from `meta["n_chans"]`, `meta["ch_names"]`,
 or batch size; evaluation batches may change size and may mix participants.
 No more specific guarantee about the EEG reference is made beyond the same
 acquisition protocol.
+
+### How should I adapt a model trained on a different montage?
+
+A checkpoint with channel-dependent weights trained for 63 electrodes is not
+automatically compatible with 32 electrodes. Constructing a 32-channel model
+from `meta` does **not** resize or convert its learned weights. Resampling the
+time axis does not solve an electrode-layout mismatch.
+
+Train or adapt fixed-montage models on public [Alljoined-1.6M](https://nemar.org/dataset/nm000134),
+or implement and validate an explicit channel-mapping method using permitted
+public data. Match electrodes by name and position, not by taking the first
+32 channels of THINGS-EEG2. Package any required mapping with the submission.
+
+For models supporting variable montages, use `meta["ch_names"]` in the supplied
+order to configure channel positions, and verify that pooling and the trained
+prediction head also accept the new montage. Validate the complete saved-model
+reload and `predict` path on public Alljoined inputs. Matching dimensions
+permits inference but does not guarantee transfer accuracy across devices.
 
 ### Is Track 01 sequential? May a model use batch statistics or retain state?
 
@@ -103,7 +131,8 @@ with the shared [metric helpers](https://github.com/neural-interfaces26/2026-com
 
 `test/full_retrieval/top5_acc_subject-agg` follows the sealed aggregation.
 Batch-level retrieval metrics rank only against a batch and are model-selection
-signals, not competition scores. Warm-up instead ranks individual epochs.
+signals, not competition scores. Pooled epoch-level Top-5 is a diagnostic,
+not the sealed ranking metric.
 
 ## Resources
 

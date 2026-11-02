@@ -8,9 +8,8 @@ embedding from a candidate image pool.
 - **Input:** torch tensor `(B, C, T)` on `meta["device"]`.
 - **Output:** `predict(X) -> (B, D)` float image embeddings, where
   `D = meta["n_outputs"]`.
-- **Metrics implemented here:** pooled top-5 cosine-similarity retrieval for
-  warm-up, and top-5 after averaging repeated predictions within each subject
-  and image for sealed evaluation. Top-1 variants are reported alongside; the
+- **Metrics implemented here:** top-5 after averaging repeated predictions within each subject
+  and image for sealed evaluation. Pooled epoch-level retrieval is diagnostic. Top-1 variants are reported alongside; the
   active Codabench phase selects its ranking key.
 - **Evaluation:** epochs are independent. Batch order, composition and size
   are not part of the contract; do not carry model state across `predict`
@@ -20,6 +19,16 @@ embedding from a candidate image pool.
 See the Codabench **Track description** for the active phase data and official
 ranking specification.
 
+## Preparing for the sealed montage
+
+The THINGS-EEG2 example uses **63 channels**. Sealed inputs use **32 Emotiv
+channels**, matching public [Alljoined-1.6M](https://nemar.org/dataset/nm000134). Use
+`Image[study=xu2025alljoined]` for public training/adaptation and local checks
+on that montage. Fixed-channel checkpoints need compatible training or an
+explicit validated adapter; reconstructing a model from `meta` alone does
+not convert its weights. See the
+[Scientific FAQ](../../codabench/pages/scientific_faq_image.md#how-should-i-adapt-a-model-trained-on-a-different-montage).
+
 ## Public data choices
 
 | Benchopt `-d` selector | Data |
@@ -27,7 +36,7 @@ ranking specification.
 | `Image[study=gifford2022large]` | THINGS-EEG2, the default public proxy |
 | `Image[study=grootswagers2022human]` | Grootswagers 2022 |
 | `Image[study=xu2024alljoined]` | Alljoined 2024 |
-| `Image[study=xu2025alljoined]` | Alljoined 2025 |
+| `Image[study=xu2025alljoined]` | Alljoined-1.6M, the public sealed-montage reference |
 | `Simulated` | tiny synthetic contract check, with no download |
 
 ## Worked examples

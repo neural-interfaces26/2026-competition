@@ -1,18 +1,15 @@
 # Timeline
 
-**Warm-up extended:** warm-up and registration remain open through Sunday, November 1 at 23:59. The sealed final runs Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59.
+**Warm-up has ended.** No submissions are accepted November 2–4. The sealed final opens **Thursday, November 5 at 00:01** and closes **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**.
 
 **All November deadlines below use CET (UTC+01:00, Europe/Paris).**
 
-## Warm-up phase
+## Registration remains open
 
-**Sep 21 through Sunday, Nov 1, 2026 at 23:59 CET (UTC+01:00)**
+**Until Thursday, November 5, 2026 at 23:59 CET (UTC+01:00).**
 
-Select **Warm-up Phase (update 1)** for new submissions; earlier warm-up phases remain legacy.
-
-Codabench evaluates submissions on public, track-specific test data during warm-up. Because these data and labels are public, overlap or leakage is possible. Use the indicative leaderboard to validate the submission workflow and iterate on your model. Warm-up scores do not determine the final ranking.
-
-**Submission limit:** 5 submissions per participant per day per track, with **100 submissions total per participant per track** for the warm-up phase.
+You can register during the November 2–4 submission pause and on the first
+day of the sealed phase. Complete the [three registration steps](registration.md).
 
 ## Phase transition — no new submissions
 
@@ -31,6 +28,13 @@ Codabench switches to the private 2026 evaluation cohorts. Their examples and la
 **Submission limit:** 1 submission per participant per day per track, with **5 submissions total per participant per track** for the entire sealed phase.
 
 Status and aggregate leaderboard scores remain visible; execution logs, prediction files and scoring-step output are hidden. See the [Submission Guide](participate.md) for local validation and the [Participation rules](terms.md) for the full policy.
+
+## Completed warm-up · historical reference
+
+Warm-up ran September 21 to November 1, 2026 at 23:59 CET (UTC+01:00).
+It used public track-specific test data to validate submissions. Its archived
+leaderboards remain available, but do not count toward the final ranking.
+Public training data and local validation workflows remain available.
 
 ## Reproducibility audit
 

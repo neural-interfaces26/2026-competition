@@ -6,19 +6,16 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 and active phase configuration are the executable references. Packaging and
 upload instructions are in **Get Started → Submission Guide**.
 
-## Warm-up and sealed evaluation
+## Sealed evaluation
 
-### What changed, and what remains the final contract?
+### How does the sealed phase differ from the completed warm-up?
 
-| | Warm-up (previous) | Warm-up (current) | Sealed final |
-|---|---|---|---|
-| **Evaluation data** | Public Dreyer 2023 test participants | Public PROTEUS test participants | Private later sessions and new participants from the same programme |
-| **Task** | Two-class motor imagery | Motor imagery, mental subtraction, and word generation | The same three commands |
-| **Input and delivery** | Batched windows from the Dreyer montage | 41 EEG channels; one chronological window at a time within each participant-session stream | The same model-facing streaming contract |
-| **Ranking metric** | Balanced accuracy pooled over windows | Balanced accuracy averaged over participant × session × interface cells | The same cell-averaged metric |
-
-Warm-up scores are indicative only. Old Dreyer submissions must be rebuilt for
-the 41-channel, three-class PROTEUS contract.
+Warm-up has ended. The public **PROTEUS** release remains the reference
+training and local-validation data. Sealed evaluation tests later sessions
+from represented participants and entirely new participants. The three-class,
+41-channel preprocessing and streaming contract, session resets and
+cell-averaged ranking metric match the completed PROTEUS warm-up. Historical
+warm-up scores do not count toward the final ranking.
 
 ### What generalization does the sealed phase test? Is calibration provided?
 
@@ -62,14 +59,14 @@ the dataset licence. They have no command cues, so the default task does not
 turn them into classification examples and Codabench does not send them to
 `predict`.
 
-### What is the current warm-up split?
+### Which public split supports local validation?
 
 NeuralBench assigns participants to train, validation, and test with a
-60/20/20 subject-level split and random state 33. Codabench evaluates the test
-participants from that split. This public split does not reveal the sealed
-allocation. The parameters are in the
+60/20/20 subject-level split and random state 33. The completed warm-up
+evaluated its test participants; the split remains available for local
+validation and does not reveal the sealed allocation. The parameters are in the
 [NeuralBench stream config](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/_motor_imagery_stream/config.yaml),
-and Codabench selects the dataset in its
+and the archived Codabench setup selects this public dataset in its
 [warm-up phase config](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/phases/warmup/bci_decoding/config.yaml).
 
 ### What reaches `predict(X)`?

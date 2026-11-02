@@ -1,5 +1,12 @@
 # How to submit your model
 
+> **Sealed phase opens November 5 at 00:01 CET (UTC+01:00).** Select
+> **Sealed Final Phase** when submitting. Execution logs, predictions and
+> scoring output are hidden. Reproduce failures locally with the
+> [Benchopt replay workflow](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md#optional-local-replay)
+> or the [worker-image replay](https://github.com/neural-interfaces26/2026-competition/blob/main/tools/README.md#worker-image-replay)
+> on public data. These checks expose local logs, not the hidden evaluation data.
+
 ## Submission rules
 
 Upload a **fully trained model as a ZIP** through the **My Submissions** tab.
@@ -81,9 +88,8 @@ wrapper.
    what this does and does not cover.
 
 5. **Upload.** In **My Submissions**, select the active phase, upload the
-   ZIP, and wait for **Finished**. During warm-up, use the first ingestion
-   error to debug a failure. Sealed execution logs are hidden: reproduce
-   failures locally instead.
+   ZIP, and wait for **Finished**. Sealed execution logs are hidden. Use the first error in your local
+   replay logs to debug a failure.
 
 ---
 
@@ -185,7 +191,7 @@ radian predictions and targets, then converts only the final aggregate score
 to degrees for the leaderboard.
 
 Warm-up proxy metrics may differ. The **Track description** tab gives the
-active warm-up metric and the final sealed specification for each track.
+completed warm-up reference and the sealed specification for each track.
 
 A PyTorch model can implement `predict` directly:
 
@@ -435,7 +441,7 @@ against every EEGNet baseline the track ships.
   directory, or performs adaptation forbidden by the track's Scientific FAQ
   during server evaluation
 
-During warm-up or local testing, start with the **first error in the log**.
+During local testing, start with the **first error in the log**.
 Later messages such as a missing `results.parquet` usually mean that
 inference already failed and no results file could be created. Sealed logs
 are hidden; reproduce the problem locally using the documented input
