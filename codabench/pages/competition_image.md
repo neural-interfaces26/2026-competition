@@ -1,8 +1,6 @@
-# Registration
+# Get ready for the sealed final
 
-> You must **first register** for Track 01 - EEG-to-Image before you can participate. **Registration takes three steps.** Open **Get Started → Registration Guide** in the menu on the left. Follow the approval instructions and, if applicable, the additional setup required for teams.
-
----
+> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md), then select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -17,8 +15,6 @@
 ---
 
 # Track 01 · EEG-to-Image
-
-> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final sealed phase. Warm-up uses a closely matched Top-5 retrieval proxy on public THINGS-EEG2 data. Its candidate set and aggregation are detailed below.
 
 For focused answers about the sealed cohort, public-data use, preprocessing, batching, model state, and retrieval aggregation, read the **[Track 01 Scientific FAQ](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/scientific_faq_image.md)**.
 
@@ -46,15 +42,15 @@ Given one multichannel EEG epoch recorded during natural-image viewing, predict 
 
 For each participant and target image, Codabench first averages the predicted embeddings across repeated presentations. It then L2-normalizes the resulting embedding and the frozen DINOv2-giant embeddings in the held-out candidate gallery before ranking their cosine similarities. A query is correct when the viewed image is among the five highest-ranked candidates. Top-5 accuracy is pooled over the resulting participant-image queries. Top-1 accuracy is reported separately but does not determine the ranking.
 
-## Development, warm-up, and sealed data
+See the [Scientific FAQ scoring details](scientific_faq_image.md#prediction-and-scoring).
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 01 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
+## Training data and sealed evaluation
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **THINGS-EEG2** dataset. This evaluation subset matches the test set in the [Track 01 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track1_eeg_to_image.html): timelines marked as test form the Codabench evaluation partition, while 20% of the training timelines are assigned to validation using random state 33. Codabench ranks each epoch against the unique target-image embeddings in that test partition and reports pooled Top-5 accuracy across all evaluation epochs. Unlike the sealed metric and NeuralBench's `test/full_retrieval/top5_acc_subject-agg` (reported alongside its retrieval-AUC headline, `test/full_retrieval/inv_norm_rank_mean`), this temporary proxy does not aggregate repeated presentations within subjects. Top-1 accuracy is reported separately.
+**Public training and baselines.** The official reference baselines use **THINGS-EEG2**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-1) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/image_decoding).
 
-THINGS-EEG2 also provides the **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-1)**. Because the test data and labels are public, leakage is possible and warm-up scores are indicative only. Only the sealed phase determines the final ranking.
+**Sealed evaluation.** Codabench uses the private **2026 Alljoined cohort**, with new participants and target images absent from the public development data. Its EEG uses the 32-channel Emotiv montage, rather than the 63-channel THINGS-EEG2 montage. The one-second epoch, 120 Hz preparation and embedding-output contract remain the same. Build the model from the supplied channel metadata rather than hard-coding the public montage. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-1); evaluation examples and labels remain hidden.
 
-**Sealed evaluation.** Codabench switches to the private 2026 Alljoined cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-1)**. This cohort is uploaded only for the sealed phase, and its participants, images, and labels remain hidden.
+**Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_image.md) explains the transfer to sealed evaluation.
 
 ## Track resources and next steps
 

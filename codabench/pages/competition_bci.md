@@ -1,8 +1,6 @@
-# Registration
+# Get ready for the sealed final
 
-> You must **first register** for Track 02 - BCI Decoding before you can participate. **Registration takes three steps.** Open **Get Started → Registration Guide** in the menu on the left. Follow the approval instructions and, if applicable, the additional setup required for teams.
-
----
+> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md), then select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -17,8 +15,6 @@
 ---
 
 # Track 02 · BCI Decoding
-
-> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final three-command phase. Warm-up uses the public PROTEUS training release instead. Phase-specific differences are detailed below.
 
 For focused answers about the public release, split, preprocessing, stream boundaries, adaptation, inference metadata, and scoring aggregation, read the **[Track 02 Scientific FAQ](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/scientific_faq_bci.md)**.
 
@@ -46,19 +42,17 @@ Given a short 41-channel EEG window, predict one of three cued commands: **kines
 
 Within each subject, session, and context cell, balanced accuracy is the unweighted mean of recall across the three commands. The official score is then averaged across cells, so every subject-session-context combination contributes equally regardless of its number of evaluation windows. Plain accuracy is reported separately but does not determine the ranking.
 
-## Development, warm-up, and sealed data
+See the [Scientific FAQ scoring details](scientific_faq_bci.md#scoring).
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 02 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
+## Training data and sealed evaluation
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are evaluated on the public **PROTEUS** training release ([NEMAR nm000290](https://doi.org/10.82901/nemar.nm000290)), the Graz and BrainHero data of this track. The evaluation participants are the test participants of the [Track 02 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html) split, which assigns participants to training, validation and test (60/20/20, random state 33). Its windows hold the release's 41 EEG channels, filtered and resampled to 120 Hz, in microvolts. Codabench streams each session of each participant one window at a time, in recording order, and ranks by balanced accuracy over the three commands within each subject, session and context cell, averaged over cells; the context of a run is its interface, Graz or BrainHero. Balanced accuracy pooled over all evaluation windows and plain accuracy are reported separately.
+**Public training and baselines.** The official reference baselines use **PROTEUS BCI Bordeaux ([NEMAR nm000290](https://nemar.org/dataset/nm000290))**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-2) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding).
 
-The **[Track 02 NeuralBench competition guide](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track2_eeg_to_bci.html)** runs this configuration by default (`neuralbench eeg _motor_imagery_stream`). Its `test/bal_acc_stream_mean` averages balanced accuracy over sessions without separating the two interfaces, so it can differ from the warm-up score. The **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-2)** use the public **PROTEUS** cross-subject split. Because the warm-up test data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
+**Sealed evaluation.** Codabench uses **later sessions and new participants from the PROTEUS acquisition programme**. The three commands, 41 EEG channels, four-second inputs at 120 Hz, chronological one-window calls and session resets match the completed PROTEUS warm-up. No labelled calibration data are supplied at evaluation. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-2); evaluation examples and labels remain hidden.
 
-> **NeuralBench version.** The current Track 02 start kit requires NeuralBench 0.4.0. Install or upgrade it in the same Python environment with `python -m pip install --upgrade "neuralbench==0.4.0"`; older versions report `_motor_imagery_stream` as an invalid task.
+**Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_bci.md) explains the transfer to sealed evaluation.
 
-**Legacy warm-up.** Codabench previously used Dreyer 2023 for a batched two-class motor-imagery proxy with pooled balanced accuracy. The current PROTEUS warm-up instead uses 41 EEG channels, three commands, session-wise one-window streaming, and cell-averaged balanced accuracy, so prior submissions must be adapted and scores are not comparable.
-
-**Sealed evaluation.** Codabench uses private recordings from the same 20-participant, six-session acquisition programme described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-2)**. Evaluation combines later sessions from represented participants with participants absent from the public release. Recordings and labels remain hidden.
+> **NeuralBench version.** This public start kit requires NeuralBench 0.4.0. In the same Python environment, run `python -m pip install --upgrade "neuralbench==0.4.0"`; older versions do not provide `_motor_imagery_stream`.
 
 ## Track resources and next steps
 

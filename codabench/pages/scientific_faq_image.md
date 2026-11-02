@@ -6,18 +6,17 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 is the executable scoring reference. Packaging and upload instructions are in
 **Get Started → Submission Guide**.
 
-## Warm-up and sealed evaluation
+## Sealed evaluation
 
-### What changes between the two phases?
+### How does the sealed phase differ from the completed warm-up?
 
-| | Warm-up | Sealed final |
-|---|---|---|
-| **Evaluation data** | Public THINGS-EEG2 test partition selected by the [warm-up phase config](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/phases/warmup/image_decoding/config.yaml) | Private [2026 Alljoined cohort](https://neural-interfaces26.github.io/tracks.html#dataset-track-1) |
-| **Generalization** | New images for participants represented in public training data | New participants and new images |
-| **Ranking metric** | Pooled Top-5 retrieval, one query per epoch | Top-5 after averaging repetitions within each participant and image |
-
-Warm-up scores are indicative only and are not directly comparable with the
-sealed score.
+Warm-up has ended. The official baseline training data remain **THINGS-EEG2**;
+sealed evaluation uses the private Alljoined cohort, with new participants
+and images and a **32-channel Emotiv montage instead of 63 channels**.
+Epoch timing, preparation and embedding outputs are unchanged. The completed
+Update 1 warm-up reported subject-aggregated Top-5 and Top-1 alongside pooled
+diagnostics; sealed ranking uses subject-aggregated Top-5. Public warm-up
+scores do not count toward the final ranking.
 
 ### What is the sealed cohort, and will any of it be released?
 
@@ -48,8 +47,9 @@ the [public dataset directory](https://neural-interfaces26.github.io/tracks.html
 
 ### What does the model receive?
 
-Warm-up uses the 63-channel THINGS-EEG2 montage. Sealed evaluation uses the
-32-channel Emotiv montage and channel names of Alljoined-1.6M. Both use
+Sealed evaluation uses the 32-channel Emotiv montage and channel names of
+Alljoined-1.6M, compared with 63 channels in the public THINGS-EEG2 baseline.
+Both use
 1-second epochs from **-0.2 to +0.8 seconds** around image onset, resampled to
 **120 Hz**, with the published NeuralBench image-task filtering, baseline
 correction, robust scaling, and clipping. The exact pipeline is defined by the
@@ -103,7 +103,8 @@ with the shared [metric helpers](https://github.com/neural-interfaces26/2026-com
 
 `test/full_retrieval/top5_acc_subject-agg` follows the sealed aggregation.
 Batch-level retrieval metrics rank only against a batch and are model-selection
-signals, not competition scores. Warm-up instead ranks individual epochs.
+signals, not competition scores. Pooled epoch-level Top-5 is a diagnostic,
+not the sealed ranking metric.
 
 ## Resources
 

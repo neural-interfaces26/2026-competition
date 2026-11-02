@@ -1,8 +1,6 @@
-# Registration
+# Get ready for the sealed final
 
-> You must **first register** for Track 04 - EMG-to-Pose before you can participate. **Registration takes three steps.** Open **Get Started → Registration Guide** in the menu on the left. Follow the approval instructions and, if applicable, the additional setup required for teams.
-
----
+> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md), then select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -17,8 +15,6 @@
 ---
 
 # Track 04 · EMG-to-Pose
-
-> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final sealed phase. Warm-up uses the same prediction and metric contract on public EMG2Pose data. Phase-specific data are detailed below.
 
 For focused answers about the sealed cohort, preprocessing, external data, batching, model state, and radian-to-degree scoring, read the **[Track 04 Scientific FAQ](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/scientific_faq_emg.md)**.
 
@@ -47,15 +43,15 @@ Given a window of **16-channel wrist surface EMG**, predict continuous trajector
 
 Codabench computes the absolute angular difference in radians between every predicted and reference value, averages over all evaluation examples, joints, and time points, then converts the result to degrees for the leaderboard. If a model predicts on a coarser time axis, its output is nearest-neighbor resampled to the target length before scoring.
 
-## Development, warm-up, and sealed data
+See the [Scientific FAQ scoring details](scientific_faq_emg.md#prediction-and-scoring).
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 04 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
+## Training data and sealed evaluation
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are currently being evaluated on a subset of the public **EMG2Pose** dataset. This evaluation subset matches the test set in the [Track 04 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track4_emg_to_pose.html): rows marked `generalization = user_stage` form the Codabench evaluation partition and contain unseen combinations of users and movement stages represented elsewhere in the public data. Warm-up evaluates independent windows in ordinary batches. It uses the same mean absolute angular error as the sealed phase, averaged across all examples, joints, and time points. Models predict radians; Codabench multiplies the resulting MAE by `57.29578` to report degrees, matching the conversion from NeuralBench's `test/mae`.
+**Public training and baselines.** The official reference baselines use **EMG2Pose**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose).
 
-EMG2Pose also underlies the **[reported NeuroPose baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4)**. Because the data and labels are public, leakage is possible and warm-up scores are indicative only. Only the sealed phase determines the final ranking.
+**Sealed evaluation.** Codabench uses the private **2026 Meta Reality Labs cohort**, including new users, new movement stages and unseen user-stage combinations. The 16-channel, five-second input, ordinary independent batches, radian output and angular-MAE metric match the completed EMG2Pose warm-up. Batch size and order are not guaranteed, and state must not carry across `predict` calls. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4); evaluation examples and labels remain hidden.
 
-**Sealed evaluation.** Codabench switches to the private 2026 Meta Reality Labs cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4)**. It includes movement stages outside the 29 public EMG2Pose stages. As in warm-up, five-second windows are evaluated as independent examples in ordinary batches. Batch size, composition, and order are not part of the contract, so submissions must not rely on temporal continuity or persistent state across `predict` calls. Label-free adaptation inside the current batch, including gradient updates, is allowed within the worker time and memory limits. The cohort is uploaded only for the sealed phase, and its evaluation examples and labels remain hidden.
+**Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_emg.md) explains the transfer to sealed evaluation.
 
 ## Track resources and next steps
 

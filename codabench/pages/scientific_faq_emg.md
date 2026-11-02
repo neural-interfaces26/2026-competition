@@ -3,25 +3,19 @@
 This page answers recurring scientific questions about the model-facing
 contract. The **Track description** defines the phase specifications; the
 public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/emg_pose/objective.py)
-and active phase configuration are the executable warm-up references.
+and active phase configuration describe the public-data implementation.
 Packaging and upload instructions are in **Get Started → Submission Guide**.
 
-## Warm-up and sealed evaluation
+## Sealed evaluation
 
-### What changes between the two phases?
+### How does the sealed phase differ from the completed warm-up?
 
-| | Warm-up (current) | Sealed final |
-|---|---|---|
-| **Evaluation data** | Public EMG2Pose `user_stage` test split | Private 2026 Meta Reality Labs cohort |
-| **Generalization** | Unseen user-stage combinations | New users, stages, and user-stage combinations |
-| **Delivery** | Independent windows in ordinary evaluation batches | The same batched model-facing contract |
-| **Ranking metric** | Mean absolute angular error reported in degrees | The same prediction and metric contract |
-
-Warm-up scores are indicative only because the datasets and generalization
-shifts differ. The public
-[warm-up phase config](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/phases/warmup/emg_pose/config.yaml)
-selects EMG2Pose; the sealed cohort is described in the
-[public dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4).
+Warm-up has ended. Public **EMG2Pose** remains the reference training and
+local-validation data. The private Meta Reality Labs cohort tests new users,
+movement stages and user-stage combinations. The preprocessing, independent
+batched windows, radian outputs and angular-MAE metric are unchanged.
+Historical warm-up scores do not count toward the final ranking. See the
+[sealed dataset description](https://neural-interfaces26.github.io/tracks.html#dataset-track-4).
 
 ### What is disclosed about the sealed cohort?
 
@@ -61,8 +55,8 @@ may not be used.
 
 ### How are windows delivered? Is their order meaningful?
 
-Warm-up and sealed evaluation both present independent five-second windows in
-ordinary batches. The complete current window is available, so bidirectional
+Sealed evaluation presents independent five-second windows in ordinary
+batches. The complete current window is available, so bidirectional
 processing within it is permitted. Batch size, composition, and order are not
 part of the model-facing contract. A batch may mix windows or recordings, and
 recording identifiers and temporal continuity are not supplied to the model.

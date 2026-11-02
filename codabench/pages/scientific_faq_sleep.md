@@ -6,18 +6,17 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 and active phase configuration are the executable references. Packaging and
 upload instructions are in **Get Started → Submission Guide**.
 
-## Warm-up and sealed evaluation
+## Sealed evaluation
 
-### What changed, and what remains the final contract?
+### How does the sealed phase differ from the completed warm-up?
 
-| | Warm-up (previous) | Warm-up (current) | Sealed final |
-|---|---|---|---|
-| **Evaluation data** | Public Sleep-EDF test participants | 40 public Muse test recordings | Private Muse recordings from represented and unseen sleepers |
-| **Input and delivery** | Two bipolar channels; batched windows from a fixed pre-N2 crop | Four Muse channels at native 128 Hz; one chronological five-second window at a time, from recording start to first N2 | The same model-facing streaming contract |
-| **Ranking metric** | Unweighted bMAE | W-bMAE per recording, averaged over recordings | W-bMAE for seen and unseen groups, macro-averaged |
-
-Warm-up scores are indicative only. Old Sleep-EDF submissions must be rebuilt
-for the four-channel streamed Muse contract.
+Warm-up has ended. The public **Muse** release remains the reference training
+and local-validation data. Sealed evaluation adds private recordings from
+represented and unseen sleepers. Input preparation, chronological five-second
+windows and recording resets are unchanged from the completed Muse warm-up.
+The sealed score averages recording-level W-bMAE within each group, then
+averages the seen and unseen group scores equally. Historical warm-up scores
+do not count toward the final ranking.
 
 ### What generalization does the sealed phase test?
 
@@ -25,7 +24,7 @@ It combines new recordings from sleepers represented in public training data
 with recordings from sleepers absent from it. Exact cohort size, identities,
 group balance, recording lengths, and evaluation order remain private. The
 public [competition adapter](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/sleep_onset/datasets/interaxon2026muse.py)
-shows the current warm-up data path; sealed data remain worker-side.
+shows the public-data path; sealed data remain worker-side.
 
 ## Public data, target, and preprocessing
 
@@ -71,8 +70,8 @@ current and previous windows of its current recording.
 
 ### Where does a stream start and end?
 
-Warm-up and sealed evaluation start at the beginning of each selected
-recording and stop at first N2. There is no shuffling within a recording:
+Sealed evaluation starts at the beginning of each selected recording and
+stops at first N2. There is no shuffling within a recording:
 windows arrive one at a time in strict chronological order. There is no random
 stream start and no post-onset window. The order of independent recordings is
 not exposed as a model signal; the recording duration and future endpoint are
@@ -104,21 +103,20 @@ validates one prediction per window.
 
 ## Scoring
 
-### How is current warm-up W-bMAE computed?
+### How is the sealed W-bMAE ranking score computed?
 
 Within each recording, MAE is computed in the true-target ranges **[0, 40)**,
 **[40, 90)**, **[90, 300)**, and **[300, 600]** seconds. Non-empty ranges are
 combined as `sum(weight × MAE) / sum(weight)` with weights **10, 5, 3, and 1**.
-Recording scores are then averaged equally. NeuralBench's
-`test/wbmae_stream_mean` is the same warm-up score. Unweighted bMAE and pooled
-MAE are diagnostics. See the public [objective](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/sleep_onset/objective.py)
-and [metric implementation](https://github.com/neural-interfaces26/2026-competition/blob/main/benchmark_utils/metrics.py).
+Recording scores are averaged equally within the seen group and within the
+unseen group. The final score is `(seen_mean + unseen_mean) / 2`, so the
+groups contribute equally regardless of their sizes. Windows are not pooled
+across recordings to compute the ranking score. Lower is better.
 
-### How does sealed scoring differ?
-
-Codabench computes W-bMAE separately for recordings from seen and unseen
-sleepers, then macro-averages the two group scores. This gives equal importance
-to night-to-night and inter-person transfer.
+NeuralBench's `test/wbmae_stream_mean` gives the public-data recording mean
+used during warm-up; it has no seen/unseen group macro-average. Unweighted
+bMAE and plain MAE are diagnostics. See the public
+[metric helpers](https://github.com/neural-interfaces26/2026-competition/blob/main/benchmark_utils/metrics.py).
 
 ## Resources
 

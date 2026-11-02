@@ -1,8 +1,6 @@
-# Registration
+# Get ready for the sealed final
 
-> You must **first register** for Track 03 - Sleep Onset before you can participate. **Registration takes three steps.** Open **Get Started → Registration Guide** in the menu on the left. Follow the approval instructions and, if applicable, the additional setup required for teams.
-
----
+> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md), then select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -17,8 +15,6 @@
 ---
 
 # Track 03 · Sleep Onset
-
-> **Sealed-phase specification.** The description, task contract, and ranking metric below define the final Muse phase. Warm-up uses the public Muse data and scores W-bMAE per recording, without the sealed phase's seen/unseen split. Phase-specific differences are detailed below.
 
 For focused answers about the public release, first-N2 target, preprocessing, stream boundaries, model state, inference metadata, and scoring, read the **[Track 03 Scientific FAQ](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/scientific_faq_sleep.md)**.
 
@@ -46,21 +42,19 @@ Given a continuous **four-channel, 128 Hz home EEG** recording, predict from eac
 
 Codabench computes mean absolute error separately within four true time-to-onset ranges: **[0, 40)**, **[40, 90)**, **[90, 300)**, and **[300, 600]** seconds. These ranges receive severity weights of **10×, 5×, 3×, and 1×**, respectively, so errors closer to sleep onset contribute more strongly.
 
-W-bMAE is reported separately for **seen subjects** (new recordings from people represented in training) and **unseen subjects** (people absent from training). The final ranking metric is the macro-average of these two scores, giving equal importance to night-to-night and inter-person generalization.
+W-bMAE is computed within each recording over its non-empty ranges. Recording scores are averaged equally within each group, separately for **seen subjects** (new recordings from people represented in training) and **unseen subjects** (people absent from training). The final ranking metric is the macro-average of these two scores, giving equal importance to night-to-night and inter-person generalization.
 
-## Development, warm-up, and sealed data
+See the [Scientific FAQ scoring details](scientific_faq_sleep.md#scoring).
 
-**Development and training.** You may train your model on any of the organizer-recommended public datasets in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#datasets)** or other data permitted by the Terms. The public **[Track 03 competition directory](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset)** contains the executable contract and metric, dataset adapters, editable worked solvers, Benchopt configs, and NeuralBench checkpoint wrapper.
+## Training data and sealed evaluation
 
-**Warm-up evaluation.** Warm-up submissions on Codabench are evaluated on the 40 test recordings of the public **Muse** training data ([NEMAR nm000287](https://doi.org/10.82901/nemar.nm000287)), from its supplied session split: every test participant also appears in its 500 training recordings. This evaluation set matches the test set in the [Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html). Codabench streams each recording from its start, one window at a time, computes W-bMAE within each recording over its non-empty ranges, and averages it over recordings. Unweighted bMAE and plain MAE over all windows are reported separately. The seen/unseen macro-average applies to the sealed evaluation only.
+**Public training and baselines.** The official reference baselines use **Muse Sleep-Onset EEG ([NEMAR nm000287](https://nemar.org/dataset/nm000287))**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-3) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset).
 
-The Muse data is the default dataset of the **[Track 03 NeuralBench start kit](https://facebookresearch.github.io/neuroai/neuralbench/auto_examples/biosignal_challenge_2026/plot_track3_sleep_onset.html)**, whose `test/wbmae_stream_mean` is the warm-up score. The **[reported public baseline scores](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-3)** use the public **Muse** split. Because the test data and labels are public, training overlap, overfitting, or leakage is possible. Warm-up scores are indicative only and support submission validation and iteration. Only the sealed phase determines the final ranking.
+**Sealed evaluation.** Codabench uses **private Muse recordings from represented and unseen sleepers**. Four channels at 128 Hz, microvolt inputs without additional filtering or scaling, chronological five-second windows from recording start to first N2, and recording resets match the completed Muse warm-up. Scoring additionally gives equal weight to the seen and unseen groups. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3); evaluation examples and labels remain hidden.
 
-> **NeuralBench version.** The current Track 03 start kit requires NeuralBench 0.4.0. Install or upgrade it in the same Python environment with `python -m pip install --upgrade "neuralbench==0.4.0"`; older versions report `_sleep_onset_stream` as an invalid task.
+**Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_sleep.md) explains the transfer to sealed evaluation.
 
-**Legacy warm-up.** Codabench previously used two-channel Sleep-EDF with batched windows and unweighted bMAE. The current Muse warm-up uses four channels at native 128 Hz, chronological one-window-per-recording streaming, and per-recording W-bMAE, so prior submissions must be adapted and scores are not comparable.
-
-**Sealed evaluation.** Codabench uses the private 2026 Muse cohort described in the **[main website’s dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3)**. It combines new recordings from participants represented in training with recordings from completely unseen participants. Recordings, labels, group membership, and exact cohort composition remain hidden.
+> **NeuralBench version.** This public start kit requires NeuralBench 0.4.0. In the same Python environment, run `python -m pip install --upgrade "neuralbench==0.4.0"`; older versions do not provide `_sleep_onset_stream`.
 
 ## Track resources and next steps
 
