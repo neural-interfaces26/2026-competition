@@ -13,7 +13,9 @@ Packaging and upload instructions are in **Get Started → Submission Guide**.
 Warm-up has ended. Public **EMG2Pose** remains the reference training and
 local-validation data. The private Meta Reality Labs cohort tests new users,
 movement stages and user-stage combinations. The preprocessing, independent
-batched windows, radian outputs and angular-MAE metric are unchanged.
+batched windows and radian outputs are unchanged. Sealed ranking uses **Mean
+Angular MAE per subject (deg)**, averaging subjects equally, rather than the
+warm-up's pooled angular MAE.
 Historical warm-up scores do not count toward the final ranking. See the
 [sealed dataset description](https://neural-interfaces26.github.io/tracks.html#dataset-track-4).
 
@@ -92,17 +94,26 @@ leaderboard.
 
 ### How is the ranking score computed?
 
-Codabench computes the direct absolute difference between prediction and
-target, averages over all examples, joints, and time points, then multiplies
-that aggregate MAE by `180 / π`. It does not wrap errors modulo `2π`. The
-aggregation is implemented by the
+The sealed ranking column is **Mean Angular MAE per subject (deg)**
+(`angular_mae_subject_mean`). Codabench first computes each subject's MAE over
+all their valid examples, joints and time points, then averages those MAEs
+with equal weight per subject and multiplies by `180 / π`. A subject with
+more evaluation windows does not receive more weight. Errors are direct
+absolute differences, without wrapping modulo `2π`. The aggregation is
+implemented by the
 [shared metric helpers](https://github.com/neural-interfaces26/2026-competition/blob/main/benchmark_utils/metrics.py)
 and exposed by the Track 04
 [`objective.py`](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/emg_pose/objective.py).
 
-NeuralBench's `test/mae` on the EMG2Pose `user_stage` split is the same warm-up
-error in radians; multiply it by `180 / π` for comparison. Per-subject MAE,
-RMSE, and R² are diagnostic and do not replace the ranking metric.
+Pooled **Angular MAE (deg)** (`angular_mae`) and the standard deviation of
+per-subject MAEs (`angular_mae_subject_std`) remain diagnostic. The pooled
+score weights subjects by their number of valid target values and can differ
+from the sealed ranking score.
+
+NeuralBench's `test/mae` on the public EMG2Pose `user_stage` split is the
+pooled warm-up error in radians; multiply it by `180 / π` to compare with
+pooled Angular MAE, not with the subject-averaged sealed ranking. Historical
+public baseline scores retain their original aggregation.
 
 ## Resources
 

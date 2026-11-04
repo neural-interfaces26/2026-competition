@@ -6,11 +6,12 @@ return the joint-angle sequences ``predict(X) -> (B, n_joints, T)`` in
 **radians** (predictions on a coarser time axis are nearest-resampled to the
 target's ``T``).
 
-Ranking metric: **mean angular MAE** (degrees), averaged over joints and
-time. Reported alongside, as NeuralBench's ``emg/pose`` task logs them: the
-mean and sample standard deviation of the per-subject MAE (the emg2pose paper
-averages within each user first), the RMSE (all three in degrees) and the R2
-averaged over joints. Data flows as lazy dataloaders — see
+Sealed ranking: **Mean Angular MAE per subject (deg)**
+(``angular_mae_subject_mean``): average errors within each subject over valid
+examples, joints and time, then average subjects equally. Pooled angular MAE
+(``angular_mae``) remains the historical warm-up ranking and a sealed
+diagnostic. Also reported: the sample standard deviation of per-subject MAEs,
+RMSE (in degrees), and R2 averaged over joints. Data flows as lazy dataloaders — see
 ``benchmark_utils/data.py``; targets ``y`` are float ``(B, n_joints, T)``
 angle sequences.
 

@@ -8,10 +8,13 @@ EMG.
 - **Input:** torch tensor `(B, C, T)` on `meta["device"]`.
 - **Output:** `predict(X) -> (B, n_joints, T)` joint angles in **radians**,
   where `n_joints = meta["n_joints"]`.
-- **Metric implemented here:** mean angular MAE over joints and time. Codabench
-  converts only the final aggregate score to degrees for the leaderboard.
-  Reported alongside, as NeuralBench logs them: the mean and standard
-  deviation of the per-subject MAE, the RMSE and the R2.
+- **Sealed ranking:** **Mean Angular MAE per subject (deg)**
+  (`angular_mae_subject_mean`). Compute MAE over each subject's valid examples,
+  joints and time points, then average subjects equally. Codabench converts
+  the final aggregate from radians to degrees.
+- **Other metrics:** pooled angular MAE (`angular_mae`, the completed warm-up
+  ranking), per-subject standard deviation, RMSE and R². The public baseline
+  scores below use pooled angular MAE.
 - **Evaluation:** warm-up and sealed evaluation both treat five-second
   windows as independent dense-prediction examples in ordinary batches.
   Batch size, composition, and order are not part of the contract. A model
