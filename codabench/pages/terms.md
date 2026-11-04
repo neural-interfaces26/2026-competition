@@ -16,7 +16,7 @@ The sealed quota is **per participant and per track**:
 
 The five-submission sealed cap limits repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
 
-Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration remains open until Thursday, November 5 at 23:59 CET (UTC+01:00); follow the [Registration Guide](registration.md). Sealed runs Thursday, November 5 at 00:01 through Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). No new submissions are accepted during the transition. See the [Timeline](timeline.md) for the full schedule.
+Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration remains open until Thursday, November 5 at 23:59 CET (UTC+01:00); follow the [Registration Guide](registration.md). Tracks 01, 02 and 04 run Thursday, November 5 at 00:01 through Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). [Track 03 opens later](competition_sleep.md), with no date confirmed. No new submissions are accepted during the transition. See the [Timeline](timeline.md) for the full schedule.
 
 ### What counts as a submission in my quota?
 
