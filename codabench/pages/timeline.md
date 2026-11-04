@@ -1,6 +1,6 @@
 # Timeline
 
-**Warm-up has ended.** No submissions are accepted November 2–4. The sealed final opens **Thursday, November 5 at 00:01** and closes **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**.
+**Warm-up has ended.** No submissions are accepted November 2–4. Tracks 01, 02 and 04 open **Thursday, November 5 at 00:01** and close **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**.
 
 **All November deadlines below use CET (UTC+01:00, Europe/Paris).**
 
@@ -17,11 +17,13 @@ day of the sealed phase. Complete the [three registration steps](registration.md
 
 No new warm-up or sealed submissions are accepted between the warm-up closing and the sealed opening.
 
-## Sealed final phase
+## Sealed final phase · Tracks 01, 02 and 04
 
 **Thursday, Nov 5 at 00:01 through Saturday, Nov 21, 2026 at 23:59 CET (UTC+01:00)**
 
-This provides **17 calendar days** of sealed evaluation.
+Tracks 01, 02 and 04 have **17 calendar days** of sealed evaluation.
+
+**Track 03 opens later.** Final readiness checks are still in progress. We aim to open in the coming days, with no confirmed date. The opening will be announced on the [Track 03 page](competition_sleep.md), the competition website and Discord. Registration deadlines and submission quotas are unchanged.
 
 Codabench switches to the private 2026 evaluation cohorts. Their examples and labels remain hidden. Codabench automatically displays your or your team's **best eligible sealed score**, which is retained for the final ranking subject to the reproducibility audit. Solo participants count as one-person teams. Warm-up scores do not count toward the final ranking.
 

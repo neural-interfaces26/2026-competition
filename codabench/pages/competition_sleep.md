@@ -1,6 +1,10 @@
+# Track 03 · Sealed opening postponed
+
+> **Track 03 is unfortunately not yet open for sealed submissions.** Final readiness checks are still in progress. We aim to open in the coming days, but cannot confirm an exact date yet. We will announce when submissions open on this page, the [competition website](https://neural-interfaces26.github.io/) and [Discord](https://discord.gg/yZv8KqKMpH). Public Muse data and local validation remain available.
+
 # Get ready for the sealed final
 
-> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md), then select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
+> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md). Select **Sealed Final Phase** once the Track 03 opening is announced. The published final deadline remains **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -28,13 +32,13 @@ Given a continuous **four-channel, 128 Hz home EEG** recording, predict from eac
 
 ## Sealed-phase task contract
 
-|                          |                                                                           |
-| ------------------------ | ------------------------------------------------------------------------- |
-| **Input**                | Chronological five-second windows from four-channel Muse EEG at 128 Hz    |
+|                          |                                                                                   |
+| ------------------------ | --------------------------------------------------------------------------------- |
+| **Input**                | Chronological five-second windows from four-channel Muse EEG at 128 Hz            |
 | **Prediction**           | One latency in seconds until the first N2 epoch per window, capped at 600 seconds |
-| **Objective**            | Estimate approaching first N2 from the current and earlier windows only   |
-| **Generalization shift** | New nights from seen participants and recordings from unseen participants |
-| **Sealed split**         | Separate seen-subject and unseen-subject evaluation groups                |
+| **Objective**            | Estimate approaching first N2 from the current and earlier windows only           |
+| **Generalization shift** | New nights from seen participants and recordings from unseen participants         |
+| **Sealed split**         | Separate seen-subject and unseen-subject evaluation groups                        |
 
 ## Sealed-phase ranking metric
 

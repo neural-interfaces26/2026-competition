@@ -23,7 +23,7 @@ _Decode a user’s intended mental command reliably across recording sessions._
 Given a short 41-channel EEG window, predict one of three cued commands: **kinesthetic motor imagery, mental subtraction, or word generation**. Source recordings are sampled at 500 Hz and transformed by the published competition pipeline into 4-second, 120 Hz windows in microvolts. Sealed evaluation combines later sessions from represented participants with recordings from participants absent from the public release, testing both session drift and inter-person transfer.
 
 <p align="center">
-  <img src="https://neural-interfaces26.github.io/exports/bci-decoding.gif" alt="Three cued mental commands decoded from EEG across recording sessions" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
+  <img src="https://neural-interfaces26.github.io/exports/bci-decoding.gif?v=20261104sealed" alt="Three cued mental commands decoded from EEG across recording sessions" width="640" style="display:block;max-width:100%;height:auto;margin:1.25rem auto;">
 </p>
 
 ## Sealed-phase task contract

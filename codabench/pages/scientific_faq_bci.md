@@ -19,12 +19,12 @@ warm-up scores do not count toward the final ranking.
 
 ### What generalization does the sealed phase test? Is calibration provided?
 
-It combines later sessions from the ten participants represented in the public
-release with ten participants absent from it. No sealed-participant calibration
+It combines later sessions from participants represented in the public release
+with recordings from entirely new participants. No sealed-participant calibration
 session, label, or other data is supplied through `fit`: represented
 participants contribute only their already-public sessions, while unseen
 participants are evaluated solely through the label-free `predict` stream.
-Exact identities, session allocation, and evaluation order remain private.
+Exact cohort size, identities, session allocation, and evaluation order remain private.
 The public [objective](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/bci_decoding/objective.py)
 runs submissions inference-only on Codabench.
 

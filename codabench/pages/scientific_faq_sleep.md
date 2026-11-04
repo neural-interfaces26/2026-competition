@@ -6,6 +6,8 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 and active phase configuration are the executable references. Packaging and
 upload instructions are in **Get Started → Submission Guide**.
 
+> **Opening update:** Track 03 sealed submissions are not yet open. We aim to open in the coming days, with no confirmed date. See the [Track description](competition_sleep.md) for the opening announcement. Public-data development and local validation remain available.
+
 ## Sealed evaluation
 
 ### How does the sealed phase differ from the completed warm-up?

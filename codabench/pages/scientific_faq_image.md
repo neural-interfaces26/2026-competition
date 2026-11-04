@@ -31,12 +31,12 @@ reported public baseline task, with a different 63-channel montage.
 
 ### What is the sealed cohort, and will any of it be released?
 
-It is a separate cohort of 11 new participants, recorded at 256 Hz with the
-same 32-channel Emotiv montage and natural-image protocol as Alljoined-1.6M.
+It is a separate private cohort of new participants, recorded at 256 Hz with
+the same 32-channel Emotiv montage and natural-image protocol as Alljoined-1.6M.
 It is not a hidden split of a public dataset. Raw EEG, images, participant
-metadata, labels, exact gallery size, repetition counts, and evaluation order
-remain private. The model receives only task-formatted EEG batches through the
-public [competition adapter](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/image_decoding/datasets/image_studies.py).
+metadata, labels, cohort size, exact gallery size, repetition counts, and
+evaluation order remain private. The model receives only task-formatted EEG
+batches through the public [competition adapter](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/image_decoding/datasets/image_studies.py).
 
 ### May sealed images overlap public data, and may I train on `stim_test`?
 
