@@ -25,7 +25,7 @@ Tracks 01, 02 and 04 have **17 calendar days** of sealed evaluation.
 
 **Track 03 opens later.** Final readiness checks are still in progress. We aim to open in the coming days, with no confirmed date. The opening will be announced on the [Track 03 page](competition_sleep.md), the competition website and Discord. Registration deadlines and submission quotas are unchanged.
 
-Codabench switches to the private 2026 evaluation cohorts. Their examples and labels remain hidden. Codabench automatically displays your or your team's **best eligible sealed score**, which is retained for the final ranking subject to the reproducibility audit. Solo participants count as one-person teams. Warm-up scores do not count toward the final ranking.
+Codabench switches to the private 2026 evaluation cohorts. Their examples and labels remain hidden. Codabench automatically displays each participant's best eligible score. Only your team's **best eligible sealed score** across its members is retained for the final ranking, subject to the reproducibility audit. Solo participants count as one-person teams. Warm-up scores do not count toward the final ranking.
 
 **Submission limit:** 1 submission per participant per day per track, with **5 submissions total per participant per track** for the entire sealed phase.
 

@@ -29,7 +29,7 @@ Each ZIP accepted for evaluation is a submission, even if you upload the same mo
 
 ### Which submission appears on the leaderboard and counts for the final ranking?
 
-For each phase and track, Codabench automatically displays the best eligible score from your team, including all members' submissions. Solo participants count as one-person teams. A better score replaces the displayed entry, with no manual publication needed. The submission currently displayed on the leaderboard cannot be deleted.
+For each phase and track, Codabench automatically displays each participant's best eligible score. Team members may appear as separate entries. Solo participants count as one-person teams. A better score replaces that participant's displayed entry, with no manual publication needed. The submission currently displayed on the leaderboard cannot be deleted.
 
 Only the **best eligible sealed score** from you or your team is retained for the final ranking, subject to the reproducibility audit. Warm-up scores are indicative and never count toward that ranking.
 
