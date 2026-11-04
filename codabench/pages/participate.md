@@ -183,7 +183,7 @@ therefore support `copy.deepcopy`.
 | 01 - EEG-to-Image | image embeddings `(B, D)`                  | `meta["n_outputs"]` = `D` | top-5 retrieval accuracy |
 | 02 - BCI Decoding | one class index per window `(B,)`          | `meta["n_classes"]`       | balanced accuracy        |
 | 03 - Sleep Onset  | seconds to sleep onset `(B,)` as floats    | `meta["n_outputs"]` = `1` | weighted binned MAE      |
-| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in radians | `meta["n_joints"]`        | mean angular MAE, reported in degrees |
+| 04 - EMG-to-Pose  | joint angles `(B, n_joints, T)` in radians | `meta["n_joints"]`        | sealed: Mean Angular MAE per subject (deg) |
 
 **Track 04 unit contract:** `predict(X)` must return joint angles in radians.
 Do not convert predictions to degrees. Codabench computes the MAE from the

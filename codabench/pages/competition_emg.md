@@ -39,9 +39,9 @@ Given a window of **16-channel wrist surface EMG**, predict continuous trajector
 
 ## Sealed-phase ranking metric
 
-> **Mean absolute angular error in degrees. Lower is better.**
+> **Mean Angular MAE per subject (deg). Lower is better.**
 
-Codabench computes the absolute angular difference in radians between every predicted and reference value, averages over all evaluation examples, joints, and time points, then converts the result to degrees for the leaderboard. If a model predicts on a coarser time axis, its output is nearest-neighbor resampled to the target length before scoring.
+For each subject, Codabench averages the absolute prediction error over that subject's valid evaluation examples, joints, and time points. It then averages these subject scores equally and converts the result from radians to degrees. Each subject therefore has equal weight, regardless of how much evaluation data they contribute. This ranking score is `angular_mae_subject_mean`. Pooled Angular MAE and the standard deviation of subject scores are diagnostics. If a model predicts on a coarser time axis, its output is nearest-neighbor resampled to the target length before scoring.
 
 See the [Scientific FAQ scoring details](scientific_faq_emg.md#prediction-and-scoring).
 
@@ -49,7 +49,7 @@ See the [Scientific FAQ scoring details](scientific_faq_emg.md#prediction-and-sc
 
 **Public training and baselines.** The official reference baselines use **EMG2Pose**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose).
 
-**Sealed evaluation.** Codabench uses the private **2026 Meta Reality Labs cohort**, including new users, new movement stages and unseen user-stage combinations. The 16-channel, five-second input, ordinary independent batches, radian output and angular-MAE metric match the completed EMG2Pose warm-up. Batch size and order are not guaranteed, and state must not carry across `predict` calls. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4); evaluation examples and labels remain hidden.
+**Sealed evaluation.** Codabench uses the private **2026 Meta Reality Labs cohort**, including new users, new movement stages and unseen user-stage combinations. The 16-channel, five-second input, ordinary independent batches and radian output match the completed EMG2Pose warm-up. Sealed ranking uses the equal-weight mean of per-subject MAEs rather than the warm-up's pooled MAE. Batch size and order are not guaranteed, and state must not carry across `predict` calls. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4); evaluation examples and labels remain hidden.
 
 **Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_emg.md) explains the transfer to sealed evaluation.
 
