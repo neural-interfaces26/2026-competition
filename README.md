@@ -11,7 +11,7 @@ to what you need:
 
 | Source                                                        | Ground truth for                                                                         |
 | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| [Competition website](https://neural-interfaces26.github.io/) | tracks, datasets, schedule, rules, registration, and participant journey                 |
+| [Competition website](https://neural-interfaces26.github.io/) | tracks, datasets, schedule, rules, and submission guidance                 |
 | Each Codabench **Track description** and **Submission Guide** | active phase data and metric, upload rules, limits, and official evaluation              |
 | This repository                                               | executable benchmarks, reference implementations, local checks, and submission packaging |
 

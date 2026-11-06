@@ -4,7 +4,7 @@
 
 # Get ready for the sealed final
 
-> **Warm-up has ended. Registration remains open until November 5 at 23:59 CET (UTC+01:00).** Follow the [Registration Guide](registration.md). Select **Sealed Final Phase** once the Track 03 opening is announced. The published final deadline remains **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
+> **Registration closed.** Approved participants should select **Sealed Final Phase** once the Track 03 opening is announced. The published final deadline remains **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 

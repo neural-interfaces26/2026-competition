@@ -1,22 +1,5 @@
-# Register in three steps
+# Registration closed
 
-**Registration remains open until Thursday, November 5, 2026 at 23:59 CET (UTC+01:00). Every participant must complete these steps, whether entering individually or as part of a team.** Warm-up ended November 1. Tracks 01, 02 and 04 open sealed submissions November 5 at 00:01 CET (UTC+01:00). [Track 03 opens later](competition_sleep.md), with no date confirmed; its registration deadline is unchanged.
+**Registration closed for all four tracks.** Only approved participants can submit in their registered tracks. The Track 03 opening delay does not reopen registration.
 
-1. Create a **[Codabench account](https://www.codabench.org/accounts/signup)** and sign in.
-2. Open **My Submissions** for every track you wish to enter: **[Track 01](https://www.codabench.org/competitions/17974/#/participate-tab)**, **[Track 02](https://www.codabench.org/competitions/17982/#/participate-tab)**, **[Track 03](https://www.codabench.org/competitions/17983/#/participate-tab)**, or **[Track 04](https://www.codabench.org/competitions/17984/#/participate-tab)**. On each page, accept the terms and conditions, then click **Register**. Your request will appear as **pending**.
-3. Submit the **[registration form](https://forms.gle/p3t2V25nuQtVXyj9A)**. If you are entering multiple tracks, submit it once and select every track for which you registered.
-
-In the form, enter the exact email address associated with your Codabench account. You may open the form using another email account, but approval uses the address entered in the form.
-
-Return to **My Submissions** for each track to confirm your registration. Refresh the page if needed.
-
-# Entering as a team?
-
-**Individual participants can skip this section.**
-
-1. Every team member completes the three registration steps above individually. (You will not need to declare your team in the form.)
-2. Choose one team leader to create one **[Codabench organization](https://www.codabench.org/profiles/organization/create/)**, save it, then edit it to add every team member.
-
-**Remark 1:** Each participant may belong to only one team and cannot join or submit for multiple teams.<br>
-**Remark 2:** Submissions and quotas remain individual. Each member submits through their own account, while submissions are attributed to the team.<br>
-**Remark 3:** If the team wins, its leader handles the reproducibility audit, workshop presentation, and prize distribution.
+Use **My Submissions** on your Codabench track and follow the [Submission Guide](participate.md) to prepare and validate your model package.
