@@ -6,13 +6,13 @@ Industry, academia, students, independents - all eligible, and cross-institution
 
 ## Rule 2: One team may enter all four tracks
 
-Each participant submits through their own Codabench account and has an individual submission quota for each track. For team entries, submissions are attributed to the participant's Codabench organization. Solo participants count as one-person teams. See [automatic leaderboard selection](#which-submission-appears-on-the-leaderboard-and-counts-for-the-final-ranking).
+Each participant submits through their own Codabench account. During the sealed phase, all members of a team share one submission quota per track through their Codabench organization. Solo participants count as one-person teams. See [automatic leaderboard selection](#which-submission-appears-on-the-leaderboard-and-counts-for-the-final-ranking).
 
 ## Rule 3: How many submissions can I make?
 
-The sealed quota is **per participant and per track**:
+The sealed quota is **shared by all members of each team (Codabench organization), per track**. Solo entrants count as one-person teams:
 
-- **Sealed:** 1 submission per participant per day per track, with **5 submissions total per participant per track**.
+- **Sealed:** **5 submissions total per team per track** for the entire phase, with at most **1 submission per team per day per track**.
 
 The five-submission sealed cap limits repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
 
@@ -20,7 +20,7 @@ Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration closed 
 
 ### What counts as a submission in my quota?
 
-Each ZIP accepted for evaluation is a submission, even if you upload the same model again. Both the daily and total limits follow these rules:
+Sealed limits are shared by all members of your team, per track. Each ZIP accepted for evaluation is a submission, even if you upload the same model again. Both the daily and total limits follow these rules:
 
 - **Queued or running:** reserves a quota slot. A submission with final status `Failed` does not count.
 - **Finished or cancelled by you:** counts as one submission.

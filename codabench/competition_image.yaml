@@ -69,8 +69,9 @@ phases:
       - 0
   - index: 1
     name: Sealed Final Phase
-    description: 'Sealed final phase: at most five submissions per participant
-      for this track, one per day. The best eligible score from you or your team
+    description: 'Sealed final phase: at most five submissions per team
+      for this track, shared by all members, with at most one per day.
+      The best eligible score from you or your team
       is automatically displayed and retained for the final ranking;
       the top three teams undergo a reproducibility audit.'
     start: 2026-11-04 23:01:00
