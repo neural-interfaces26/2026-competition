@@ -16,7 +16,7 @@ The sealed quota is **shared by all members of each team (Codabench organization
 
 The five-submission sealed cap limits repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
 
-Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration closed for all four tracks. Tracks 01, 02 and 04 run Thursday, November 5 at 00:01 through Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). [Track 03 opens later](competition_sleep.md), with no date confirmed. No new submissions are accepted during the transition. See the [Timeline](timeline.md) for the full schedule.
+Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration closed for all four tracks. The sealed final deadline is Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). Check your track’s Phases tab for its submission schedule. See the [Timeline](timeline.md) for the full schedule.
 
 ### What counts as a submission in my quota?
 
@@ -65,7 +65,7 @@ Submission status and aggregate leaderboard scores remain visible. Execution log
 
 ## Reference baseline performance
 
-Reference EEGNet and REVE scores for warm-up and sealed evaluation will be added in due time to the [baseline performance sections of the participant guide](https://neural-interfaces26.github.io/participant-guide.html#baselines), alongside the corresponding training procedures.
+Warm-up and sealed reference scores for all four tracks are reported separately in the [baseline performance sections of the participant guide](https://neural-interfaces26.github.io/participant-guide.html#baselines), alongside their training procedures and official ranking metrics.
 
 ## Completed warm-up · historical quota
 

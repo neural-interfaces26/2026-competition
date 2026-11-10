@@ -1,6 +1,6 @@
 # Get ready for the sealed final
 
-> **Registration closed.** Approved participants should select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
+> **Registration closed.** Approved participants should select **Sealed Final Phase** when submitting. The final deadline is **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -47,7 +47,7 @@ See the [Scientific FAQ scoring details](scientific_faq_emg.md#prediction-and-sc
 
 ## Training data and sealed evaluation
 
-**Public training and baselines.** The official reference baselines use **EMG2Pose**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-4) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose).
+**Public training and baselines.** The official reference baselines use **EMG2Pose**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [warm-up and sealed baseline results](https://neural-interfaces26.github.io/participant-guide.html#prepare-track-4) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/emg_pose).
 
 **Sealed evaluation.** Codabench uses the private **2026 Meta Reality Labs cohort**, including new users, new movement stages and unseen user-stage combinations. The 16-channel, five-second input, ordinary independent batches and radian output match the completed EMG2Pose warm-up. Sealed ranking uses the equal-weight mean of per-subject MAEs rather than the warm-up's pooled MAE. Batch size and order are not guaranteed, and state must not carry across `predict` calls. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-4); evaluation examples and labels remain hidden.
 
