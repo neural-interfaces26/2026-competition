@@ -1,6 +1,6 @@
 # Get ready for the sealed final
 
-> **Registration closed.** Approved participants should select **Sealed Final Phase** for submissions from **Thursday, November 5 at 00:01 to Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. No submissions are accepted during the November 2–4 transition. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
+> **Registration closed.** Approved participants should select **Sealed Final Phase** when submitting. The final deadline is **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 

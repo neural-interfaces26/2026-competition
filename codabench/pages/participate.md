@@ -1,7 +1,7 @@
 # How to submit your model
 
-> **Sealed phase opens November 5 at 00:01 CET (UTC+01:00).** Select
-> **Sealed Final Phase** when submitting. Execution logs, predictions and
+> Select **Sealed Final Phase** and check your track’s Phases tab for its
+> submission schedule. Execution logs, predictions and
 > scoring output are hidden. Reproduce failures locally with the
 > [Benchopt replay workflow](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md#optional-local-replay)
 > or the [worker-image replay](https://github.com/neural-interfaces26/2026-competition/blob/main/tools/README.md#worker-image-replay)

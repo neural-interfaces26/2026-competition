@@ -1,10 +1,6 @@
-# Track 03 · Sealed opening postponed
-
-> **Track 03 is unfortunately not yet open for sealed submissions.** Final readiness checks are still in progress. We aim to open in the coming days, but cannot confirm an exact date yet. We will announce when submissions open on this page, the [competition website](https://neural-interfaces26.github.io/) and [Discord](https://discord.gg/yZv8KqKMpH). Public Muse data and local validation remain available.
-
 # Get ready for the sealed final
 
-> **Registration closed.** Approved participants should select **Sealed Final Phase** once the Track 03 opening is announced. The published final deadline remains **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
+> **Track 03 is now open!**. **Registration is closed.** Approved participants should select **Sealed Final Phase** when submitting. The final deadline is **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
 
 # Before building a submission
 
@@ -52,7 +48,7 @@ See the [Scientific FAQ scoring details](scientific_faq_sleep.md#scoring).
 
 ## Training data and sealed evaluation
 
-**Public training and baselines.** The official reference baselines use **Muse Sleep-Onset EEG ([NEMAR nm000287](https://nemar.org/dataset/nm000287))**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-3) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset).
+**Public training and baselines.** The official reference baselines use **Muse Sleep-Onset EEG ([NEMAR nm000287](https://nemar.org/dataset/nm000287))**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [warm-up and sealed baseline results](https://neural-interfaces26.github.io/participant-guide.html#prepare-track-3) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset).
 
 **Sealed evaluation.** Codabench uses **private Muse recordings from represented and unseen sleepers**. Four channels at 128 Hz, microvolt inputs without additional filtering or scaling, chronological five-second windows from recording start to first N2, and recording resets match the completed Muse warm-up. Scoring additionally gives equal weight to the seen and unseen groups. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3); evaluation examples and labels remain hidden.
 
