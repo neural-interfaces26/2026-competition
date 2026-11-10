@@ -1,3 +1,7 @@
+# Track 02 · Sealed evaluation update
+
+> **Automatic rescoring in progress (+2 extra submissions).** Following a technical fix on the Track 02 sealed evaluation backend, previously Finished Track 02 sealed submissions are being rerun automatically without using additional submission quota. **Please leave these reruns running; you do not need to cancel or re-upload your submission.** Scores and leaderboard positions are provisional while rescoring continues. To compensate for this interruption, the Track 02 total sealed allowance has been increased by **2 extra submissions** (from **5 to 7 total submissions** per team; the 1-per-day limit is unchanged). Read the [Scientific FAQ](scientific_faq_bci.md#which-submissions-are-being-rescored).
+
 # Get ready for the sealed final
 
 > **Registration closed.** Approved participants should select **Sealed Final Phase** when submitting. The final deadline is **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
@@ -48,7 +52,7 @@ See the [Scientific FAQ scoring details](scientific_faq_bci.md#scoring).
 
 **Public training and baselines.** The official reference baselines use **PROTEUS BCI Bordeaux ([NEMAR nm000290](https://nemar.org/dataset/nm000290))**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [baseline results](https://neural-interfaces26.github.io/participant-guide.html#baseline-track-2) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/bci_decoding).
 
-**Sealed evaluation.** Codabench uses **later sessions and new participants from the PROTEUS acquisition programme**. The three commands, 41 EEG channels, four-second inputs at 120 Hz, chronological one-window calls and session resets match the completed PROTEUS warm-up. No labelled calibration data are supplied at evaluation. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-2); evaluation examples and labels remain hidden.
+**Sealed evaluation.** Codabench uses **later sessions and new participants from the PROTEUS acquisition programme**. The three commands, 41 EEG channels, four-second inputs at 120 Hz, one-window calls and session resets match the completed PROTEUS warm-up. No labelled calibration data are supplied at evaluation. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-2); evaluation examples and labels remain hidden.
 
 **Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_bci.md) explains the transfer to sealed evaluation.
 

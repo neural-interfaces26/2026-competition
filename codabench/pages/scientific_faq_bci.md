@@ -6,16 +6,30 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 and active phase configuration are the executable references. Packaging and
 upload instructions are in **Get Started → Submission Guide**.
 
+## Sealed evaluation update · November 10
+
+### Which submissions are being rescored?
+
+Following a technical fix on the Track 02 sealed evaluation backend, previously
+Finished Track 02 sealed submissions are being rerun automatically. These reruns
+keep the same submission IDs and do not use additional quota. Please leave them
+running; no cancellation or re-upload is needed. Scores and leaderboard
+positions are provisional until rescoring is complete. To compensate for this
+interruption, all Track 02 teams receive **2 additional sealed submissions**
+(increasing the Track 02 total sealed limit from 5 to 7 submissions per team,
+with the 1-per-day limit unchanged). Warm-up results and the other tracks are
+unaffected.
+
 ## Sealed evaluation
 
 ### How does the sealed phase differ from the completed warm-up?
 
 Warm-up has ended. The public **PROTEUS** release remains the reference
 training and local-validation data. Sealed evaluation tests later sessions
-from represented participants and entirely new participants. The three-class,
-41-channel preprocessing and streaming contract, session resets and
-cell-averaged ranking metric match the completed PROTEUS warm-up. Historical
-warm-up scores do not count toward the final ranking.
+from represented participants and entirely new participants. The three classes,
+41-channel preprocessing, one-window calls, session resets and cell-averaged
+ranking metric match the completed PROTEUS warm-up. Historical warm-up
+scores do not count toward the final ranking.
 
 ### What generalization does the sealed phase test? Is calibration provided?
 
@@ -79,7 +93,8 @@ learned scaling or clipping is applied. Evaluation input has shape
 [NeuralBench stream config](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/_motor_imagery_stream/config.yaml).
 
 Fixed signal preprocessing happens before streaming. “Causal” refers to the
-model-facing contract: the model receives no future window or label.
+delivered evaluation stream: a model may use the current and previously
+delivered windows, but no future window or label.
 
 ### May I use my own preprocessing?
 
@@ -87,31 +102,32 @@ Yes. You may preprocess the public training data differently and perform
 additional transformations inside `predict`. Codabench nevertheless supplies
 the fixed tensor above; a submission cannot request raw 500 Hz sealed data.
 Any evaluation-time transformation or fitted statistic must use only the
-current or earlier windows of the current session, without labels. Public-data
-use remains subject to the [Terms](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/terms.md).
+current and previously delivered windows of the current session, without
+labels. Public-data use remains subject to the [Terms](https://github.com/neural-interfaces26/2026-competition/blob/main/codabench/pages/terms.md).
 
 ## Streaming and adaptation
 
 ### Where is state reset, and in what order do windows arrive?
 
-One stream is one **participant × session**. There is no shuffling within a
-stream: runs are ordered by run number and windows are strictly chronological
-within each run. The order of independent session streams is not exposed as a
-model signal. State may persist across Graz and BrainHero runs in the same
-session. Each new session starts from a fresh copy of the submitted model and
-calls its optional `reset_state()`. The public
+One stream is one **participant × session**. Windows arrive one at a time
+(`B = 1`) within each session stream, and the same evaluation order is used
+for all submissions. The order of independent session streams is not exposed
+as a model signal. State may persist across Graz and BrainHero runs in the
+same session. Each new session starts from a fresh copy of the submitted
+model and calls its optional `reset_state()`. The public
 [streaming evaluator](https://github.com/neural-interfaces26/2026-competition/blob/main/benchmark_utils/streaming.py)
-implements the one-window calls, ordering checks, model copy, and reset.
+defines the one-window calls, model copy and reset.
 
 ### What information does the model receive, and may it adapt?
 
 `predict(X)` receives only the EEG tensor. Participant, session, run,
 interface, and label metadata are not passed to the model. Causal, label-free
-adaptation using the current and earlier windows of the current session is
-allowed, including statistics-based alignment or gradient updates inside
-`predict`. State, windows, statistics, and parameter updates must not cross the
-session boundary. Worker time and memory limits still apply. Grouping metadata
-are used internally by the [objective](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/bci_decoding/objective.py).
+adaptation using the current and previously delivered windows of the current
+session is allowed, including statistics-based alignment or gradient updates
+inside `predict`. State, windows, statistics, and parameter updates must not
+cross the session boundary. Worker time and memory limits still apply. Grouping
+metadata are used internally by the
+[objective](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/bci_decoding/objective.py).
 
 ### What must the model return?
 

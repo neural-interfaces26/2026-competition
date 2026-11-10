@@ -163,12 +163,12 @@ After `Solver.load_model(meta)` returns your model, Codabench calls that
 required model's `predict(X)` method for every evaluation batch.
 
 **Tracks 02 and 03 stream their evaluation.** Windows reach `predict` one at
-a time (`B = 1`), in recording order: in Track 02 one session of one
-participant after the other, in Track 03 one recording after the other. Each
-of these streams starts from a fresh `copy.deepcopy` of the model returned by
-`load_model`, whose optional `reset_state()` method is called first. A model
-can adapt within a stream, but carries nothing over to the next one; it must
-therefore support `copy.deepcopy`.
+a time (`B = 1`): in Track 02 one session of one participant after the other,
+in Track 03 one recording after the other. Each of these streams starts from
+a fresh `copy.deepcopy` of the model returned by `load_model`, whose optional
+`reset_state()` method is called first. A model can adapt within a stream,
+but carries nothing over to the next one; it must therefore support
+`copy.deepcopy`.
 
 `X` is a PyTorch tensor already on `meta["device"]`, with shape `(B, C, T)`:
 
