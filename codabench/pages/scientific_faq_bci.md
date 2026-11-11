@@ -10,11 +10,10 @@ upload instructions are in **Get Started → Submission Guide**.
 
 ### Which submissions are being rescored?
 
-Following a technical fix on the Track 02 sealed evaluation backend, previously
-Finished Track 02 sealed submissions are being rerun automatically. These reruns
-keep the same submission IDs and do not use additional quota. Please leave them
-running; no cancellation or re-upload is needed. Scores and leaderboard
-positions are provisional until rescoring is complete. To compensate for this
+Following a technical fix on the Track 02 sealed evaluation backend, all
+previously Finished Track 02 sealed submissions were rerun automatically in
+place. These reruns kept the same submission IDs, used no additional quota, and
+the leaderboard now reflects the updated scores. To compensate for this
 interruption, all Track 02 teams receive **2 additional sealed submissions**
 (increasing the Track 02 total sealed limit from 5 to 7 submissions per team,
 with the 1-per-day limit unchanged). Warm-up results and the other tracks are

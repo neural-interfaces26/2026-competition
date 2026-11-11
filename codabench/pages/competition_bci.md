@@ -1,6 +1,6 @@
 # Track 02 · Sealed evaluation update
 
-> **Automatic rescoring in progress (+2 extra submissions).** Following a technical fix on the Track 02 sealed evaluation backend, previously Finished Track 02 sealed submissions are being rerun automatically without using additional submission quota. **Please leave these reruns running; you do not need to cancel or re-upload your submission.** Scores and leaderboard positions are provisional while rescoring continues. To compensate for this interruption, the Track 02 total sealed allowance has been increased by **2 extra submissions** (from **5 to 7 total submissions** per team; the 1-per-day limit is unchanged). Read the [Scientific FAQ](scientific_faq_bci.md#which-submissions-are-being-rescored).
+> **Automatic rescoring completed (+2 extra submissions).** Following a technical fix on the Track 02 sealed evaluation backend, all previously Finished Track 02 sealed submissions have been rerun automatically without using additional submission quota, and the leaderboard now reflects the updated scores. To compensate for this interruption, the Track 02 total sealed allowance has been increased by **2 extra submissions** (from **5 to 7 total submissions** per team; the 1-per-day limit is unchanged). Read the [Scientific FAQ](scientific_faq_bci.md#which-submissions-are-being-rescored).
 
 # Get ready for the sealed final
 
