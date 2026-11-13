@@ -1,3 +1,7 @@
+# Track 03 · Sealed evaluation update
+
+> **Automatic rescoring in progress (+2 extra submissions).** Following a technical update of the Track 03 sealed evaluation on November 13, all previously Finished Track 03 sealed submissions are being rerun automatically without using additional submission quota; the leaderboard updates as they finish. To compensate for this interruption, the Track 03 total sealed allowance has been increased by **2 extra submissions** (from **5 to 7 total submissions** per team; the 1-per-day limit is unchanged). Read the [Scientific FAQ](scientific_faq_sleep.md#which-submissions-are-being-rescored).
+
 # Get ready for the sealed final
 
 > **Track 03 is now open!**. **Registration is closed.** Approved participants should select **Sealed Final Phase** when submitting. The final deadline is **Saturday, November 21 at 23:59 CET (UTC+01:00), 2026**. For quotas and score selection, read [Terms](terms.md); for local debugging with hidden sealed logs, read the [Submission Guide](participate.md).
@@ -50,7 +54,7 @@ See the [Scientific FAQ scoring details](scientific_faq_sleep.md#scoring).
 
 **Public training and baselines.** The official reference baselines use **Muse Sleep-Onset EEG ([NEMAR nm000287](https://nemar.org/dataset/nm000287))**. Its public start kit and validation split remain available for local development and submission checks. You may also use other data permitted by the [Terms](terms.md). See the [warm-up and sealed baseline results](https://neural-interfaces26.github.io/participant-guide.html#prepare-track-3) and [competition kit](https://github.com/neural-interfaces26/2026-competition/tree/main/tracks/sleep_onset).
 
-**Sealed evaluation.** Codabench uses **private Muse recordings from represented and unseen sleepers**. Four channels at 128 Hz, microvolt inputs without additional filtering or scaling, chronological five-second windows from recording start to first N2, and recording resets match the completed Muse warm-up. Scoring additionally gives equal weight to the seen and unseen groups. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3); evaluation examples and labels remain hidden.
+**Sealed evaluation.** Codabench uses **private Muse recordings from represented and unseen sleepers**. Four channels at 128 Hz, microvolt inputs without additional filtering or scaling, chronological five-second windows before first N2, and recording resets match the completed Muse warm-up. Scoring additionally gives equal weight to the seen and unseen groups. The cohort is described in the [dataset directory](https://neural-interfaces26.github.io/tracks.html#dataset-track-3); evaluation examples and labels remain hidden.
 
 **Completed warm-up.** Warm-up ended November 1. Its public-data scores are historical and do not count toward the final ranking. The [Scientific FAQ](scientific_faq_sleep.md) explains the transfer to sealed evaluation.
 

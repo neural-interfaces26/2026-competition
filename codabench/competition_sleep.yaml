@@ -72,7 +72,7 @@ phases:
       - 0
   - index: 1
     name: Sealed Final Phase
-    description: "Sealed final phase: at most five submissions per team
+    description: "Sealed final phase: at most seven submissions per team
       for this track, shared by all members, with at most one per day.
       The best eligible score from you or your team
       is automatically displayed and retained for the final ranking;
@@ -81,7 +81,7 @@ phases:
     end: 2026-11-21 22:59:00
     execution_time_limit: 3600
     max_submissions_per_day: 1
-    max_submissions: 5
+    max_submissions: 7
     # Sealed: aggregate scores stay visible; execution logs and
     # prediction/scoring-step files are hidden from participants.
     hide_output: True

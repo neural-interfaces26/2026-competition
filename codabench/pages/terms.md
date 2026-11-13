@@ -12,7 +12,7 @@ Each participant submits through their own Codabench account. During the sealed 
 
 The sealed quota is **shared by all members of each team (Codabench organization), per track**. Solo entrants count as one-person teams:
 
-- **Sealed:** **5 submissions total per team per track** (**7 submissions total in Track 02** following the November 10 technical update) for the entire phase, with at most **1 submission per team per day per track**.
+- **Sealed:** **5 submissions total per team per track** (**7 submissions total in Tracks 02 and 03** following the November 10 and November 13 technical updates) for the entire phase, with at most **1 submission per team per day per track**.
 
 The five-submission sealed cap limits repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
 

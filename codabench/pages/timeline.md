@@ -22,7 +22,7 @@ Tracks 01, 02 and 04 began sealed evaluation on Thursday, November 5 at 00:01 CE
 
 Codabench switches to the private 2026 evaluation cohorts. Their examples and labels remain hidden. Codabench automatically displays each participant's best eligible score. Only your team's **best eligible sealed score** across its members is retained for the final ranking, subject to the reproducibility audit. Solo participants count as one-person teams. Warm-up scores do not count toward the final ranking.
 
-**Submission limit:** **5 submissions total per team per track** (**7 submissions total in Track 02** following the November 10 technical update) for the entire sealed phase, with at most **1 submission per team per day per track**. Both limits are shared by all members of the Codabench organization. Solo entrants count as one-person teams.
+**Submission limit:** **5 submissions total per team per track** (**7 submissions total in Tracks 02 and 03** following the November 10 and November 13 technical updates) for the entire sealed phase, with at most **1 submission per team per day per track**. Both limits are shared by all members of the Codabench organization. Solo entrants count as one-person teams.
 
 Status and aggregate leaderboard scores remain visible; execution logs, prediction files and scoring-step output are hidden. See the [Submission Guide](participate.md) for local validation and the [Participation rules](terms.md) for the full policy.
 

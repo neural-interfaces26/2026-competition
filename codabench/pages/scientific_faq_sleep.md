@@ -6,6 +6,25 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 and active phase configuration are the executable references. Packaging and
 upload instructions are in **Get Started → Submission Guide**.
 
+## Sealed evaluation update · November 13
+
+### Which submissions are being rescored?
+
+Following a technical update of the Track 03 sealed evaluation, all
+previously Finished Track 03 sealed submissions are rerun automatically in
+place. Reruns keep the same submission IDs and use no additional quota; the
+leaderboard is updated as they finish. To compensate for this interruption,
+all Track 03 teams receive **2 additional sealed submissions** (from 5 to 7
+per team, with the 1-per-day limit unchanged). Warm-up results and the other
+tracks are unaffected.
+
+### May a model use regularities of the recordings instead of the EEG?
+
+No. Predictions must come from the EEG. Exploiting regularities of how the
+recordings were annotated or packaged is not allowed and is checked during the
+reproducibility audit. Adapting within a recording, including using the time
+elapsed since the recording's first window, remains allowed.
+
 ## Sealed evaluation
 
 ### How does the sealed phase differ from the completed warm-up?
@@ -70,13 +89,12 @@ current and previous windows of its current recording.
 
 ### Where does a stream start and end?
 
-Sealed evaluation starts at the beginning of each selected recording and
-stops at first N2. There is no shuffling within a recording:
-windows arrive one at a time in strict chronological order. There is no random
-stream start and no post-onset window. The order of independent recordings is
-not exposed as a model signal; the recording duration and future endpoint are
-also not passed to the model. The source settings are visible in the
-[NeuralBench config](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/_sleep_onset_stream/config.yaml).
+Each sealed stream covers the part of one selected recording that precedes
+first N2. There is no shuffling within a recording: windows arrive one at a
+time in strict chronological order, and no post-onset window is shown. The
+order of independent recordings is not exposed as a model signal; the
+recording duration and future endpoint are also not passed to the model. The
+public warm-up settings are visible in the [NeuralBench config](https://github.com/facebookresearch/neuroai/blob/v0.4.0/neuralbench-repo/neuralbench/tasks/eeg/_sleep_onset_stream/config.yaml).
 
 ### How is a new recording signaled, and may a model retain state?
 
