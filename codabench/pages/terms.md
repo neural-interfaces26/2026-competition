@@ -39,7 +39,7 @@ Training data is suggested to stay within the track. Public datasets may be used
 
 ## Rule 5: Training compute is uncapped. Evaluation is limited to 60 minutes on one GPU
 
-Train on whatever you have. The evaluation container must complete its test pass within 60 minutes on one A100 GPU. Evaluations that exceed this execution limit time out.
+Train on whatever you have. The evaluation container must complete its test pass within 60 minutes on one A100 GPU. Evaluations that exceed this execution limit time out. Track 01 sealed evaluations run on RTX PRO 4500 GPUs, which are slower than an A100, so their limit is 2 hours.
 
 Codabench limits each profile to 15 GB of submission storage shared across all tracks and uploads. This makes 15 GB the theoretical maximum for one submission, but the practical limit is the space remaining in the profile. Participants may delete unused archived submissions under **Profile → Resources**, but a submission displayed on a leaderboard cannot be deleted.
 
