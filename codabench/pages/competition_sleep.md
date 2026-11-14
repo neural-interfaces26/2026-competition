@@ -1,6 +1,6 @@
 # Track 03 · Sealed evaluation update
 
-> **Automatic rescoring in progress (+2 extra submissions).** Following a technical update of the Track 03 sealed evaluation on November 13, all previously Finished Track 03 sealed submissions are being rerun automatically without using additional submission quota; the leaderboard updates as they finish. To compensate for this interruption, the Track 03 total sealed allowance has been increased by **2 extra submissions** (from **5 to 7 total submissions** per team; the 1-per-day limit is unchanged). Read the [Scientific FAQ](scientific_faq_sleep.md#which-submissions-are-being-rescored).
+> **Automatic rescoring completed (+2 extra submissions).** Following a technical update of the Track 03 sealed evaluation on November 13, all previously Finished Track 03 sealed submissions have been rerun automatically without using additional submission quota, and the leaderboard now reflects the updated scores. To compensate for this interruption, the Track 03 total sealed allowance has been increased by **2 extra submissions** (from **5 to 7 total submissions** per team; the 1-per-day limit is unchanged). Read the [Scientific FAQ](scientific_faq_sleep.md#which-submissions-are-being-rescored).
 
 # Get ready for the sealed final
 

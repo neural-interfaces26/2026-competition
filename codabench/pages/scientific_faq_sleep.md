@@ -11,9 +11,9 @@ upload instructions are in **Get Started → Submission Guide**.
 ### Which submissions are being rescored?
 
 Following a technical update of the Track 03 sealed evaluation, all
-previously Finished Track 03 sealed submissions are rerun automatically in
-place. Reruns keep the same submission IDs and use no additional quota; the
-leaderboard is updated as they finish. To compensate for this interruption,
+previously Finished Track 03 sealed submissions were rerun automatically in
+place. Reruns kept the same submission IDs and used no additional quota, and the
+leaderboard now reflects the updated scores. To compensate for this interruption,
 all Track 03 teams receive **2 additional sealed submissions** (from 5 to 7
 per team, with the 1-per-day limit unchanged). Warm-up results and the other
 tracks are unaffected.
