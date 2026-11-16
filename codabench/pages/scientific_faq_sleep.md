@@ -6,6 +6,19 @@ public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/
 and active phase configuration are the executable references. Packaging and
 upload instructions are in **Get Started → Submission Guide**.
 
+## Sealed evaluation update · November 16
+
+### What changed on November 16?
+
+The opening minutes of each sealed recording, while the headband is still
+settling, are no longer part of the sealed evaluation, because they reflected
+how recordings were prepared rather than sleep. All previously Finished Track 03
+sealed submissions are being rerun automatically in place, with the same
+submission IDs and no additional quota. To compensate, all Track 03 teams receive
+**2 more sealed submissions** (from 7 to 9 per team, with the 1-per-day limit
+unchanged). Time elapsed since the first delivered window remains an allowed
+input, measured from the first window the model receives.
+
 ## Sealed evaluation update · November 13
 
 ### Which submissions are being rescored?
