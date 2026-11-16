@@ -11,12 +11,13 @@ upload instructions are in **Get Started → Submission Guide**.
 ### What changed on November 16?
 
 The opening minutes of each sealed recording, while the headband is still
-settling, are no longer part of the sealed evaluation, because they reflected
-how recordings were prepared rather than sleep. All previously Finished Track 03
-sealed submissions are being rerun automatically in place, with the same
-submission IDs and no additional quota. To compensate, all Track 03 teams receive
-**2 more sealed submissions** (from 7 to 9 per team, with the 1-per-day limit
-unchanged). Time elapsed since the first delivered window remains an allowed
+settling, are no longer delivered to the model, because they reflected how
+recordings were prepared rather than sleep. All previously Finished Track 03
+sealed submissions were rerun automatically in place, with the same submission
+IDs and no additional quota, and the leaderboard reflects the final scores for
+this update. No further change to the Track 03 sealed data is planned. The
+Track 03 sealed limits are now **2 submissions per team per day** and **12 in
+total**. Time elapsed since the first delivered window remains an allowed
 input, measured from the first window the model receives.
 
 ## Sealed evaluation update · November 13
