@@ -16,7 +16,7 @@ recordings were prepared rather than sleep. All previously Finished Track 03
 sealed submissions were rerun automatically in place, with the same submission
 IDs and no additional quota, and the leaderboard reflects the final scores for
 this update. No further change to the Track 03 sealed data is planned. The
-Track 03 sealed limits are now **2 submissions per team per day** and **12 in
+Track 03 sealed limits are now **3 submissions per team per day** and **12 in
 total**. Time elapsed since the first delivered window remains an allowed
 input, measured from the first window the model receives.
 
