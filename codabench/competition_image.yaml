@@ -71,12 +71,12 @@ phases:
     name: Sealed Final Phase
     description: 'Sealed final phase: at most five submissions per team
       for this track, shared by all members, with at most one per day.
-      The best eligible score from you or your team
-      is automatically displayed and retained for the final ranking;
-      the top three teams undergo a reproducibility audit.'
+      Codabench automatically displays the best eligible score for each participant.
+      The best eligible score across the team is retained for the final ranking.
+      The top three teams undergo a reproducibility audit.'
     start: 2026-11-04 23:01:00
     end: 2026-11-21 22:59:00
-    execution_time_limit: 7200  # RTX PRO 4500 workers: 60 min on one A100 (Terms Rule 5)
+    execution_time_limit: 7200  # Track 01: 120 minutes on one RTX PRO 4500 (Terms Rule 5)
     max_submissions_per_day: 1
     max_submissions: 5
     # Sealed: aggregate scores stay visible; execution logs and

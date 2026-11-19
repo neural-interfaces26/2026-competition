@@ -37,9 +37,11 @@ Only the **best eligible sealed score** from you or your team is retained for th
 
 Training data is suggested to stay within the track. Public datasets may be used when their original terms permit competition use. This includes NSRR datasets under an active licence, as clarified in the [Track 03 Scientific FAQ](scientific_faq_sleep.md#may-nsrr-or-other-public-sleep-datasets-be-used). The sealed test split and non-permitted closed clinical datasets are not allowed. Original dataset and model licences remain in force. Declare every external corpus, and a compute estimate, in the method description that ships with your final submission -- the audit cross-checks it against a rerun of your submitted training pipeline and declared configuration.
 
-## Rule 5: Training compute is uncapped. Evaluation is limited to 60 minutes on one GPU
+## Rule 5: Training compute is uncapped. Evaluation uses track-specific GPU limits
 
-Train on whatever you have. The evaluation container must complete its test pass within 60 minutes on one A100 GPU. Evaluations that exceed this execution limit time out. Track 01 sealed evaluations run on RTX PRO 4500 GPUs, which are slower than an A100, so their limit is 2 hours.
+Sealed evaluations run on one NVIDIA RTX PRO 4500 GPU. The configured execution budget is **120 minutes for Track 01** and **60 minutes for Tracks 02–04**. Evaluations that exceed their execution limit time out.
+
+The overall worker-task timeout is 20 minutes longer, so a timed-out attempt may remain `Running` until 140 minutes in Track 01 or 80 minutes in Tracks 02–04. This does not increase the configured execution budget. Queueing time is separate. Please leave queued or running submissions intact for automatic monitoring and recovery.
 
 Codabench limits each profile to 15 GB of submission storage shared across all tracks and uploads. This makes 15 GB the theoretical maximum for one submission, but the practical limit is the space remaining in the profile. Participants may delete unused archived submissions under **Profile → Resources**, but a submission displayed on a leaderboard cannot be deleted.
 

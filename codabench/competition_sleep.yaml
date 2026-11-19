@@ -74,9 +74,9 @@ phases:
     name: Sealed Final Phase
     description: "Sealed final phase: at most twelve submissions per team
       for this track, shared by all members, with at most three per day.
-      The best eligible score from you or your team
-      is automatically displayed and retained for the final ranking;
-      the top three teams undergo a reproducibility audit."
+      Codabench automatically displays the best eligible score for each participant.
+      The best eligible score across the team is retained for the final ranking.
+      The top three teams undergo a reproducibility audit."
     start: 2026-11-04 23:01:00
     end: 2026-11-21 22:59:00
     execution_time_limit: 3600
