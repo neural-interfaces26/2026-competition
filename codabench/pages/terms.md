@@ -1,26 +1,28 @@
 # Participation rules
 
+> **Sealed submissions are closed.** Thank you to everyone who participated. On-time submissions may finish evaluation after closure. Rankings remain provisional until the reproducibility audit. Winners will be celebrated at the Brain and Body Workshop at NeurIPS 2026 in Sydney on December 11–12. See the [Timeline](timeline.md).
+
 ## Rule 1: Anyone can enter. Organisers cannot win prizes
 
 Industry, academia, students, independents - all eligible, and cross-institution teams are encouraged. Organisers and their direct team members may submit, but their entries appear as Organizers on the leaderboard and are ineligible for cash prizes.
 
 ## Rule 2: One team may enter all four tracks
 
-Each participant submits through their own Codabench account. During the sealed phase, all members of a team share one submission quota per track through their Codabench organization. Solo participants count as one-person teams. See [automatic leaderboard selection](#which-submission-appears-on-the-leaderboard-and-counts-for-the-final-ranking).
+Each participant submitted through their own Codabench account. During the sealed phase, all members of a team shared one submission quota per track through their Codabench organization. Solo participants count as one-person teams. See [automatic leaderboard selection](#which-submission-appears-on-the-leaderboard-and-counts-for-the-final-ranking).
 
-## Rule 3: How many submissions can I make?
+## Rule 3: Submissions closed · historical limits
 
-The sealed quota is **shared by all members of each team (Codabench organization), per track**. Solo entrants count as one-person teams:
+**No new submissions are accepted.** The historical sealed quota was shared by all members of each team (Codabench organization), per track. Solo participants count as one-person teams:
 
-- **Sealed:** **5 submissions total per team per track** (**7 submissions total in Track 02** and **12 in Track 03** following the November 10, 13 and 16 technical updates) for the entire phase, with at most **1 submission per team per day per track** (**3 per day in Track 03**).
+- **Completed sealed phase:** **5 submissions total per team per track** (**7 submissions total in Track 02** and **12 in Track 03** following the November 10, 13 and 16 technical updates). Daily limits were raised to match these totals for the final days.
 
-The five-submission sealed cap limits repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
+The sealed cap limited repeated tuning against hidden test data. Sealed evaluation measures generalization, not blind trial-and-error optimization on the test set.
 
-Warm-up closed Sunday, November 1 at 23:59 CET (UTC+01:00). Registration closed for all four tracks. The sealed final deadline is Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). Check your track’s Phases tab for its submission schedule. See the [Timeline](timeline.md) for the full schedule.
+Warm-up closed November 1. Registration closed for all four tracks. Sealed submissions closed Saturday, November 21 at 23:59 CET (UTC+01:00, Europe/Paris). On-time submissions may finish evaluation afterwards. See the [Timeline](timeline.md) for the audit and winners’ ceremony.
 
 ### What counts as a submission in my quota?
 
-Sealed limits are shared by all members of your team, per track. Each ZIP accepted for evaluation is a submission, even if you upload the same model again. Both the daily and total limits follow these rules:
+For interpreting the completed submission history, limits were shared by all members of your team, per track. Each ZIP accepted for evaluation is a submission, even if you upload the same model again. The counting rules remain:
 
 - **Queued or running:** reserves a quota slot. A submission with final status `Failed` does not count.
 - **Finished or cancelled by you:** counts as one submission.
@@ -51,7 +53,7 @@ Any attempt to cheat, including but not limited to using non-permitted clinical 
 
 ## Rule 7: The top three per track must replay within ±2σ
 
-After the sealed final closes on Nov 21, 2026 at 23:59 CET (UTC+01:00), the top three teams in every track go through a reproducibility audit during Nov 22–30: we rerun your training pipeline from the committed configuration and rescore the resulting weights against the sealed split. Scores within ±2σ of your submitted number stay on the prize roster; scores outside the tolerance drop off the prize roster but remain on the public board for context. The organizing committee will chair the audit.
+With sealed submissions now closed, the top three teams in every track go through a reproducibility audit during Nov 22–30: we rerun your training pipeline from the committed configuration and rescore the resulting weights against the sealed split. Scores within ±2σ of your submitted number stay on the prize roster; scores outside the tolerance drop off the prize roster but remain on the public board for context. The organizing committee will chair the audit.
 
 ## Rule 8: Reproducible top teams will be announced during the NeurIPS workshop
 
@@ -63,7 +65,7 @@ Participants retain the intellectual property rights they hold in their submitte
 
 ## Sealed-phase feedback
 
-Submission status and aggregate leaderboard scores remain visible. Execution logs, prediction files and scoring-step output are hidden during the sealed phase. Validate your ZIP locally before submitting; sealed logs are not available for debugging. See the [Submission Guide](participate.md) for local validation.
+Submission status and aggregate leaderboard scores remain visible while on-time evaluations finish. Execution logs, prediction files and scoring-step output remain hidden after closure. Please do not cancel or delete queued or running attempts. Organizers continue monitoring and recovering platform incidents. The [Submission Guide](participate.md) remains available for public-data replay and audit preparation.
 
 ## Reference baseline performance
 

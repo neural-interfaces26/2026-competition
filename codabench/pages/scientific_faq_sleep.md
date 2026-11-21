@@ -1,10 +1,11 @@
 # Scientific FAQ · Track 03
 
+> **Sealed submissions are closed.** This FAQ retains the scientific evaluation protocol for result interpretation and the reproducibility audit. On-time evaluations may still finish, and rankings remain provisional. See the [Timeline](timeline.md) for the audit and winners’ ceremony.
+
 This page answers recurring scientific questions about the model-facing
 contract. The **Track description** defines the phase specifications; the
 public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/sleep_onset/objective.py)
-and active phase configuration are the executable references. Packaging and
-upload instructions are in **Get Started → Submission Guide**.
+and sealed phase configuration are the executable references. The archived packaging contract and local replay instructions are in **Get Started → Submission Guide**.
 
 ## Sealed evaluation update · November 16
 
@@ -16,8 +17,8 @@ recordings were prepared rather than sleep. All previously Finished Track 03
 sealed submissions were rerun automatically in place, with the same submission
 IDs and no additional quota, and the leaderboard reflects the final scores for
 this update. No further change to the Track 03 sealed data is planned. The
-Track 03 sealed limits are now **3 submissions per team per day** and **12 in
-total**. Time elapsed since the first delivered window remains an allowed
+Track 03 total sealed allowance was increased to **12 submissions per team**.
+Daily limits were later raised for the final days, and submissions are now closed. Time elapsed since the first delivered window remains an allowed
 input, measured from the first window the model receives.
 
 ## Sealed evaluation update · November 13

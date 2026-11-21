@@ -1,15 +1,12 @@
-# How to submit your model
+# Submission format and local replay · archived guide
 
-> Select **Sealed Final Phase** and check your track’s Phases tab for its
-> submission schedule. Execution logs, predictions and
-> scoring output are hidden. Reproduce failures locally with the
-> [Benchopt replay workflow](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md#optional-local-replay)
-> or the [worker-image replay](https://github.com/neural-interfaces26/2026-competition/blob/main/tools/README.md#worker-image-replay)
-> on public data. These checks expose local logs, not the hidden evaluation data.
+> **Sealed submissions are closed.** Thank you to everyone who participated. No new uploads are accepted. Submissions uploaded with an ID before November 21 at 23:59 CET (UTC+01:00), 2026 may start and finish evaluation after the deadline. Please do not cancel or delete them. Rankings remain provisional until the reproducibility audit. See the [Timeline](timeline.md) for the audit and winners’ ceremony.
+>
+> The guide below retains the original packaging contract and public-data replay workflows for research and audit preparation. It does not reopen submissions. Sealed execution logs, predictions and scoring output remain hidden. Use the [Benchopt replay workflow](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/README.md#optional-local-replay) or [worker-image replay](https://github.com/neural-interfaces26/2026-competition/blob/main/tools/README.md#worker-image-replay) to inspect local logs on public data.
 
-## Submission rules
+## Archived submission contract
 
-Upload a **fully trained model as a ZIP** through the **My Submissions** tab.
+The competition accepted fully trained models as ZIP files through the **My Submissions** tab.
 Codabench will mount the extracted files as read-only, run the model in inference
 mode, compute the track metric, and publish the score. It does not run
 your training pipeline.
@@ -58,7 +55,7 @@ wrapper.
 
 ---
 
-## Submit in five steps
+## Original packaging workflow · archived reference
 
 1. **Train and validate locally** with a NeuralBench start kit, the Benchopt
    competition kit, both, or your own pipeline. Save the trained weights. The
@@ -87,9 +84,7 @@ wrapper.
    See [Test your submission locally](#test-your-submission-locally) for
    what this does and does not cover.
 
-5. **Upload.** In **My Submissions**, select the active phase, upload the
-   ZIP, and wait for **Finished**. Sealed execution logs are hidden. Use the first error in your local
-   replay logs to debug a failure.
+5. **Review the existing submission.** New uploads are closed. Use **My Submissions** for the status of an on-time attempt and **Results** for its score. Finalists will receive instructions for providing audit materials.
 
 ---
 
@@ -267,7 +262,7 @@ included or custom models directly against the executable competition and can
 export the submission. You may combine them or use your own pipeline. Every
 route ends with the same self-contained `submission.py` plus weights.
 
-### Practice 1: Check the platform with a constant baseline
+### Practice 1: Replay a constant baseline locally
 
 Start with the dependency-light floor for your track:
 
@@ -276,12 +271,11 @@ Start with the dependency-light floor for your track:
 - Track 03: `median_baseline.py`
 - Track 04: `mean_pose.py`
 
-Copy the selected file to `submission.py`, place it at the root of a ZIP,
-and upload it through **My Submissions**. A successful run confirms ZIP
-ingestion, inference, scoring, and leaderboard publication before you package
-your own model. Without weights, these examples deliberately return a trivial
-constant prediction. Train them through Practice 2 to save and reload a fitted
-floor instead.
+Copy the selected file to `submission.py` and run it locally using the replay
+workflows above. This checks the inference and scoring contract on public data;
+new Codabench uploads are closed. Without weights, these examples deliberately
+return a trivial constant prediction. Train them through Practice 2 to save and
+reload a fitted floor instead.
 
 ### Practice 2: Train and package with Benchopt
 
@@ -371,8 +365,8 @@ fit the real task. Use `tools/debug_submission.py` for an uploadable synthetic
 workflow check, or train on a real study for a meaningful model.
 
 For a solver implementing `save_model`, the training run writes a
-ready-to-upload submission folder (`submission.py` plus its weights). Zip its
-contents, not the enclosing folder, to upload:
+submission folder (`submission.py` plus its weights) for local replay. When
+reconstructing a ZIP for the audit, use its contents rather than the enclosing folder:
 
 ```text
 tracks/<track>/outputs/<model-name>/

@@ -1,9 +1,11 @@
 # Scientific FAQ · Track 01
 
+> **Sealed submissions are closed.** This FAQ retains the scientific evaluation protocol for result interpretation and the reproducibility audit. On-time evaluations may still finish, and rankings remain provisional. See the [Timeline](timeline.md) for the audit and winners’ ceremony.
+
 This page answers recurring scientific questions about the model-facing
 contract. The **Track description** defines the phase specifications; the
 public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/image_decoding/objective.py)
-is the executable scoring reference. Packaging and upload instructions are in
+is the executable scoring reference. The archived packaging contract and local replay instructions are in
 **Get Started → Submission Guide**.
 
 ## Sealed evaluation

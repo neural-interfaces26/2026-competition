@@ -1,10 +1,11 @@
 # Scientific FAQ · Track 02
 
+> **Sealed submissions are closed.** This FAQ retains the scientific evaluation protocol for result interpretation and the reproducibility audit. On-time evaluations may still finish, and rankings remain provisional. See the [Timeline](timeline.md) for the audit and winners’ ceremony.
+
 This page answers recurring scientific questions about the model-facing
 contract. The **Track description** defines the phase specifications; the
 public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/bci_decoding/objective.py)
-and active phase configuration are the executable references. Packaging and
-upload instructions are in **Get Started → Submission Guide**.
+and sealed phase configuration are the executable references. The archived packaging contract and local replay instructions are in **Get Started → Submission Guide**.
 
 ## Sealed evaluation update · November 10
 
@@ -14,9 +15,9 @@ Following a technical fix on the Track 02 sealed evaluation backend, all
 previously Finished Track 02 sealed submissions were rerun automatically in
 place. These reruns kept the same submission IDs, used no additional quota, and
 the leaderboard now reflects the updated scores. To compensate for this
-interruption, all Track 02 teams receive **2 additional sealed submissions**
-(increasing the Track 02 total sealed limit from 5 to 7 submissions per team,
-with the 1-per-day limit unchanged). Warm-up results and the other tracks are
+interruption, the Track 02 total sealed allowance was increased from 5 to
+**7 submissions per team**. Daily limits were later raised for the final days,
+and submissions are now closed. Warm-up results and the other tracks are
 unaffected.
 
 ## Sealed evaluation

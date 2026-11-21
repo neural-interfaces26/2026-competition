@@ -1,10 +1,12 @@
 # Scientific FAQ · Track 04
 
+> **Sealed submissions are closed.** This FAQ retains the scientific evaluation protocol for result interpretation and the reproducibility audit. On-time evaluations may still finish, and rankings remain provisional. See the [Timeline](timeline.md) for the audit and winners’ ceremony.
+
 This page answers recurring scientific questions about the model-facing
 contract. The **Track description** defines the phase specifications; the
 public [`objective.py`](https://github.com/neural-interfaces26/2026-competition/blob/main/tracks/emg_pose/objective.py)
-and active phase configuration describe the public-data implementation.
-Packaging and upload instructions are in **Get Started → Submission Guide**.
+and sealed phase configuration describe the public-data implementation.
+The archived packaging contract and local replay instructions are in **Get Started → Submission Guide**.
 
 ## Sealed evaluation
 
